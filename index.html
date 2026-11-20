@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="es" data-bg="white" data-style="leaf">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Inasistencias</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS (xlsx) para importar y exportar archivos Excel reales -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       SISTEMA DE TEMAS DINÁMICOS (Fondo: Blanco/Negro × Estilo: Verde hoja/Otoño)
+       ========================================================================== */
+    :root {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      --transition-speed: 0.22s;
+    }
+
+    /* 1. Blanco + Verde hoja */
+    html[data-bg="white"][data-style="leaf"] {
+      --bg-app: #f4f7f5;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #edf3ef;
+      --bg-hover: #e3ede6;
+      --text-primary: #132218;
+      --text-secondary: #486150;
+      --text-muted: #6f8777;
+      --border-color: #d5e2d9;
+      --accent: #16a34a;
+      --accent-hover: #15803d;
+      --accent-soft: #dcfce7;
+      --accent-text: #14532d;
+      --bar-1: #16a34a;
+      --bar-2: #0d9488;
+      --bar-3: #65a30d;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --danger-text: #991b1b;
+      --warning-bg: #fef3c7;
+      --warning-border: #f59e0b;
+      --warning-text: #92400e;
+      --shadow-card: 0 2px 10px rgba(19, 34, 24, 0.05);
+      --shadow-modal: 0 20px 35px rgba(19, 34, 24, 0.18);
+    }
+
+    /* 2. Negro + Verde hoja */
+    html[data-bg="black"][data-style="leaf"] {
+      --bg-app: #090d0b;
+      --bg-surface: #121915;
+      --bg-surface-alt: #1a241e;
+      --bg-hover: #223027;
+      --text-primary: #f0f7f2;
+      --text-secondary: #a7c0b0;
+      --text-muted: #738f7d;
+      --border-color: #26362c;
+      --accent: #22c55e;
+      --accent-hover: #16a34a;
+      --accent-soft: rgba(34, 197, 94, 0.16);
+      --accent-text: #86efac;
+      --bar-1: #22c55e;
+      --bar-2: #2dd4bf;
+      --bar-3: #a3e635;
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.18);
+      --danger-text: #fca5a5;
+      --warning-bg: rgba(245, 158, 11, 0.16);
+      --warning-border: #d97706;
+      --warning-text: #fcd34d;
+      --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.35);
+      --shadow-modal: 0 24px 45px rgba(0, 0, 0, 0.65);
+    }
+
+    /* 3. Blanco + Otoño */
+    html[data-bg="white"][data-style="autumn"] {
+      --bg-app: #fbf8f4;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f5ede3;
+      --bg-hover: #ede0d1;
+      --text-primary: #27170c;
+      --text-secondary: #684b36;
+      --text-muted: #8f7058;
+      --border-color: #e6d6c5;
+      --accent: #c2410c;
+      --accent-hover: #9a3412;
+      --accent-soft: #ffedd5;
+      --accent-text: #7c2d12;
+      --bar-1: #c2410c;
+      --bar-2: #d97706;
+      --bar-3: #b45309;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --danger-text: #991b1b;
+      --warning-bg: #fef3c7;
+      --warning-border: #d97706;
+      --warning-text: #78350f;
+      --shadow-card: 0 2px 10px rgba(39, 23, 12, 0.05);
+      --shadow-modal: 0 20px 35px rgba(39, 23, 12, 0.18);
+    }
+
+    /* 4. Negro + Otoño */
+    html[data-bg="black"][data-style="autumn"] {
+      --bg-app: #0e0a07;
+      --bg-surface: #18110c;
+      --bg-surface-alt: #241912;
+      --bg-hover: #302218;
+      --text-primary: #fbf3ec;
+      --text-secondary: #cbb39f;
+      --text-muted: #937a66;
+      --border-color: #38281d;
+      --accent: #f97316;
+      --accent-hover: #ea580c;
+      --accent-soft: rgba(249, 115, 22, 0.18);
+      --accent-text: #fdba74;
+      --bar-1: #f97316;
+      --bar-2: #fbbf24;
+      --bar-3: #fb7185;
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.18);
+      --danger-text: #fca5a5;
+      --warning-bg: rgba(245, 158, 11, 0.16);
+      --warning-border: #d97706;
+      --warning-text: #fde68a;
+      --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.4);
+      --shadow-modal: 0 24px 45px rgba(0, 0, 0, 0.7);
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+      overflow-x: hidden;
+    }
+
+    .theme-surface {
+      background-color: var(--bg-surface);
+      border-color: var(--border-color);
+      box-shadow: var(--shadow-card);
+      transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+    }
+
+    .theme-surface-alt {
+      background-color: var(--bg-surface-alt);
+      border-color: var(--border-color);
+    }
+
+    .theme-hover:hover {
+      background-color: var(--bg-hover);
+    }
+
+    .theme-text-secondary {
+      color: var(--text-secondary);
+    }
+
+    .theme-text-muted {
+      color: var(--text-muted);
+    }
+
+    .theme-border {
+      border-color: var(--border-color);
+    }
+
+    .theme-accent-bg {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .theme-accent-bg:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+    }
+
+    .theme-accent-soft {
+      background-color: var(--accent-soft);
+      color: var(--accent-text);
+    }
+
+    .theme-input {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .theme-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    /* Color scheme hint for native date picker */
+    html[data-bg="black"] input[type="date"] {
+      color-scheme: dark;
+    }
+    html[data-bg="white"] input[type="date"] {
+      color-scheme: light;
+    }
+
+    /* Animación suave de barras */
+    .chart-bar-fill {
+      transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease;
+    }
+
+    /* Toast notification animation */
+    @keyframes slideUpFade {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .toast-enter {
+      animation: slideUpFade 0.25s ease forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:opacity-90">
+
+  <!-- ========================================================================
+       ENCABEZADO SUPERIOR FIJO Y NAVEGACIÓN DE 3 PESTAÑAS
+       ======================================================================== -->
+  <header class="sticky top-0 z-30 theme-surface border-b">
+    <div class="max-w-4xl mx-auto px-4 pt-3 pb-2">
+      <!-- Fila Superior: Título y Menú de Tres Puntos -->
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl theme-accent-bg flex items-center justify-center shrink-0 shadow-sm">
+            <!-- Icono Lista/Asistencia SVG -->
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </div>
+          <div class="truncate">
+            <h1 class="text-lg sm:text-xl font-bold tracking-tight truncate">Sistema de Inasistencias</h1>
+            <p class="text-xs theme-text-muted hidden sm:block">Control por grupo, fecha e historial</p>
+          </div>
+        </div>
+
+        <!-- Botón Menú de Tres Puntos (⋮) -->
+        <div class="relative shrink-0" id="menuContainer">
+          <button
+            id="menuToggleBtn"
+            type="button"
+            aria-label="Opciones del sistema"
+            aria-expanded="false"
+            class="w-11 h-11 rounded-xl flex items-center justify-center theme-hover border theme-border transition active:scale-95"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="5" r="2" />
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="12" cy="19" r="2" />
+            </svg>
+          </button>
+
+          <!-- Dropdown de Tres Puntos -->
+          <div
+            id="threeDotsDropdown"
+            class="hidden absolute right-0 mt-2 w-60 rounded-2xl theme-surface border py-1.5 z-50"
+            style="box-shadow: var(--shadow-modal);"
+          >
+            <button type="button" data-menu-action="export" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Exportar a Excel</span>
+            </button>
+
+            <button type="button" data-menu-action="import" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span>Importar de Excel</span>
+            </button>
+
+            <button type="button" data-menu-action="themes" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+              <span>Opciones de temas</span>
+            </button>
+
+            <div class="my-1 border-t theme-border"></div>
+
+            <button type="button" data-menu-action="delete" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition" style="color: var(--danger);">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>Eliminar</span>
+            </button>
+
+            <div class="my-1 border-t theme-border"></div>
+
+            <button type="button" data-menu-action="about" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition">
+              <svg class="w-4 h-4 shrink-0 theme-text-secondary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Acerca de</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Navegación con 3 Pestañas Principales -->
+      <nav class="grid grid-cols-3 gap-1.5 mt-3 p-1 rounded-xl theme-surface-alt border" aria-label="Navegación principal">
+        <button
+          type="button"
+          data-tab="registro"
+          class="nav-tab-btn py-2.5 px-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span>Registro</span>
+        </button>
+
+        <button
+          type="button"
+          data-tab="datos"
+          class="nav-tab-btn py-2.5 px-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span class="truncate">Datos de inasistencia</span>
+        </button>
+
+        <button
+          type="button"
+          data-tab="grafica"
+          class="nav-tab-btn py-2.5 px-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <span>Gráfica</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       CONTENIDO PRINCIPAL (3 VISTAS)
+       ======================================================================== -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-5 pb-16">
+
+    <!-- ==================== PESTAÑA 1: REGISTRO ==================== -->
+    <section id="view-registro" class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 px-1">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold">Panel de Registro por Grupo</h2>
+          <p class="text-xs sm:text-sm theme-text-secondary">
+            <strong>Miembros 1 y 2:</strong> solo viernes &bull; <strong>Miembros 3:</strong> solo miércoles
+          </p>
+        </div>
+      </div>
+
+      <!-- Contenedor de Acordeones de Grupos -->
+      <div id="registroAccordionsContainer" class="space-y-3.5"></div>
+    </section>
+
+    <!-- ==================== PESTAÑA 2: DATOS DE INASISTENCIA ==================== -->
+    <section id="view-datos" class="hidden space-y-4">
+      <!-- Barra de Filtros -->
+      <div class="theme-surface border rounded-2xl p-4 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold">Historial y Consulta de Faltas</h2>
+            <p class="text-xs theme-text-secondary">Consulta por mes o acumulado y edita registros puntuales.</p>
+          </div>
+
+          <div class="w-full sm:w-64">
+            <label for="datosMonthFilter" class="block text-xs font-semibold theme-text-secondary mb-1">Filtrar por Mes y Año</label>
+            <select id="datosMonthFilter" class="w-full rounded-xl px-3 py-2.5 text-sm font-medium theme-input cursor-pointer"></select>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t theme-border flex items-center justify-between gap-2">
+          <label for="toggleZeroAbsences" class="text-xs sm:text-sm theme-text-secondary font-medium cursor-pointer select-none">
+            Mostrar también alumnos con 0 faltas en el período
+          </label>
+          <input
+            id="toggleZeroAbsences"
+            type="checkbox"
+            class="w-5 h-5 rounded accent-current cursor-pointer"
+            style="accent-color: var(--accent);"
+          />
+        </div>
+      </div>
+
+      <!-- Acordeones de Resultados por Grupo -->
+      <div id="datosAccordionsContainer" class="space-y-3.5"></div>
+    </section>
+
+    <!-- ==================== PESTAÑA 3: GRÁFICA ==================== -->
+    <section id="view-grafica" class="hidden space-y-4">
+      <!-- Filtro de Período para Gráfica -->
+      <div class="theme-surface border rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold">Porcentaje de Inasistencia por Grupo</h2>
+          <p class="text-xs theme-text-secondary">Comparativa porcentual (0% a 100%) de los tres grupos de clase.</p>
+        </div>
+
+        <div class="w-full sm:w-64">
+          <label for="graficaMonthFilter" class="block text-xs font-semibold theme-text-secondary mb-1">Período a graficar</label>
+          <select id="graficaMonthFilter" class="w-full rounded-xl px-3 py-2.5 text-sm font-medium theme-input cursor-pointer"></select>
+        </div>
+      </div>
+
+      <!-- Contenedor del Gráfico de Barras Vertical -->
+      <div class="theme-surface border rounded-2xl p-4 sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted">Porcentaje de Inasistencia (%)</span>
+          <span id="graficaPeriodBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full theme-accent-soft">Acumulado general</span>
+        </div>
+
+        <!-- Área del Gráfico de Barras -->
+        <div class="relative pt-8 pb-2 px-2 sm:px-6">
+          <!-- Líneas guía horizontales (100%, 75%, 50%, 25%, 0%) -->
+          <div class="relative h-64 sm:h-72 flex flex-col justify-between border-b theme-border">
+            <div class="w-full border-t border-dashed theme-border relative">
+              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">100%</span>
+            </div>
+            <div class="w-full border-t border-dashed theme-border relative">
+              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">75%</span>
+            </div>
+            <div class="w-full border-t border-dashed theme-border relative">
+              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">50%</span>
+            </div>
+            <div class="w-full border-t border-dashed theme-border relative">
+              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">25%</span>
+            </div>
+            <div class="w-full relative">
+              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">0%</span>
+            </div>
+
+            <!-- Columnas de Barras -->
+            <div id="chartBarsWrapper" class="absolute inset-0 pl-9 pr-2 grid grid-cols-3 gap-4 sm:gap-10 items-end">
+              <!-- Renderizado dinámico por JS -->
+            </div>
+          </div>
+
+          <!-- Etiquetas eje X -->
+          <div class="pl-9 pr-2 grid grid-cols-3 gap-4 sm:gap-10 pt-3 text-center">
+            <div>
+              <p class="text-xs sm:text-sm font-bold">Miembros 1</p>
+              <p class="text-[11px] theme-text-muted">Viernes</p>
+            </div>
+            <div>
+              <p class="text-xs sm:text-sm font-bold">Miembros 2</p>
+              <p class="text-[11px] theme-text-muted">Viernes</p>
+            </div>
+            <div>
+              <p class="text-xs sm:text-sm font-bold">Miembros 3</p>
+              <p class="text-[11px] theme-text-muted">Miércoles</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nota de fórmula -->
+        <div class="mt-4 pt-3 border-t theme-border text-xs theme-text-muted flex items-start gap-2">
+          <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Cálculo: (Total de inasistencias &divide; [Alumnos del grupo &times; Fechas de clase registradas]) &times; 100.</span>
+        </div>
+      </div>
+
+      <!-- 3 Tarjetas Resumen debajo del gráfico -->
+      <div id="graficaSummaryCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5"></div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       MODAL UNIVERSAL (Opciones de temas, Importar Excel, Editar Faltas, Eliminar, Acerca de, Confirmación)
+       ======================================================================== -->
+  <div
+    id="modalBackdrop"
+    class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4"
+  >
+    <div
+      id="modalPanel"
+      role="dialog"
+      aria-modal="true"
+      class="w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl theme-surface border max-h-[90vh] flex flex-col overflow-hidden"
+      style="box-shadow: var(--shadow-modal);"
+    >
+      <!-- Cabecera del Modal -->
+      <div class="px-5 py-4 border-b theme-border flex items-center justify-between gap-3">
+        <h3 id="modalTitle" class="text-base sm:text-lg font-bold">Título</h3>
+        <button
+          id="modalCloseBtn"
+          type="button"
+          aria-label="Cerrar ventana"
+          class="w-9 h-9 rounded-xl flex items-center justify-center theme-hover border theme-border transition"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Cuerpo del Modal -->
+      <div id="modalBody" class="p-5 overflow-y-auto space-y-4 text-sm"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       CONTENEDOR DE NOTIFICACIONES TOAST (Reemplaza alert())
+       ======================================================================== -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ========================================================================
+       LÓGICA DE LA APLICACIÓN (JAVASCRIPT)
+       ======================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ----------------------------------------------------------------------
+         1. CONSTANTES Y CONFIGURACIÓN DE GRUPOS
+         ---------------------------------------------------------------------- */
+      const STORAGE_KEY = 'sistema_inasistencias_orion_v1';
+
+      const GROUPS_CONFIG = [
+        { id: 'Miembros 1', requiredDay: 5, dayName: 'viernes', dayNameCap: 'Viernes', barVar: '--bar-1' },
+        { id: 'Miembros 2', requiredDay: 5, dayName: 'viernes', dayNameCap: 'Viernes', barVar: '--bar-2' },
+        { id: 'Miembros 3', requiredDay: 3, dayName: 'miércoles', dayNameCap: 'Miércoles', barVar: '--bar-3' }
+      ];
+
+      const SPANISH_DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const SPANISH_MONTHS = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+
+      /* ----------------------------------------------------------------------
+         2. UTILIDADES DE FECHA (SIN DESFASES DE ZONA HORARIA UTC)
+         ---------------------------------------------------------------------- */
+      function parseLocalDate(isoStr) {
+        if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return null;
+        const [y, m, d] = isoStr.split('-').map(Number);
+        return new Date(y, m - 1, d);
+      }
+
+      function formatLocalISO(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      function formatSpanishFullDate(isoStr) {
+        const d = parseLocalDate(isoStr);
+        if (!d) return 'Fecha inválida';
+        const dayName = SPANISH_DAYS[d.getDay()];
+        const dayNum = d.getDate();
+        const monthName = SPANISH_MONTHS[d.getMonth()].toLowerCase();
+        const year = d.getFullYear();
+        return `${dayName}, ${dayNum} de ${monthName} de ${year}`;
+      }
+
+      function formatShortChipDate(isoStr) {
+        const d = parseLocalDate(isoStr);
+        if (!d) return isoStr;
+        const shortDay = SPANISH_DAYS[d.getDay()].slice(0, 3);
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${shortDay} ${dd}/${mm}/${yyyy}`;
+      }
+
+      function formatMonthYearLabel(ym) {
+        if (ym === 'ALL') return 'Todos los meses (Acumulado general)';
+        const [y, m] = ym.split('-').map(Number);
+        return `${SPANISH_MONTHS[m - 1]} ${y}`;
+      }
+
+      function getGroupConfig(groupId) {
+        return GROUPS_CONFIG.find(g => g.id === groupId) || GROUPS_CONFIG[0];
+      }
+
+      function isDateValidForGroup(groupId, isoStr) {
+        const d = parseLocalDate(isoStr);
+        if (!d) return false;
+        const cfg = getGroupConfig(groupId);
+        return d.getDay() === cfg.requiredDay;
+      }
+
+      // Obtiene el día válido más reciente hacia atrás desde hoy (o desde una fecha base)
+      function getMostRecentValidDate(groupId, baseDate = new Date()) {
+        const cfg = getGroupConfig(groupId);
+        const probe = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+        for (let i = 0; i < 7; i++) {
+          if (probe.getDay() === cfg.requiredDay) {
+            return formatLocalISO(probe);
+          }
+          probe.setDate(probe.getDate() - 1);
+        }
+        return formatLocalISO(probe);
+      }
+
+      // Obtiene el día válido más cercano (hacia atrás o adelante) respecto a una fecha elegida
+      function getNearestValidDate(groupId, isoStr) {
+        const base = parseLocalDate(isoStr) || new Date();
+        const cfg = getGroupConfig(groupId);
+        if (base.getDay() === cfg.requiredDay) return formatLocalISO(base);
+
+        for (let offset = 1; offset <= 4; offset++) {
+          const prev = new Date(base.getFullYear(), base.getMonth(), base.getDate() - offset);
+          if (prev.getDay() === cfg.requiredDay) return formatLocalISO(prev);
+
+          const next = new Date(base.getFullYear(), base.getMonth(), base.getDate() + offset);
+          if (next.getDay() === cfg.requiredDay) return formatLocalISO(next);
+        }
+        return getMostRecentValidDate(groupId);
+      }
+
+      /* ----------------------------------------------------------------------
+         3. ESTADO GLOBAL Y PERSISTENCIA EN LOCALSTORAGE
+         ---------------------------------------------------------------------- */
+      function buildSampleData() {
+        // Genera fechas recientes válidas relativas a hoy para que la vista previa sea realista
+        const now = new Date();
+        const fri1 = getMostRecentValidDate('Miembros 1', now);
+        const fri1Date = parseLocalDate(fri1);
+        const fri0Date = new Date(fri1Date.getFullYear(), fri1Date.getMonth(), fri1Date.getDate() - 7);
+        const fri0 = formatLocalISO(fri0Date);
+
+        const wed1 = getMostRecentValidDate('Miembros 3', now);
+        const wed1Date = parseLocalDate(wed1);
+        const wed0Date = new Date(wed1Date.getFullYear(), wed1Date.getMonth(), wed1Date.getDate() - 7);
+        const wed0 = formatLocalISO(wed0Date);
+
+        return {
+          groups: {
+            'Miembros 1': ['Ana Sofía Mendoza', 'Carlos Eduardo Ríos', 'Valeria Torres', 'Diego Armando Vega', 'Lucía Fernández'],
+            'Miembros 2': ['Mateo Quispe', 'Camila Huamán', 'Sebastián Paredes', 'Isabella Rojas'],
+            'Miembros 3': ['Sofía Castillo', 'Alejandro Flores', 'Mariana Salazar', 'Gabriel Romero', 'Daniela Cruz']
+          },
+          records: {
+            [`Miembros 1__${fri0}`]: {
+              group: 'Miembros 1',
+              date: fri0,
+              absentees: ['Carlos Eduardo Ríos']
+            },
+            [`Miembros 1__${fri1}`]: {
+              group: 'Miembros 1',
+              date: fri1,
+              absentees: ['Carlos Eduardo Ríos', 'Diego Armando Vega']
+            },
+            [`Miembros 2__${fri1}`]: {
+              group: 'Miembros 2',
+              date: fri1,
+              absentees: ['Sebastián Paredes']
+            },
+            [`Miembros 3__${wed0}`]: {
+              group: 'Miembros 3',
+              date: wed0,
+              absentees: ['Alejandro Flores', 'Gabriel Romero']
+            },
+            [`Miembros 3__${wed1}`]: {
+              group: 'Miembros 3',
+              date: wed1,
+              absentees: ['Daniela Cruz']
+            }
+          }
+        };
+      }
+
+      function loadInitialState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            return {
+              theme: {
+                bg: parsed.theme?.bg === 'black' ? 'black' : 'white',
+                style: parsed.theme?.style === 'autumn' ? 'autumn' : 'leaf'
+              },
+              groups: {
+                'Miembros 1': Array.isArray(parsed.groups?.['Miembros 1']) ? parsed.groups['Miembros 1'] : [],
+                'Miembros 2': Array.isArray(parsed.groups?.['Miembros 2']) ? parsed.groups['Miembros 2'] : [],
+                'Miembros 3': Array.isArray(parsed.groups?.['Miembros 3']) ? parsed.groups['Miembros 3'] : []
+              },
+              records: parsed.records && typeof parsed.records === 'object' ? parsed.records : {}
+            };
+          }
+        } catch (err) {
+          console.error('Error leyendo localStorage:', err);
+        }
+
+        // Primera carga limpia: inicializar con datos de demostración listos para probar
+        const sample = buildSampleData();
+        const initial = {
+          theme: { bg: 'white', style: 'leaf' },
+          groups: sample.groups,
+          records: sample.records
+        };
+        saveStateToStorage(initial);
+        return initial;
+      }
+
+      function saveStateToStorage(targetState = appState) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(targetState));
+        } catch (err) {
+          showToast('No se pudo guardar en el almacenamiento local.', 'error');
+        }
+      }
+
+      let appState = loadInitialState();
+
+      // Estado efímero de la interfaz (pestaña activa, acordeones abiertos, fechas seleccionadas en Registro)
+      const uiState = {
+        activeTab: 'registro',
+        openRegistroAccordions: { 'Miembros 1': true, 'Miembros 2': false, 'Miembros 3': false },
+        openDatosAccordions: { 'Miembros 1': true, 'Miembros 2': true, 'Miembros 3': true },
+        selectedDates: {
+          'Miembros 1': getMostRecentValidDate('Miembros 1'),
+          'Miembros 2': getMostRecentValidDate('Miembros 2'),
+          'Miembros 3': getMostRecentValidDate('Miembros 3')
+        },
+        // Borrador de checkboxes marcados por grupo en la vista Registro
+        draftAbsentees: {
+          'Miembros 1': new Set(),
+          'Miembros 2': new Set(),
+          'Miembros 3': new Set()
+        },
+        datosFilterMonth: 'ALL',
+        datosShowZero: false,
+        graficaFilterMonth: 'ALL'
+      };
+
+      // Sincroniza el borrador de checkboxes de un grupo según la fecha seleccionada
+      function syncDraftFromSavedRecord(groupId) {
+        const dateStr = uiState.selectedDates[groupId];
+        const key = `${groupId}__${dateStr}`;
+        const existing = appState.records[key];
+        if (existing && Array.isArray(existing.absentees)) {
+          uiState.draftAbsentees[groupId] = new Set(existing.absentees);
+        } else {
+          uiState.draftAbsentees[groupId] = new Set();
+        }
+      }
+
+      GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
+
+      /* ----------------------------------------------------------------------
+         4. SISTEMA DE TEMAS EN TIEMPO REAL
+         ---------------------------------------------------------------------- */
+      function applyTheme() {
+        document.documentElement.setAttribute('data-bg', appState.theme.bg);
+        document.documentElement.setAttribute('data-style', appState.theme.style);
+      }
+
+      applyTheme();
+
+      /* ----------------------------------------------------------------------
+         5. NOTIFICACIONES TOAST (SIN ALERT)
+         ---------------------------------------------------------------------- */
+      function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast-enter pointer-events-auto rounded-2xl px-4 py-3 text-sm font-medium border flex items-center gap-3 shadow-lg';
+
+        if (type === 'error') {
+          toast.style.backgroundColor = 'var(--danger-soft)';
+          toast.style.borderColor = 'var(--danger)';
+          toast.style.color = 'var(--danger-text)';
+        } else if (type === 'warning') {
+          toast.style.backgroundColor = 'var(--warning-bg)';
+          toast.style.borderColor = 'var(--warning-border)';
+          toast.style.color = 'var(--warning-text)';
+        } else {
+          toast.style.backgroundColor = 'var(--bg-surface)';
+          toast.style.borderColor = 'var(--accent)';
+          toast.style.color = 'var(--text-primary)';
+        }
+
+        const iconSvg = type === 'error'
+          ? '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+          : '<svg class="w-5 h-5 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+
+        toast.innerHTML = `${iconSvg}<span class="flex-1">${escapeHTML(message)}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(8px)';
+          toast.style.transition = 'all 0.2s ease';
+          setTimeout(() => toast.remove(), 220);
+        }, 3200);
+      }
+
+      function escapeHTML(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      /* ----------------------------------------------------------------------
+         6. MODAL UNIVERSAL (REEMPLAZA CONFIRM / PROMPT / DIALOGS)
+         ---------------------------------------------------------------------- */
+      const modalBackdrop = document.getElementById('modalBackdrop');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalBody = document.getElementById('modalBody');
+      const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+      function openModal(title, contentHTML, onMountCallback) {
+        modalTitle.textContent = title;
+        modalBody.innerHTML = contentHTML;
+        modalBackdrop.classList.remove('hidden');
+        if (typeof onMountCallback === 'function') {
+          onMountCallback(modalBody);
+        }
+      }
+
+      function closeModal() {
+        modalBackdrop.classList.add('hidden');
+        modalBody.innerHTML = '';
+      }
+
+      modalCloseBtn.addEventListener('click', closeModal);
+      modalBackdrop.addEventListener('click', (e) => {
+        if (e.target === modalBackdrop) closeModal();
+      });
+
+      /* ----------------------------------------------------------------------
+         7. NAVEGACIÓN ENTRE LAS 3 PESTAÑAS
+         ---------------------------------------------------------------------- */
+      function switchTab(tabName) {
+        uiState.activeTab = tabName;
+
+        document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+          const isTarget = btn.dataset.tab === tabName;
+          if (isTarget) {
+            btn.classList.add('theme-accent-bg', 'shadow-xs');
+            btn.classList.remove('theme-text-secondary', 'theme-hover');
+          } else {
+            btn.classList.remove('theme-accent-bg', 'shadow-xs');
+            btn.classList.add('theme-text-secondary', 'theme-hover');
+          }
+        });
+
+        document.getElementById('view-registro').classList.toggle('hidden', tabName !== 'registro');
+        document.getElementById('view-datos').classList.toggle('hidden', tabName !== 'datos');
+        document.getElementById('view-grafica').classList.toggle('hidden', tabName !== 'grafica');
+
+        if (tabName === 'registro') renderRegistroView();
+        if (tabName === 'datos') renderDatosView();
+        if (tabName === 'grafica') renderGraficaView();
+      }
+
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      /* ----------------------------------------------------------------------
+         8. RENDERIZADO PESTAÑA 1: REGISTRO
+         ---------------------------------------------------------------------- */
+      function renderRegistroView() {
+        const container = document.getElementById('registroAccordionsContainer');
+        container.innerHTML = '';
+
+        GROUPS_CONFIG.forEach((cfg) => {
+          const groupId = cfg.id;
+          const students = appState.groups[groupId] || [];
+          const isOpen = !!uiState.openRegistroAccordions[groupId];
+          const selectedDate = uiState.selectedDates[groupId];
+          const isValidDay = isDateValidForGroup(groupId, selectedDate);
+          const recordKey = `${groupId}__${selectedDate}`;
+          const alreadySaved = Boolean(appState.records[recordKey]);
+          const draftSet = uiState.draftAbsentees[groupId];
+
+          const card = document.createElement('div');
+          card.className = 'theme-surface border rounded-2xl overflow-hidden';
+
+          // Cabecera del Acordeón
+          const headerBtn = document.createElement('button');
+          headerBtn.type = 'button';
+          headerBtn.className = 'w-full px-4 py-4 flex items-center justify-between gap-3 text-left theme-hover transition';
+          headerBtn.innerHTML = `
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-3 h-3 rounded-full shrink-0" style="background-color: var(${cfg.barVar});"></span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-bold text-base">${escapeHTML(groupId)}</span>
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full theme-accent-soft">Solo ${cfg.dayName}</span>
+                </div>
+                <p class="text-xs theme-text-muted mt-0.5">${students.length} ${students.length === 1 ? 'alumno inscrito' : 'alumnos inscritos'}</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 theme-text-secondary shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          `;
+          headerBtn.addEventListener('click', () => {
+            uiState.openRegistroAccordions[groupId] = !uiState.openRegistroAccordions[groupId];
+            renderRegistroView();
+          });
+          card.appendChild(headerBtn);
+
+          // Contenido desplegable del Acordeón
+          if (isOpen) {
+            const body = document.createElement('div');
+            body.className = 'px-4 pb-5 pt-2 border-t theme-border space-y-4';
+
+            // A) Formulario compacto para agregar nuevo alumno
+            const addForm = document.createElement('form');
+            addForm.className = 'flex gap-2';
+            addForm.innerHTML = `
+              <input
+                type="text"
+                placeholder="Agregar nombre de alumno a ${escapeHTML(groupId)}..."
+                class="flex-1 min-w-0 rounded-xl px-3.5 py-2.5 text-sm theme-input"
+                maxlength="60"
+              />
+              <button
+                type="submit"
+                class="px-4 py-2.5 rounded-xl text-sm font-semibold theme-accent-bg shrink-0 transition active:scale-95 flex items-center gap-1.5"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Agregar</span>
+              </button>
+            `;
+            addForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              const input = addForm.querySelector('input');
+              const name = input.value.trim();
+              if (!name) {
+                showToast('Escribe el nombre del alumno antes de agregar.', 'warning');
+                return;
+              }
+              const exists = appState.groups[groupId].some(s => s.toLowerCase() === name.toLowerCase());
+              if (exists) {
+                showToast('Ese alumno ya está registrado en este grupo.', 'warning');
+                return;
+              }
+              appState.groups[groupId].push(name);
+              saveStateToStorage();
+              showToast(`Alumno "${name}" agregado a ${groupId}.`);
+              renderRegistroView();
+            });
+            body.appendChild(addForm);
+
+            // B) Selector de Fecha con Restricción Estricta (Viernes / Miércoles)
+            const dateBox = document.createElement('div');
+            dateBox.className = 'p-3.5 rounded-xl theme-surface-alt border space-y-2.5';
+            dateBox.innerHTML = `
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <label class="block text-xs font-semibold theme-text-secondary">Fecha de clase (${cfg.dayNameCap})</label>
+                  <p class="text-sm font-bold mt-0.5 ${isValidDay ? '' : 'text-red-500'}">
+                    ${escapeHTML(formatSpanishFullDate(selectedDate))}
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  ${alreadySaved && isValidDay ? '<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full theme-accent-soft">✓ Clase guardada</span>' : ''}
+                  <input
+                    type="date"
+                    value="${selectedDate}"
+                    class="rounded-xl px-3 py-2 text-sm font-medium theme-input cursor-pointer"
+                  />
+                </div>
+              </div>
+            `;
+
+            const dateInput = dateBox.querySelector('input[type="date"]');
+            dateInput.addEventListener('change', (e) => {
+              const newVal = e.target.value;
+              if (!newVal) return;
+              uiState.selectedDates[groupId] = newVal;
+              syncDraftFromSavedRecord(groupId);
+              renderRegistroView();
+            });
+
+            // Mensaje de advertencia si el día no corresponde al grupo
+            if (!isValidDay) {
+              const nearest = getNearestValidDate(groupId, selectedDate);
+              const warnBanner = document.createElement('div');
+              warnBanner.className = 'rounded-xl p-3 border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs';
+              warnBanner.style.backgroundColor = 'var(--warning-bg)';
+              warnBanner.style.borderColor = 'var(--warning-border)';
+              warnBanner.style.color = 'var(--warning-text)';
+
+              warnBanner.innerHTML = `
+                <div class="flex items-center gap-2 font-semibold">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span>Este grupo solo tiene clases los ${cfg.dayName}</span>
+                </div>
+                <button type="button" class="snap-date-btn px-3 py-1.5 rounded-lg font-bold bg-white/90 text-gray-900 hover:bg-white transition shrink-0 shadow-xs">
+                  Ajustar al ${cfg.dayName} más cercano (${formatShortChipDate(nearest)})
+                </button>
+              `;
+
+              warnBanner.querySelector('.snap-date-btn').addEventListener('click', () => {
+                uiState.selectedDates[groupId] = nearest;
+                syncDraftFromSavedRecord(groupId);
+                renderRegistroView();
+              });
+
+              dateBox.appendChild(warnBanner);
+            }
+
+            body.appendChild(dateBox);
+
+            // C) Lista interactiva de alumnos del grupo
+            const listWrapper = document.createElement('div');
+            listWrapper.className = 'space-y-2';
+
+            if (students.length === 0) {
+              listWrapper.innerHTML = `
+                <div class="text-center py-6 px-4 rounded-xl border border-dashed theme-border theme-text-muted text-sm">
+                  Aún no hay alumnos registrados en <strong>${escapeHTML(groupId)}</strong>. Agrega nombres arriba para comenzar.
+                </div>
+              `;
+            } else {
+              const listHeader = document.createElement('div');
+              listHeader.className = 'flex items-center justify-between text-xs font-semibold theme-text-secondary px-1';
+              listHeader.innerHTML = `
+                <span>Marca quiénes faltaron:</span>
+                <span>${draftSet.size} de ${students.length} faltaron</span>
+              `;
+              listWrapper.appendChild(listHeader);
+
+              students.forEach((studentName) => {
+                const isAbsent = draftSet.has(studentName);
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl border transition select-none';
+                if (isAbsent) {
+                  row.style.backgroundColor = 'var(--danger-soft)';
+                  row.style.borderColor = 'var(--danger)';
+                } else {
+                  row.classList.add('theme-surface-alt');
+                }
+
+                // Zona táctil principal para marcar/desmarcar falta
+                const toggleArea = document.createElement('button');
+                toggleArea.type = 'button';
+                toggleArea.className = 'flex-1 flex items-center gap-3 text-left min-w-0 py-0.5';
+                toggleArea.innerHTML = `
+                  <span class="w-6 h-6 rounded-lg flex items-center justify-center border shrink-0 transition ${isAbsent ? 'text-white border-transparent' : 'theme-surface theme-border'}" style="${isAbsent ? 'background-color: var(--danger);' : ''}">
+                    ${isAbsent
+                      ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>'
+                      : '<svg class="w-3.5 h-3.5 opacity-25" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
+                    }
+                  </span>
+                  <span class="font-medium text-sm truncate">${escapeHTML(studentName)}</span>
+                  <span class="ml-auto text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0" style="${isAbsent ? 'background-color: var(--danger); color: #fff;' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
+                    ${isAbsent ? 'FALTÓ' : 'Asistió'}
+                  </span>
+                `;
+                toggleArea.addEventListener('click', () => {
+                  if (draftSet.has(studentName)) {
+                    draftSet.delete(studentName);
+                  } else {
+                    draftSet.add(studentName);
+                  }
+                  renderRegistroView();
+                });
+
+                // Botón eliminar alumno de la lista (con confirmación modal)
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.title = 'Eliminar alumno de la lista';
+                removeBtn.ariaLabel = `Eliminar a ${studentName}`;
+                removeBtn.className = 'w-9 h-9 rounded-lg flex items-center justify-center theme-text-muted hover:text-red-500 theme-hover shrink-0 transition';
+                removeBtn.innerHTML = `
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                `;
+                removeBtn.addEventListener('click', () => {
+                  confirmRemoveStudent(groupId, studentName);
+                });
+
+                row.appendChild(toggleArea);
+                row.appendChild(removeBtn);
+                listWrapper.appendChild(row);
+              });
+            }
+
+            body.appendChild(listWrapper);
+
+            // D) Botón Guardar
+            const footerAction = document.createElement('div');
+            footerAction.className = 'pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5';
+            footerAction.innerHTML = `
+              <p class="text-xs theme-text-muted">
+                ${isValidDay
+                  ? `Se guardará el registro del <strong>${escapeHTML(formatShortChipDate(selectedDate))}</strong>.`
+                  : 'Selecciona un día válido para habilitar el guardado.'}
+              </p>
+              <button
+                type="button"
+                ${!isValidDay || students.length === 0 ? 'disabled' : ''}
+                class="save-group-btn w-full sm:w-auto px-5 py-3 rounded-xl text-sm font-bold theme-accent-bg disabled:opacity-45 disabled:cursor-not-allowed transition active:scale-95 flex items-center justify-center gap-2 shadow-sm"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Guardar inasistencias</span>
+              </button>
+            `;
+
+            footerAction.querySelector('.save-group-btn').addEventListener('click', () => {
+              if (!isDateValidForGroup(groupId, selectedDate)) {
+                showToast(`Este grupo solo tiene clases los ${cfg.dayName}.`, 'error');
+                return;
+              }
+              const cleanAbsentees = students.filter(s => draftSet.has(s));
+              appState.records[recordKey] = {
+                group: groupId,
+                date: selectedDate,
+                absentees: cleanAbsentees
+              };
+              saveStateToStorage();
+              showToast(`Guardado: ${cleanAbsentees.length} ${cleanAbsentees.length === 1 ? 'falta' : 'faltas'} en ${groupId} (${formatShortChipDate(selectedDate)}).`);
+              renderRegistroView();
+            });
+
+            body.appendChild(footerAction);
+            card.appendChild(body);
+          }
+
+          container.appendChild(card);
+        });
+      }
+
+      function confirmRemoveStudent(groupId, studentName) {
+        openModal(
+          'Eliminar alumno del grupo',
+          `
+            <p class="theme-text-secondary">
+              ¿Deseas eliminar a <strong>${escapeHTML(studentName)}</strong> de la lista de <strong>${escapeHTML(groupId)}</strong>?
+            </p>
+            <p class="text-xs theme-text-muted">También se limpiará su nombre de los registros de fechas donde haya sido marcado.</p>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" id="cancelDelStudent" class="px-4 py-2.5 rounded-xl border theme-border font-semibold theme-hover">Cancelar</button>
+              <button type="button" id="confirmDelStudent" class="px-4 py-2.5 rounded-xl font-semibold text-white" style="background-color: var(--danger);">Eliminar alumno</button>
+            </div>
+          `,
+          (el) => {
+            el.querySelector('#cancelDelStudent').addEventListener('click', closeModal);
+            el.querySelector('#confirmDelStudent').addEventListener('click', () => {
+              appState.groups[groupId] = appState.groups[groupId].filter(s => s !== studentName);
+              uiState.draftAbsentees[groupId].delete(studentName);
+              Object.values(appState.records).forEach(rec => {
+                if (rec.group === groupId) {
+                  rec.absentees = rec.absentees.filter(a => a !== studentName);
+                }
+              });
+              saveStateToStorage();
+              closeModal();
+              showToast(`Alumno "${studentName}" eliminado de ${groupId}.`);
+              renderRegistroView();
+            });
+          }
+        );
+      }
+
+      /* ----------------------------------------------------------------------
+         9. UTILIDAD DE MESES DISPONIBLES Y ESTADÍSTICAS
+         ---------------------------------------------------------------------- */
+      function getAvailableMonthOptions() {
+        const monthSet = new Set();
+        const now = new Date();
+        const currentYear = now.getFullYear();
+
+        // Agregar los 12 meses del año actual
+        for (let m = 1; m <= 12; m++) {
+          monthSet.add(`${currentYear}-${String(m).padStart(2, '0')}`);
+        }
+
+        // Agregar cualquier mes adicional presente en los registros
+        Object.values(appState.records).forEach(rec => {
+          if (rec && rec.date && rec.date.length >= 7) {
+            monthSet.add(rec.date.slice(0, 7));
+          }
+        });
+
+        const sorted = Array.from(monthSet).sort((a, b) => b.localeCompare(a));
+        return ['ALL', ...sorted];
+      }
+
+      function populateMonthSelect(selectEl, currentValue) {
+        const options = getAvailableMonthOptions();
+        selectEl.innerHTML = options.map(ym => `
+          <option value="${ym}" ${ym === currentValue ? 'selected' : ''}>${escapeHTML(formatMonthYearLabel(ym))}</option>
+        `).join('');
+      }
+
+      function getRecordsForGroupAndMonth(groupId, ymFilter) {
+        return Object.values(appState.records)
+          .filter(rec => {
+            if (!rec || rec.group !== groupId) return false;
+            if (ymFilter === 'ALL') return true;
+            return rec.date.startsWith(ymFilter);
+          })
+          .sort((a, b) => a.date.localeCompare(b.date));
+      }
+
+      /* ----------------------------------------------------------------------
+         10. RENDERIZADO PESTAÑA 2: DATOS DE INASISTENCIA + MODAL DE EDICIÓN
+         ---------------------------------------------------------------------- */
+      function renderDatosView() {
+        const monthSelect = document.getElementById('datosMonthFilter');
+        populateMonthSelect(monthSelect, uiState.datosFilterMonth);
+
+        const zeroToggle = document.getElementById('toggleZeroAbsences');
+        zeroToggle.checked = uiState.datosShowZero;
+
+        const container = document.getElementById('datosAccordionsContainer');
+        container.innerHTML = '';
+
+        GROUPS_CONFIG.forEach((cfg) => {
+          const groupId = cfg.id;
+          const isOpen = !!uiState.openDatosAccordions[groupId];
+          const students = appState.groups[groupId] || [];
+          const groupRecords = getRecordsForGroupAndMonth(groupId, uiState.datosFilterMonth);
+
+          // Mapear fechas de falta por alumno
+          const studentAbsencesMap = new Map();
+          students.forEach(s => studentAbsencesMap.set(s, []));
+
+          let totalGroupAbsences = 0;
+          groupRecords.forEach(rec => {
+            (rec.absentees || []).forEach(absentStudent => {
+              totalGroupAbsences++;
+              if (!studentAbsencesMap.has(absentStudent)) {
+                studentAbsencesMap.set(absentStudent, []);
+              }
+              studentAbsencesMap.get(absentStudent).push(rec.date);
+            });
+          });
+
+          // Ordenar alumnos: primero los que tienen más faltas
+          const allEntries = Array.from(studentAbsencesMap.entries())
+            .map(([name, dates]) => ({
+              name,
+              dates: dates.slice().sort((a, b) => a.localeCompare(b)),
+              count: dates.length
+            }))
+            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+          const visibleEntries = uiState.datosShowZero
+            ? allEntries
+            : allEntries.filter(item => item.count > 0);
+
+          const card = document.createElement('div');
+          card.className = 'theme-surface border rounded-2xl overflow-hidden';
+
+          // Cabecera Acordeón Datos
+          const headerBtn = document.createElement('button');
+          headerBtn.type = 'button';
+          headerBtn.className = 'w-full px-4 py-4 flex items-center justify-between gap-3 text-left theme-hover transition';
+          headerBtn.innerHTML = `
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-3 h-3 rounded-full shrink-0" style="background-color: var(${cfg.barVar});"></span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-bold text-base">${escapeHTML(groupId)}</span>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full" style="${totalGroupAbsences > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
+                    ${totalGroupAbsences} ${totalGroupAbsences === 1 ? 'falta' : 'faltas'}
+                  </span>
+                </div>
+                <p class="text-xs theme-text-muted mt-0.5">${groupRecords.length} ${groupRecords.length === 1 ? 'clase registrada' : 'clases registradas'} en el período</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 theme-text-secondary shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          `;
+          headerBtn.addEventListener('click', () => {
+            uiState.openDatosAccordions[groupId] = !uiState.openDatosAccordions[groupId];
+            renderDatosView();
+          });
+          card.appendChild(headerBtn);
+
+          if (isOpen) {
+            const body = document.createElement('div');
+            body.className = 'px-4 pb-4 pt-3 border-t theme-border space-y-3';
+
+            // Barra superior de acción del grupo para editar cualquier fecha de clase
+            const groupBar = document.createElement('div');
+            groupBar.className = 'flex items-center justify-between gap-2 pb-1';
+            groupBar.innerHTML = `
+              <span class="text-xs font-semibold theme-text-secondary">
+                ${visibleEntries.length} ${visibleEntries.length === 1 ? 'alumno mostrado' : 'alumnos mostrados'}
+              </span>
+              <button type="button" class="edit-group-dates-btn text-xs font-semibold px-3 py-1.5 rounded-xl border theme-border theme-hover flex items-center gap-1.5 transition">
+                <svg class="w-3.5 h-3.5" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>Editar fechas de clase</span>
+              </button>
+            `;
+            groupBar.querySelector('.edit-group-dates-btn').addEventListener('click', () => {
+              openEditModal(groupId, null);
+            });
+            body.appendChild(groupBar);
+
+            if (visibleEntries.length === 0) {
+              const emptyDiv = document.createElement('div');
+              emptyDiv.className = 'text-center py-6 px-4 rounded-xl theme-surface-alt border border-dashed theme-border text-xs sm:text-sm theme-text-muted';
+              emptyDiv.textContent = 'No se registran inasistencias para este grupo en el período seleccionado.';
+              body.appendChild(emptyDiv);
+            } else {
+              visibleEntries.forEach(entry => {
+                const itemCard = document.createElement('div');
+                itemCard.className = 'p-3.5 rounded-xl theme-surface-alt border space-y-2.5';
+
+                const datesChipsHTML = entry.dates.length > 0
+                  ? entry.dates.map(dt => `
+                      <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg theme-surface border theme-border">
+                        <svg class="w-3 h-3 text-red-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>${escapeHTML(formatShortChipDate(dt))}</span>
+                      </span>
+                    `).join('')
+                  : '<span class="text-xs theme-text-muted italic">Sin faltas registradas</span>';
+
+                itemCard.innerHTML = `
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="font-bold text-sm truncate">${escapeHTML(entry.name)}</p>
+                      <span class="inline-block mt-1 text-xs font-bold px-2.5 py-0.5 rounded-full" style="${entry.count > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
+                        Total: ${entry.count} ${entry.count === 1 ? 'falta' : 'faltas'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      class="edit-student-btn px-3 py-1.5 rounded-xl text-xs font-semibold theme-accent-bg shrink-0 transition active:scale-95 flex items-center gap-1"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      <span>Editar</span>
+                    </button>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    ${datesChipsHTML}
+                  </div>
+                `;
+
+                itemCard.querySelector('.edit-student-btn').addEventListener('click', () => {
+                  openEditModal(groupId, entry.name);
+                });
+
+                body.appendChild(itemCard);
+              });
+            }
+
+            card.appendChild(body);
+          }
+
+          container.appendChild(card);
+        });
+      }
+
+      document.getElementById('datosMonthFilter').addEventListener('change', (e) => {
+        uiState.datosFilterMonth = e.target.value;
+        renderDatosView();
+      });
+
+      document.getElementById('toggleZeroAbsences').addEventListener('change', (e) => {
+        uiState.datosShowZero = e.target.checked;
+        renderDatosView();
+      });
+
+      // Modal Completo para Editar Inasistencias (por alumno y por fecha de clase)
+      function openEditModal(groupId, focusStudentName) {
+        const cfg = getGroupConfig(groupId);
+        const students = appState.groups[groupId] || [];
+        const allGroupRecords = Object.values(appState.records)
+          .filter(r => r && r.group === groupId)
+          .sort((a, b) => b.date.localeCompare(a.date));
+
+        let selectedClassDate = allGroupRecords.length > 0
+          ? allGroupRecords[0].date
+          : getMostRecentValidDate(groupId);
+
+        function renderModalContent() {
+          const currentStudentDates = focusStudentName
+            ? allGroupRecords.filter(r => (r.absentees || []).includes(focusStudentName)).map(r => r.date)
+            : [];
+
+          const isDateValid = isDateValidForGroup(groupId, selectedClassDate);
+          const targetRec = appState.records[`${groupId}__${selectedClassDate}`];
+          const absentSetForDate = new Set(targetRec ? targetRec.absentees : []);
+
+          const studentSectionHTML = focusStudentName ? `
+            <div class="p-3.5 rounded-xl theme-surface-alt border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm">Faltas de ${escapeHTML(focusStudentName)}</h4>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background-color: var(--danger-soft); color: var(--danger-text);">
+                  ${currentStudentDates.length} ${currentStudentDates.length === 1 ? 'falta' : 'faltas'}
+                </span>
+              </div>
+              ${currentStudentDates.length === 0
+                ? '<p class="text-xs theme-text-muted">Este alumno no tiene faltas registradas actualmente.</p>'
+                : `<div class="space-y-1.5">
+                    ${currentStudentDates.map(dt => `
+                      <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg theme-surface border theme-border">
+                        <span class="text-xs font-semibold">${escapeHTML(formatSpanishFullDate(dt))}</span>
+                        <button type="button" data-remove-student-date="${dt}" class="text-xs font-bold px-2.5 py-1 rounded-lg text-white transition" style="background-color: var(--danger);">
+                          Quitar falta
+                        </button>
+                      </div>
+                    `).join('')}
+                  </div>`
+              }
+            </div>
+          ` : '';
+
+          const html = `
+            ${studentSectionHTML}
+
+            <div class="p-3.5 rounded-xl theme-surface-alt border space-y-3">
+              <div>
+                <h4 class="font-bold text-sm">Editar asistencia por fecha (${escapeHTML(groupId)})</h4>
+                <p class="text-xs theme-text-muted">Elige una fecha registrada o cualquier ${cfg.dayName} para ajustar faltas.</p>
+              </div>
+
+              ${allGroupRecords.length > 0 ? `
+                <div>
+                  <label class="block text-xs font-semibold theme-text-secondary mb-1">Fechas ya registradas:</label>
+                  <select id="editRecordedDateSelect" class="w-full rounded-xl px-3 py-2 text-xs sm:text-sm font-medium theme-input">
+                    ${allGroupRecords.map(r => `
+                      <option value="${r.date}" ${r.date === selectedClassDate ? 'selected' : ''}>
+                        ${escapeHTML(formatSpanishFullDate(r.date))} (${(r.absentees || []).length} faltas)
+                      </option>
+                    `).join('')}
+                  </select>
+                </div>
+              ` : ''}
+
+              <div>
+                <label class="block text-xs font-semibold theme-text-secondary mb-1">O selecciona otro ${cfg.dayName}:</label>
+                <input id="editCustomDateInput" type="date" value="${selectedClassDate}" class="w-full rounded-xl px-3 py-2 text-sm font-medium theme-input" />
+                ${!isDateValid ? `<p class="text-xs text-red-500 font-semibold mt-1">Este grupo solo tiene clases los ${cfg.dayName}.</p>` : ''}
+              </div>
+
+              ${isDateValid && students.length > 0 ? `
+                <div class="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                  ${students.map(st => {
+                    const checked = absentSetForDate.has(st);
+                    return `
+                      <label class="flex items-center justify-between gap-2 p-2.5 rounded-xl border theme-surface theme-border cursor-pointer">
+                        <span class="text-xs sm:text-sm font-medium truncate">${escapeHTML(st)}</span>
+                        <input type="checkbox" data-edit-student-cb="${escapeHTML(st)}" ${checked ? 'checked' : ''} class="w-4 h-4 cursor-pointer" style="accent-color: var(--danger);" />
+                      </label>
+                    `;
+                  }).join('')}
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
+                  ${targetRec ? `
+                    <button type="button" id="deleteWholeClassDateBtn" class="text-xs font-semibold px-3 py-2 rounded-xl border transition" style="border-color: var(--danger); color: var(--danger);">
+                      Eliminar fecha completa
+                    </button>
+                  ` : '<span></span>'}
+
+                  <button type="button" id="saveEditedClassDateBtn" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold theme-accent-bg">
+                    Guardar cambios de fecha
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+
+          openModal(`Editar: ${groupId}`, html, (el) => {
+            // Quitar falta puntual del alumno
+            el.querySelectorAll('[data-remove-student-date]').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const dt = btn.getAttribute('data-remove-student-date');
+                const key = `${groupId}__${dt}`;
+                if (appState.records[key]) {
+                  appState.records[key].absentees = appState.records[key].absentees.filter(s => s !== focusStudentName);
+                  saveStateToStorage();
+                  syncDraftFromSavedRecord(groupId);
+                  showToast(`Falta del ${formatShortChipDate(dt)} eliminada.`);
+                  renderDatosView();
+                  openEditModal(groupId, focusStudentName);
+                }
+              });
+            });
+
+            const recSelect = el.querySelector('#editRecordedDateSelect');
+            if (recSelect) {
+              recSelect.addEventListener('change', (e) => {
+                selectedClassDate = e.target.value;
+                renderModalContent();
+              });
+            }
+
+            const dateInp = el.querySelector('#editCustomDateInput');
+            if (dateInp) {
+              dateInp.addEventListener('change', (e) => {
+                if (e.target.value) {
+                  selectedClassDate = e.target.value;
+                  renderModalContent();
+                }
+              });
+            }
+
+            const saveBtn = el.querySelector('#saveEditedClassDateBtn');
+            if (saveBtn) {
+              saveBtn.addEventListener('click', () => {
+                if (!isDateValidForGroup(groupId, selectedClassDate)) {
+                  showToast(`Este grupo solo tiene clases los ${cfg.dayName}.`, 'error');
+                  return;
+                }
+                const updatedAbsentees = [];
+                el.querySelectorAll('[data-edit-student-cb]').forEach(cb => {
+                  if (cb.checked) {
+                    updatedAbsentees.push(cb.getAttribute('data-edit-student-cb'));
+                  }
+                });
+                appState.records[`${groupId}__${selectedClassDate}`] = {
+                  group: groupId,
+                  date: selectedClassDate,
+                  absentees: updatedAbsentees
+                };
+                saveStateToStorage();
+                syncDraftFromSavedRecord(groupId);
+                showToast(`Asistencia del ${formatShortChipDate(selectedClassDate)} actualizada.`);
+                renderDatosView();
+                closeModal();
+              });
+            }
+
+            const delDateBtn = el.querySelector('#deleteWholeClassDateBtn');
+            if (delDateBtn) {
+              delDateBtn.addEventListener('click', () => {
+                delete appState.records[`${groupId}__${selectedClassDate}`];
+                saveStateToStorage();
+                syncDraftFromSavedRecord(groupId);
+                showToast(`Registro de clase del ${formatShortChipDate(selectedClassDate)} eliminado.`);
+                renderDatosView();
+                closeModal();
+              });
+            }
+          });
+        }
+
+        renderModalContent();
+      }
+
+      /* ----------------------------------------------------------------------
+         11. RENDERIZADO PESTAÑA 3: GRÁFICA DE BARRAS
+         ---------------------------------------------------------------------- */
+      function renderGraficaView() {
+        const selectEl = document.getElementById('graficaMonthFilter');
+        populateMonthSelect(selectEl, uiState.graficaFilterMonth);
+
+        const badgeEl = document.getElementById('graficaPeriodBadge');
+        badgeEl.textContent = formatMonthYearLabel(uiState.graficaFilterMonth);
+
+        const barsWrapper = document.getElementById('chartBarsWrapper');
+        const summaryCards = document.getElementById('graficaSummaryCards');
+        barsWrapper.innerHTML = '';
+        summaryCards.innerHTML = '';
+
+        GROUPS_CONFIG.forEach((cfg) => {
+          const groupId = cfg.id;
+          const studentsCount = (appState.groups[groupId] || []).length;
+          const records = getRecordsForGroupAndMonth(groupId, uiState.graficaFilterMonth);
+          const classesCount = records.length;
+
+          let totalAbsences = 0;
+          records.forEach(r => {
+            totalAbsences += (r.absentees || []).length;
+          });
+
+          // Fórmula solicitada:
+          // (Total inasistencias / (Alumnos del grupo * Fechas de clase registradas)) * 100
+          const denominator = studentsCount * classesCount;
+          const rawPct = denominator > 0 ? (totalAbsences / denominator) * 100 : 0;
+          const clampedPct = Math.min(100, Math.max(0, rawPct));
+          const displayPct = Number.isInteger(clampedPct) ? `${clampedPct}%` : `${clampedPct.toFixed(1)}%`;
+
+          // Barra vertical
+          const barCol = document.createElement('div');
+          barCol.className = 'h-full flex flex-col justify-end items-center group';
+          barCol.innerHTML = `
+            <span class="text-xs sm:text-sm font-extrabold mb-1.5 px-2 py-0.5 rounded-lg theme-surface border theme-border shadow-2xs">
+              ${displayPct}
+            </span>
+            <div class="w-full max-w-[74px] h-full flex items-end justify-center">
+              <div
+                class="chart-bar-fill w-full rounded-t-xl shadow-sm relative"
+                style="height: ${Math.max(clampedPct, 2)}%; background-color: var(${cfg.barVar}); opacity: ${clampedPct === 0 ? '0.35' : '1'};"
+                title="${escapeHTML(groupId)}: ${displayPct} (${totalAbsences} faltas en ${classesCount} clases)"
+              ></div>
+            </div>
+          `;
+          barsWrapper.appendChild(barCol);
+
+          // Tarjeta resumen debajo del gráfico
+          const card = document.createElement('div');
+          card.className = 'theme-surface border rounded-2xl p-4 space-y-2.5';
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full" style="background-color: var(${cfg.barVar});"></span>
+                <h3 class="font-bold text-sm">${escapeHTML(groupId)}</h3>
+              </div>
+              <span class="text-lg font-extrabold" style="color: var(${cfg.barVar});">${displayPct}</span>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5 pt-2 border-t theme-border text-center">
+              <div class="p-1.5 rounded-lg theme-surface-alt">
+                <p class="text-[11px] theme-text-muted">Faltas</p>
+                <p class="text-sm font-bold">${totalAbsences}</p>
+              </div>
+              <div class="p-1.5 rounded-lg theme-surface-alt">
+                <p class="text-[11px] theme-text-muted">Clases</p>
+                <p class="text-sm font-bold">${classesCount}</p>
+              </div>
+              <div class="p-1.5 rounded-lg theme-surface-alt">
+                <p class="text-[11px] theme-text-muted">Alumnos</p>
+                <p class="text-sm font-bold">${studentsCount}</p>
+              </div>
+            </div>
+          `;
+          summaryCards.appendChild(card);
+        });
+      }
+
+      document.getElementById('graficaMonthFilter').addEventListener('change', (e) => {
+        uiState.graficaFilterMonth = e.target.value;
+        renderGraficaView();
+      });
+
+      /* ----------------------------------------------------------------------
+         12. MENÚ DE TRES PUNTOS (⋮) Y SUS 5 ACCIONES
+         ---------------------------------------------------------------------- */
+      const menuToggleBtn = document.getElementById('menuToggleBtn');
+      const threeDotsDropdown = document.getElementById('threeDotsDropdown');
+
+      menuToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = threeDotsDropdown.classList.contains('hidden');
+        threeDotsDropdown.classList.toggle('hidden', !isHidden);
+        menuToggleBtn.setAttribute('aria-expanded', String(isHidden));
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!document.getElementById('menuContainer').contains(e.target)) {
+          threeDotsDropdown.classList.add('hidden');
+          menuToggleBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      document.querySelectorAll('[data-menu-action]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          threeDotsDropdown.classList.add('hidden');
+          const action = btn.dataset.menuAction;
+          if (action === 'export') handleExportExcel();
+          if (action === 'import') openImportExcelModal();
+          if (action === 'themes') openThemesModal();
+          if (action === 'delete') openDeleteModal();
+          if (action === 'about') openAboutModal();
+        });
+      });
+
+      /* --- OPCIÓN 1: EXPORTAR A EXCEL (.XLSX CON 3 HOJAS) --- */
+      function handleExportExcel() {
+        if (typeof XLSX === 'undefined') {
+          showToast('La librería Excel aún está cargando, intenta de nuevo.', 'warning');
+          return;
+        }
+
+        try {
+          const wb = XLSX.utils.book_new();
+
+          // Hoja 1: Historial_Inasistencias (Grupo, Alumno, Fecha, Dia_Semana)
+          const historialRows = [];
+          const sortedRecords = Object.values(appState.records).sort((a, b) => a.date.localeCompare(b.date));
+          sortedRecords.forEach(rec => {
+            const d = parseLocalDate(rec.date);
+            const dayWeek = d ? SPANISH_DAYS[d.getDay()] : '';
+            (rec.absentees || []).forEach(student => {
+              historialRows.push({
+                Grupo: rec.group,
+                Alumno: student,
+                Fecha: rec.date,
+                Dia_Semana: dayWeek
+              });
+            });
+          });
+          if (historialRows.length === 0) {
+            historialRows.push({ Grupo: '', Alumno: '', Fecha: '', Dia_Semana: '' });
+          }
+          const wsHistorial = XLSX.utils.json_to_sheet(historialRows);
+          XLSX.utils.book_append_sheet(wb, wsHistorial, 'Historial_Inasistencias');
+
+          // Hoja 2: Resumen_Alumnos (Grupo, Alumno, Total_Faltas, Porcentaje_Inasistencia)
+          const resumenRows = [];
+          GROUPS_CONFIG.forEach(cfg => {
+            const groupId = cfg.id;
+            const students = appState.groups[groupId] || [];
+            const recs = getRecordsForGroupAndMonth(groupId, 'ALL');
+            const totalClasses = recs.length;
+
+            students.forEach(st => {
+              let faltas = 0;
+              recs.forEach(r => {
+                if ((r.absentees || []).includes(st)) faltas++;
+              });
+              const pct = totalClasses > 0 ? ((faltas / totalClasses) * 100).toFixed(1) + '%' : '0%';
+              resumenRows.push({
+                Grupo: groupId,
+                Alumno: st,
+                Total_Faltas: faltas,
+                Porcentaje_Inasistencia: pct
+              });
+            });
+          });
+          if (resumenRows.length === 0) {
+            resumenRows.push({ Grupo: '', Alumno: '', Total_Faltas: 0, Porcentaje_Inasistencia: '0%' });
+          }
+          const wsResumen = XLSX.utils.json_to_sheet(resumenRows);
+          XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen_Alumnos');
+
+          // Hoja 3: Listas_Alumnos (Grupo, Alumno)
+          const listasRows = [];
+          GROUPS_CONFIG.forEach(cfg => {
+            (appState.groups[cfg.id] || []).forEach(st => {
+              listasRows.push({
+                Grupo: cfg.id,
+                Alumno: st
+              });
+            });
+          });
+          if (listasRows.length === 0) {
+            listasRows.push({ Grupo: '', Alumno: '' });
+          }
+          const wsListas = XLSX.utils.json_to_sheet(listasRows);
+          XLSX.utils.book_append_sheet(wb, wsListas, 'Listas_Alumnos');
+
+          const todayStr = formatLocalISO(new Date());
+          XLSX.writeFile(wb, `Sistema_Inasistencias_${todayStr}.xlsx`);
+          showToast('Archivo Excel exportado correctamente.');
+        } catch (err) {
+          console.error(err);
+          showToast('Ocurrió un error al exportar el archivo Excel.', 'error');
+        }
+      }
+
+      /* --- OPCIÓN 2: IMPORTAR DE EXCEL --- */
+      function openImportExcelModal() {
+        openModal(
+          'Importar desde Excel',
+          `
+            <div class="space-y-4">
+              <div class="space-y-2">
+                <label class="block text-xs font-bold uppercase tracking-wider theme-text-muted">1. Elige el modo de importación</label>
+
+                <label class="flex items-start gap-3 p-3 rounded-xl border theme-border theme-surface-alt cursor-pointer">
+                  <input type="radio" name="importMode" value="backup" checked class="mt-1" style="accent-color: var(--accent);" />
+                  <div>
+                    <p class="font-bold text-sm">Restaurar respaldo completo</p>
+                    <p class="text-xs theme-text-secondary">Lee un Excel exportado por este sistema (listas e historial de faltas).</p>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 rounded-xl border theme-border theme-surface-alt cursor-pointer">
+                  <input type="radio" name="importMode" value="names" class="mt-1" style="accent-color: var(--accent);" />
+                  <div>
+                    <p class="font-bold text-sm">Cargar lista de nombres</p>
+                    <p class="text-xs theme-text-secondary">Sube un Excel con una columna de nombres (o columnas por grupo) para agregar alumnos.</p>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Opciones específicas para modo Respaldo -->
+              <div id="backupOptionsBox" class="p-3 rounded-xl border theme-border space-y-2">
+                <p class="text-xs font-semibold theme-text-secondary">Al restaurar respaldo:</p>
+                <div class="flex gap-3 text-xs">
+                  <label class="flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" name="backupStrategy" value="merge" checked style="accent-color: var(--accent);" />
+                    <span>Combinar con actuales</span>
+                  </label>
+                  <label class="flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" name="backupStrategy" value="replace" style="accent-color: var(--accent);" />
+                    <span>Reemplazar todo</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Opciones específicas para modo Lista de Nombres -->
+              <div id="namesOptionsBox" class="hidden p-3 rounded-xl border theme-border space-y-2">
+                <label for="importTargetGroup" class="block text-xs font-semibold theme-text-secondary">
+                  Grupo destino (si el Excel tiene una sola columna):
+                </label>
+                <select id="importTargetGroup" class="w-full rounded-xl px-3 py-2 text-sm font-medium theme-input">
+                  <option value="Miembros 1">Miembros 1 (Viernes)</option>
+                  <option value="Miembros 2">Miembros 2 (Viernes)</option>
+                  <option value="Miembros 3">Miembros 3 (Miércoles)</option>
+                </select>
+              </div>
+
+              <!-- Selector de Archivo -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider theme-text-muted">2. Selecciona archivo (.xlsx, .xls, .csv)</label>
+                <input
+                  id="excelFileInput"
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  class="w-full text-xs sm:text-sm file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:font-semibold file:cursor-pointer theme-input rounded-xl p-1.5"
+                />
+              </div>
+
+              <div class="flex justify-end gap-2 pt-2">
+                <button type="button" id="cancelImportBtn" class="px-4 py-2.5 rounded-xl border theme-border font-semibold theme-hover">Cancelar</button>
+                <button type="button" id="processImportBtn" class="px-4 py-2.5 rounded-xl font-bold theme-accent-bg">Importar ahora</button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            const backupBox = el.querySelector('#backupOptionsBox');
+            const namesBox = el.querySelector('#namesOptionsBox');
+
+            el.querySelectorAll('input[name="importMode"]').forEach(radio => {
+              radio.addEventListener('change', (e) => {
+                const isBackup = e.target.value === 'backup';
+                backupBox.classList.toggle('hidden', !isBackup);
+                namesBox.classList.toggle('hidden', isBackup);
+              });
+            });
+
+            el.querySelector('#cancelImportBtn').addEventListener('click', closeModal);
+
+            el.querySelector('#processImportBtn').addEventListener('click', () => {
+              const fileInput = el.querySelector('#excelFileInput');
+              const file = fileInput.files && fileInput.files[0];
+              if (!file) {
+                showToast('Selecciona un archivo Excel o CSV primero.', 'warning');
+                return;
+              }
+
+              const mode = el.querySelector('input[name="importMode"]:checked').value;
+              const strategy = el.querySelector('input[name="backupStrategy"]:checked').value;
+              const targetGroup = el.querySelector('#importTargetGroup').value;
+
+              const reader = new FileReader();
+              reader.onload = function (evt) {
+                try {
+                  const data = new Uint8Array(evt.target.result);
+                  const workbook = XLSX.read(data, { type: 'array' });
+
+                  if (mode === 'backup') {
+                    processBackupWorkbook(workbook, strategy);
+                  } else {
+                    processNamesWorkbook(workbook, targetGroup);
+                  }
+
+                  saveStateToStorage();
+                  GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
+                  closeModal();
+                  switchTab(uiState.activeTab);
+                } catch (err) {
+                  console.error(err);
+                  showToast('No se pudo procesar el archivo Excel. Verifica su formato.', 'error');
+                }
+              };
+              reader.readAsArrayBuffer(file);
+            });
+          }
+        );
+      }
+
+      function normalizeGroupName(raw) {
+        if (!raw) return null;
+        const clean = String(raw).trim().toLowerCase();
+        if (clean === 'miembros 1' || clean === 'miembros1' || clean === 'grupo 1') return 'Miembros 1';
+        if (clean === 'miembros 2' || clean === 'miembros2' || clean === 'grupo 2') return 'Miembros 2';
+        if (clean === 'miembros 3' || clean === 'miembros3' || clean === 'grupo 3') return 'Miembros 3';
+        return null;
+      }
+
+      function processBackupWorkbook(workbook, strategy) {
+        if (strategy === 'replace') {
+          appState.groups = { 'Miembros 1': [], 'Miembros 2': [], 'Miembros 3': [] };
+          appState.records = {};
+        }
+
+        // Leer hoja Listas_Alumnos si existe
+        if (workbook.Sheets['Listas_Alumnos']) {
+          const rows = XLSX.utils.sheet_to_json(workbook.Sheets['Listas_Alumnos']);
+          rows.forEach(r => {
+            const grp = normalizeGroupName(r.Grupo);
+            const st = r.Alumno ? String(r.Alumno).trim() : '';
+            if (grp && st && !appState.groups[grp].some(x => x.toLowerCase() === st.toLowerCase())) {
+              appState.groups[grp].push(st);
+            }
+          });
+        }
+
+        // Leer hoja Historial_Inasistencias
+        const histSheetName = workbook.Sheets['Historial_Inasistencias'] ? 'Historial_Inasistencias' : workbook.SheetNames[0];
+        const histRows = XLSX.utils.sheet_to_json(workbook.Sheets[histSheetName]);
+        let importedCount = 0;
+
+        histRows.forEach(r => {
+          const grp = normalizeGroupName(r.Grupo);
+          const st = r.Alumno ? String(r.Alumno).trim() : '';
+          const dt = r.Fecha ? String(r.Fecha).trim() : '';
+          if (grp && dt && /^\d{4}-\d{2}-\d{2}$/.test(dt)) {
+            const key = `${grp}__${dt}`;
+            if (!appState.records[key]) {
+              appState.records[key] = { group: grp, date: dt, absentees: [] };
+            }
+            if (st) {
+              if (!appState.groups[grp].some(x => x.toLowerCase() === st.toLowerCase())) {
+                appState.groups[grp].push(st);
+              }
+              if (!appState.records[key].absentees.includes(st)) {
+                appState.records[key].absentees.push(st);
+                importedCount++;
+              }
+            }
+          }
+        });
+
+        showToast(`Respaldo importado (${importedCount} registros de falta procesados).`);
+      }
+
+      function processNamesWorkbook(workbook, fallbackGroup) {
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const matrix = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        if (!matrix || matrix.length === 0) {
+          showToast('El archivo está vacío.', 'warning');
+          return;
+        }
+
+        // Detectar si la fila 0 tiene encabezados con nombres de grupos ("Miembros 1", etc.)
+        const headerRow = matrix[0] || [];
+        const colGroupMap = {};
+        let hasGroupHeaders = false;
+
+        headerRow.forEach((cell, idx) => {
+          const grp = normalizeGroupName(cell);
+          if (grp) {
+            colGroupMap[idx] = grp;
+            hasGroupHeaders = true;
+          }
+        });
+
+        let added = 0;
+        if (hasGroupHeaders) {
+          for (let r = 1; r < matrix.length; r++) {
+            const row = matrix[r] || [];
+            Object.entries(colGroupMap).forEach(([colIdx, grp]) => {
+              const val = row[colIdx] ? String(row[colIdx]).trim() : '';
+              if (val && !appState.groups[grp].some(x => x.toLowerCase() === val.toLowerCase())) {
+                appState.groups[grp].push(val);
+                added++;
+              }
+            });
+          }
+        } else {
+          // Una sola columna de nombres al grupo elegido
+          matrix.forEach((row, rIdx) => {
+            const rawVal = row && row[0] ? String(row[0]).trim() : '';
+            if (!rawVal) return;
+            // Omitir encabezado genérico si existe
+            if (rIdx === 0 && ['nombre', 'nombres', 'alumno', 'alumnos', 'estudiante'].includes(rawVal.toLowerCase())) {
+              return;
+            }
+            if (!appState.groups[fallbackGroup].some(x => x.toLowerCase() === rawVal.toLowerCase())) {
+              appState.groups[fallbackGroup].push(rawVal);
+              added++;
+            }
+          });
+        }
+
+        showToast(`Se agregaron ${added} alumnos nuevos.`);
+      }
+
+      /* --- OPCIÓN 3: OPCIONES DE TEMAS --- */
+      function openThemesModal() {
+        openModal(
+          'Opciones de temas',
+          `
+            <div class="space-y-4">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-wider theme-text-muted mb-2">1. Color de fondo</p>
+                <div class="grid grid-cols-2 gap-2.5">
+                  <button type="button" data-set-bg="white" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.bg === 'white' ? 'ring-2' : 'theme-border'}" style="${appState.theme.bg === 'white' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
+                    <span class="w-6 h-6 rounded-full bg-white border border-gray-300 shrink-0 shadow-xs"></span>
+                    <div>
+                      <p class="font-bold text-sm">Blanco</p>
+                      <p class="text-[11px] theme-text-muted">Modo claro</p>
+                    </div>
+                  </button>
+
+                  <button type="button" data-set-bg="black" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.bg === 'black' ? 'ring-2' : 'theme-border'}" style="${appState.theme.bg === 'black' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
+                    <span class="w-6 h-6 rounded-full bg-neutral-900 border border-neutral-600 shrink-0 shadow-xs"></span>
+                    <div>
+                      <p class="font-bold text-sm">Negro</p>
+                      <p class="text-[11px] theme-text-muted">Modo oscuro</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <p class="text-xs font-bold uppercase tracking-wider theme-text-muted mb-2">2. Estilo de color</p>
+                <div class="grid grid-cols-2 gap-2.5">
+                  <button type="button" data-set-style="leaf" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.style === 'leaf' ? 'ring-2' : 'theme-border'}" style="${appState.theme.style === 'leaf' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
+                    <span class="w-6 h-6 rounded-full shrink-0" style="background: linear-gradient(135deg, #16a34a, #65a30d);"></span>
+                    <div>
+                      <p class="font-bold text-sm">Verde hoja</p>
+                      <p class="text-[11px] theme-text-muted">Natural y fresco</p>
+                    </div>
+                  </button>
+
+                  <button type="button" data-set-style="autumn" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.style === 'autumn' ? 'ring-2' : 'theme-border'}" style="${appState.theme.style === 'autumn' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
+                    <span class="w-6 h-6 rounded-full shrink-0" style="background: linear-gradient(135deg, #c2410c, #d97706);"></span>
+                    <div>
+                      <p class="font-bold text-sm">Otoño</p>
+                      <p class="text-[11px] theme-text-muted">Terracota y ámbar</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-2">
+                <button type="button" id="closeThemesDoneBtn" class="px-5 py-2.5 rounded-xl font-bold theme-accent-bg">Listo</button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            el.querySelectorAll('[data-set-bg]').forEach(btn => {
+              btn.addEventListener('click', () => {
+                appState.theme.bg = btn.getAttribute('data-set-bg');
+                applyTheme();
+                saveStateToStorage();
+                openThemesModal();
+              });
+            });
+
+            el.querySelectorAll('[data-set-style]').forEach(btn => {
+              btn.addEventListener('click', () => {
+                appState.theme.style = btn.getAttribute('data-set-style');
+                applyTheme();
+                saveStateToStorage();
+                openThemesModal();
+              });
+            });
+
+            el.querySelector('#closeThemesDoneBtn').addEventListener('click', closeModal);
+          }
+        );
+      }
+
+      /* --- OPCIÓN 4: ELIMINAR REGISTROS --- */
+      function openDeleteModal() {
+        const recordedMonths = Array.from(
+          new Set(Object.values(appState.records).map(r => r.date.slice(0, 7)))
+        ).sort((a, b) => b.localeCompare(a));
+
+        openModal(
+          'Eliminar registros',
+          `
+            <div class="space-y-4">
+              <!-- Opción A: Limpiar un mes específico sin borrar alumnos -->
+              <div class="p-3.5 rounded-xl theme-surface-alt border space-y-2.5">
+                <h4 class="font-bold text-sm">Limpiar registros de un mes específico</h4>
+                <p class="text-xs theme-text-secondary">Borra las faltas de ese mes manteniendo intactas las listas de alumnos.</p>
+                ${recordedMonths.length === 0
+                  ? '<p class="text-xs theme-text-muted italic">No hay meses con registros guardados actualmente.</p>'
+                  : `<div class="flex gap-2">
+                      <select id="clearMonthSelect" class="flex-1 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium theme-input">
+                        ${recordedMonths.map(ym => `<option value="${ym}">${escapeHTML(formatMonthYearLabel(ym))}</option>`).join('')}
+                      </select>
+                      <button type="button" id="clearMonthBtn" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-white shrink-0" style="background-color: var(--danger);">
+                        Limpiar mes
+                      </button>
+                    </div>`
+                }
+              </div>
+
+              <!-- Opción B: Borrar toda la base de datos -->
+              <div class="p-3.5 rounded-xl border space-y-2.5" style="border-color: var(--danger); background-color: var(--danger-soft);">
+                <h4 class="font-bold text-sm" style="color: var(--danger-text);">Borrar toda la base de datos</h4>
+                <p class="text-xs" style="color: var(--danger-text);">Elimina permanentemente todos los alumnos y todo el historial de inasistencias.</p>
+                <button type="button" id="wipeAllStep1Btn" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition" style="background-color: var(--danger);">
+                  Borrar todo el sistema
+                </button>
+                <div id="wipeAllConfirmBox" class="hidden space-y-2 pt-1">
+                  <p class="text-xs font-bold" style="color: var(--danger-text);">¿Estás completamente seguro? Esta acción no se puede deshacer.</p>
+                  <div class="flex gap-2">
+                    <button type="button" id="cancelWipeBtn" class="flex-1 py-2 rounded-xl text-xs font-semibold theme-surface border theme-border">Cancelar</button>
+                    <button type="button" id="confirmWipeBtn" class="flex-1 py-2 rounded-xl text-xs font-bold text-white" style="background-color: var(--danger);">Sí, borrar todo</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botón auxiliar para cargar datos de ejemplo -->
+              <div class="pt-1 flex items-center justify-between text-xs theme-text-muted">
+                <span>¿Deseas restaurar datos de ejemplo?</span>
+                <button type="button" id="loadDemoDataBtn" class="font-semibold underline" style="color: var(--accent);">Cargar datos de prueba</button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            const clearMonthBtn = el.querySelector('#clearMonthBtn');
+            if (clearMonthBtn) {
+              clearMonthBtn.addEventListener('click', () => {
+                const targetYm = el.querySelector('#clearMonthSelect').value;
+                Object.keys(appState.records).forEach(k => {
+                  if (appState.records[k].date.startsWith(targetYm)) {
+                    delete appState.records[k];
+                  }
+                });
+                saveStateToStorage();
+                GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
+                closeModal();
+                showToast(`Registros de ${formatMonthYearLabel(targetYm)} limpiados.`);
+                switchTab(uiState.activeTab);
+              });
+            }
+
+            const step1 = el.querySelector('#wipeAllStep1Btn');
+            const confirmBox = el.querySelector('#wipeAllConfirmBox');
+            step1.addEventListener('click', () => {
+              step1.classList.add('hidden');
+              confirmBox.classList.remove('hidden');
+            });
+
+            el.querySelector('#cancelWipeBtn').addEventListener('click', () => {
+              confirmBox.classList.add('hidden');
+              step1.classList.remove('hidden');
+            });
+
+            el.querySelector('#confirmWipeBtn').addEventListener('click', () => {
+              appState.groups = { 'Miembros 1': [], 'Miembros 2': [], 'Miembros 3': [] };
+              appState.records = {};
+              saveStateToStorage();
+              GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
+              closeModal();
+              showToast('Base de datos borrada por completo.');
+              switchTab(uiState.activeTab);
+            });
+
+            el.querySelector('#loadDemoDataBtn').addEventListener('click', () => {
+              const sample = buildSampleData();
+              appState.groups = sample.groups;
+              appState.records = sample.records;
+              saveStateToStorage();
+              GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
+              closeModal();
+              showToast('Datos de prueba cargados.');
+              switchTab(uiState.activeTab);
+            });
+          }
+        );
+      }
+
+      /* --- OPCIÓN 5: ACERCA DE --- */
+      function openAboutModal() {
+        openModal(
+          'Acerca de',
+          `
+            <div class="text-center py-3 space-y-4">
+              <div class="w-14 h-14 rounded-2xl theme-accent-bg mx-auto flex items-center justify-center shadow-md">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </div>
+
+              <div>
+                <h4 class="text-lg font-extrabold">Sistema de Inasistencias</h4>
+                <p class="text-xs theme-text-muted mt-0.5">Gestión inteligente de asistencia por grupo de clase</p>
+              </div>
+
+              <div class="rounded-2xl theme-surface-alt border p-4 space-y-2 text-sm">
+                <div class="flex items-center justify-between">
+                  <span class="theme-text-secondary">Desarrollador:</span>
+                  <span class="font-bold">Orion</span>
+                </div>
+                <div class="border-t theme-border"></div>
+                <div class="flex items-center justify-between">
+                  <span class="theme-text-secondary">Versión:</span>
+                  <span class="font-bold">1.0</span>
+                </div>
+              </div>
+
+              <div class="pt-1 flex flex-col gap-2">
+                <button type="button" id="closeAboutBtn" class="w-full py-2.5 rounded-xl font-bold theme-accent-bg">Cerrar</button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            el.querySelector('#closeAboutBtn').addEventListener('click', closeModal);
+          }
+        );
+      }
+
+      /* ----------------------------------------------------------------------
+         13. INICIALIZACIÓN AL CARGAR LA PÁGINA
+         ---------------------------------------------------------------------- */
+      switchTab('registro');
+    })();
+  </script>
+</body>
+</html>
