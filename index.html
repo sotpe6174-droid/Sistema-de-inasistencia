@@ -1,43 +1,652 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="es" data-bg="white" data-accent="leaf">
+<head>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Inasistencias — v1.2</title>
+  <title>Sistema de Inasistencias — v1.3</title>
+
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SheetJS (xlsx 0.18.5) para importar y exportar archivos Excel (.xlsx/.xls/.csv) -->
-  <script src="https://cdn.sheetjs.com/xlsx-0.18.5/package/dist/xlsx.full.min.js"></script>
+
+  <!-- SheetJS (xlsx 0.20.3) para importar y exportar archivos Excel (.xlsx/.xls/.csv) -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
   <style>
-<!-- ... existing code ... -->
-            <div class="flex items-center gap-2">
-              <h1 class="text-base sm:text-xl font-extrabold tracking-tight truncate">Sistema de Inasistencias</h1>
-              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-accent-soft shrink-0">
-                v1.2
-              </span>
-              <span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full theme-surface-alt border theme-border shrink-0">
-                <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--accent);"></span>
-                Guardado local
+    /* ==========================================================================
+       SISTEMA DE TEMAS Y VARIABLES SEMÁNTICAS (FONDO CLARO/OSCURO + HOJA/OTOÑO)
+       ========================================================================== */
+    :root {
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Fondo Claro (Default) */
+    html[data-bg="white"] {
+      --bg-app: #f4f7f5;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8faf9;
+      --bg-hover: #eef3f0;
+      --border-color: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+      --danger-soft: #fef2f2;
+      --danger-border: #fecaca;
+      --danger-text: #dc2626;
+      --warning-soft: #fffbeb;
+      --warning-border: #fde68a;
+      --warning-text: #b45309;
+    }
+
+    /* Fondo Oscuro */
+    html[data-bg="black"] {
+      --bg-app: #0b0f0e;
+      --bg-surface: #131918;
+      --bg-surface-alt: #192220;
+      --bg-hover: #212c29;
+      --border-color: #273431;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.35);
+      --danger-soft: rgba(220, 38, 38, 0.16);
+      --danger-border: rgba(248, 113, 113, 0.35);
+      --danger-text: #f87171;
+      --warning-soft: rgba(217, 119, 6, 0.18);
+      --warning-border: rgba(251, 191, 36, 0.35);
+      --warning-text: #fbbf24;
+    }
+
+    /* Paleta Verde Hoja (Claro) */
+    html[data-bg="white"][data-accent="leaf"] {
+      --accent: #15803d;
+      --accent-hover: #166534;
+      --accent-soft: #dcfce7;
+      --accent-text: #14532d;
+      --accent-ring: rgba(21, 128, 61, 0.25);
+    }
+
+    /* Paleta Verde Hoja (Oscuro) */
+    html[data-bg="black"][data-accent="leaf"] {
+      --accent: #22c55e;
+      --accent-hover: #16a34a;
+      --accent-soft: rgba(34, 197, 94, 0.18);
+      --accent-text: #86efac;
+      --accent-ring: rgba(34, 197, 94, 0.28);
+    }
+
+    /* Paleta Otoño (Claro) */
+    html[data-bg="white"][data-accent="autumn"] {
+      --accent: #c2410c;
+      --accent-hover: #9a3412;
+      --accent-soft: #ffedd5;
+      --accent-text: #7c2d12;
+      --accent-ring: rgba(194, 65, 12, 0.25);
+    }
+
+    /* Paleta Otoño (Oscuro) */
+    html[data-bg="black"][data-accent="autumn"] {
+      --accent: #f97316;
+      --accent-hover: #ea580c;
+      --accent-soft: rgba(249, 115, 22, 0.18);
+      --accent-text: #fdba74;
+      --accent-ring: rgba(249, 115, 22, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: var(--font-sans);
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      transition: background-color 0.2s ease, color 0.2s ease;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .theme-surface {
+      background-color: var(--bg-surface);
+      border-color: var(--border-color);
+      box-shadow: var(--shadow-card);
+    }
+
+    .theme-surface-alt {
+      background-color: var(--bg-surface-alt);
+      border-color: var(--border-color);
+    }
+
+    .theme-border {
+      border-color: var(--border-color);
+    }
+
+    .theme-text-secondary {
+      color: var(--text-secondary);
+    }
+
+    .theme-text-muted {
+      color: var(--text-muted);
+    }
+
+    .theme-hover:hover {
+      background-color: var(--bg-hover);
+    }
+
+    .theme-accent-bg {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+
+    html[data-bg="black"] .theme-accent-bg {
+      color: #052e16;
+    }
+
+    html[data-bg="black"][data-accent="autumn"] .theme-accent-bg {
+      color: #1c0a00;
+    }
+
+    .theme-accent-bg:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+    }
+
+    .theme-accent-soft {
+      background-color: var(--accent-soft);
+      color: var(--accent-text);
+    }
+
+    .theme-input {
+      background-color: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .theme-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+
+    html[data-bg="black"] input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+
+    .student-row-absent {
+      background-color: var(--danger-soft) !important;
+      border-color: var(--danger-border) !important;
+    }
+
+    /* Animaciones suaves */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ========================================================================
+       ENCABEZADO PRINCIPAL Y MENÚ DE TRES PUNTOS (⋮)
+       ======================================================================== -->
+  <header class="sticky top-0 z-30 border-b theme-surface backdrop-blur-md">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+      <!-- Identidad de la app -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl theme-accent-bg flex items-center justify-center shrink-0 shadow-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-xl font-extrabold tracking-tight truncate">Sistema de Inasistencias</h1>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-accent-soft shrink-0">v1.3</span>
+          </div>
+          <p class="text-xs theme-text-muted truncate">Control académico por grupo, ranking e historial</p>
+        </div>
+      </div>
+
+      <!-- Acciones derechas: Cambio rápido de tema + Menú ⋮ -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <button
+          type="button"
+          id="quickBgToggleBtn"
+          title="Cambiar entre Fondo Claro y Oscuro"
+          class="p-2.5 rounded-xl border theme-border theme-surface-alt theme-hover transition-colors"
+          aria-label="Alternar fondo claro u oscuro"
+        >
+          <svg id="iconSun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="iconMoon" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+
+        <!-- Menú desplegable de 3 puntos -->
+        <div class="relative" id="kebabMenuWrapper">
+          <button
+            type="button"
+            id="kebabMenuBtn"
+            class="p-2.5 rounded-xl border theme-border theme-surface-alt theme-hover transition-colors"
+            aria-label="Opciones del sistema"
+            aria-expanded="false"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z" />
+            </svg>
+          </button>
+
+          <div
+            id="kebabDropdown"
+            class="hidden absolute right-0 mt-2 w-60 rounded-2xl border theme-surface shadow-xl py-1.5 z-50 animate-fade-in"
+          >
+            <button type="button" id="menuExportExcel" class="w-full px-4 py-2.5 text-left text-sm font-medium theme-hover flex items-center gap-3">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Exportar a Excel</span>
+            </button>
+
+            <button type="button" id="menuImportExcel" class="w-full px-4 py-2.5 text-left text-sm font-medium theme-hover flex items-center gap-3">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span>Importar desde Excel</span>
+            </button>
+
+            <div class="my-1 border-t theme-border"></div>
+
+            <button type="button" id="menuAppearance" class="w-full px-4 py-2.5 text-left text-sm font-medium theme-hover flex items-center gap-3">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+              <span>Apariencia</span>
+            </button>
+
+            <button type="button" id="menuAbout" class="w-full px-4 py-2.5 text-left text-sm font-medium theme-hover flex items-center gap-3">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Acerca de</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de navegación principal (3 pestañas) -->
+    <nav class="max-w-5xl mx-auto px-4 sm:px-6 pb-3" aria-label="Secciones principales">
+      <div class="grid grid-cols-3 gap-1.5 p-1 rounded-2xl theme-surface-alt border theme-border">
+        <button
+          type="button"
+          data-tab="registro"
+          class="nav-tab-btn py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span>Registro</span>
+        </button>
+
+        <button
+          type="button"
+          data-tab="datos"
+          class="nav-tab-btn py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Datos de inasistencia</span>
+        </button>
+
+        <button
+          type="button"
+          data-tab="grafico"
+          class="nav-tab-btn py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>Gráfico</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Input oculto para importar archivos Excel -->
+  <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" class="hidden" />
+
+  <!-- ========================================================================
+       CONTENIDO PRINCIPAL (3 VISTAS)
+       ======================================================================== -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-5 space-y-5">
+
+    <!-- ======================================================================
+         VISTA 1: REGISTRO DE INASISTENCIAS
+         ====================================================================== -->
+    <section id="view-registro" class="space-y-4 animate-fade-in">
+      <!-- Controles de Grupo y Fecha -->
+      <div class="rounded-2xl border theme-surface p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base sm:text-lg font-extrabold">Registro de Inasistencias</h2>
+            <p class="text-xs theme-text-muted">Selecciona el grupo y la fecha correspondiente de clase para marcar inasistencias.</p>
+          </div>
+          <div id="registroSessionStatusBadge" class="self-start sm:self-center"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <!-- Selector de Grupo -->
+          <div>
+            <label for="registroGroupSelect" class="block text-xs font-bold theme-text-secondary mb-1.5">
+              Grupo de clase
+            </label>
+            <select id="registroGroupSelect" class="w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold theme-input cursor-pointer">
+              <option value="Miembros 1">Miembros 1 (Viernes)</option>
+              <option value="Miembros 2">Miembros 2 (Viernes)</option>
+              <option value="Miembros 3">Miembros 3 (Miércoles)</option>
+            </select>
+          </div>
+
+          <!-- Selector de Fecha -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="registroDateInput" class="block text-xs font-bold theme-text-secondary">
+                Fecha de la sesión
+              </label>
+              <span id="registroSelectedDayLabel" class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-accent-soft">
+                Viernes
               </span>
             </div>
-            <p class="text-xs theme-text-muted truncate">Control académico por grupo, ranking e historial</p>
+            <input
+              type="date"
+              id="registroDateInput"
+              class="w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold theme-input"
+            />
           </div>
-<!-- ... existing code ... -->
-          <div class="w-full sm:w-64">
-            <label for="datosMonthFilter" class="block text-xs font-semibold theme-text-secondary mb-1">Filtrar por Mes y Año</label>
+        </div>
+
+        <!-- Alerta de día inválido con botón de ajuste automático -->
+        <div id="invalidDayAlert" class="hidden rounded-2xl border p-3.5 sm:p-4 space-y-2.5" style="background-color: var(--warning-soft); border-color: var(--warning-border); color: var(--warning-text);">
+          <div class="flex items-start gap-2.5">
+            <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div class="text-xs sm:text-sm space-y-1 flex-1">
+              <p class="font-extrabold" id="invalidDayTitle">Día de la semana no permitido</p>
+              <p id="invalidDayMessage" class="opacity-90"></p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 pt-0.5">
+            <button
+              type="button"
+              id="snapNearestValidDateBtn"
+              class="px-3.5 py-2 rounded-xl text-xs font-bold theme-accent-bg shadow-sm transition-transform active:scale-95"
+            >
+              Ajustar al día válido más cercano
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Alumnos y Buscador -->
+      <div class="rounded-2xl border theme-surface p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div class="relative flex-1">
+            <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 theme-text-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              id="registroSearchInput"
+              placeholder="Buscar alumno por nombre..."
+              class="w-full rounded-xl pl-10 pr-3.5 py-2.5 text-sm theme-input"
+            />
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              id="btnOpenAddStudent"
+              class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold theme-accent-soft hover:opacity-90 transition-opacity flex items-center gap-1.5"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Agregar alumno</span>
+            </button>
+
+            <button
+              type="button"
+              id="btnToggleManageStudents"
+              title="Activar o desactivar botones para eliminar alumnos de la lista"
+              class="px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border theme-border theme-surface-alt theme-hover transition-colors"
+            >
+              Gestionar
+            </button>
+          </div>
+        </div>
+
+        <!-- Barra rápida para agregar alumno inline -->
+        <form id="inlineAddStudentForm" class="hidden rounded-xl border theme-border theme-surface-alt p-3 flex flex-col sm:flex-row gap-2 animate-fade-in">
+          <input
+            type="text"
+            id="inlineNewStudentName"
+            placeholder="Nombre completo del nuevo alumno..."
+            class="flex-1 rounded-xl px-3.5 py-2 text-sm theme-input"
+            autocomplete="off"
+          />
+          <div class="flex items-center gap-2">
+            <button type="submit" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold theme-accent-bg">
+              Añadir al grupo
+            </button>
+            <button type="button" id="btnCancelAddStudent" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold border theme-border theme-hover">
+              Cancelar
+            </button>
+          </div>
+        </form>
+
+        <!-- Sub-barra de conteo rápido -->
+        <div class="flex items-center justify-between text-xs theme-text-secondary border-b theme-border pb-2.5">
+          <span id="registroRosterSummary">0 alumnos en lista</span>
+          <button type="button" id="btnClearChecks" class="font-semibold hover:underline" style="color: var(--accent);">
+            Desmarcar todos
+          </button>
+        </div>
+
+        <!-- Contenedor de checklist -->
+        <div id="registroStudentList" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[52vh] overflow-y-auto pr-0.5"></div>
+
+        <!-- Barra de acción inferior (Contador + Guardar asistencia) -->
+        <div class="pt-3 border-t theme-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <span id="registroAbsentCounterBadge" class="text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-xl" style="background-color: var(--danger-soft); color: var(--danger-text);">
+              0 faltas marcadas
+            </span>
+            <span id="registroSessionPctPreview" class="text-xs font-semibold theme-text-muted">
+              (0.0% de inasistencia)
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              id="btnDeleteCurrentSession"
+              class="hidden px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-colors"
+              style="border-color: var(--danger-border); color: var(--danger-text); background-color: var(--danger-soft);"
+            >
+              Eliminar sesión
+            </button>
+            <button
+              type="button"
+              id="btnSaveAttendance"
+              class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl text-sm font-extrabold theme-accent-bg shadow-sm transition-all disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Guardar asistencia</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         VISTA 2: DATOS DE INASISTENCIA (RANKING Y EDICIÓN)
+         ====================================================================== -->
+    <section id="view-datos" class="hidden space-y-4 animate-fade-in">
+      <!-- Filtros -->
+      <div class="rounded-2xl border theme-surface p-4 sm:p-5 space-y-3.5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base sm:text-lg font-extrabold">Datos de Inasistencia</h2>
+            <p class="text-xs theme-text-muted">Alumnos ordenados de mayor a menor cantidad de faltas por grupo.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label for="datosGroupFilter" class="block text-xs font-bold theme-text-secondary mb-1">Filtrar por Grupo</label>
+            <select id="datosGroupFilter" class="w-full rounded-xl px-3 py-2.5 text-sm font-medium theme-input cursor-pointer">
+              <option value="ALL">Todos los grupos</option>
+              <option value="Miembros 1">Miembros 1 (Viernes)</option>
+              <option value="Miembros 2">Miembros 2 (Viernes)</option>
+              <option value="Miembros 3">Miembros 3 (Miércoles)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="datosMonthFilter" class="block text-xs font-bold theme-text-secondary mb-1">Filtrar por Mes</label>
             <select id="datosMonthFilter" class="w-full rounded-xl px-3 py-2.5 text-sm font-medium theme-input cursor-pointer"></select>
+          </div>
+
+          <div>
+            <label for="datosSearchInput" class="block text-xs font-bold theme-text-secondary mb-1">Buscar alumno</label>
+            <input
+              type="text"
+              id="datosSearchInput"
+              placeholder="Nombre del alumno..."
+              class="w-full rounded-xl px-3 py-2.5 text-sm theme-input"
+            />
           </div>
         </div>
 
         <div id="datosPeriodBanner" class="flex flex-wrap items-center gap-2 text-xs font-semibold"></div>
 
-        <div class="pt-2.5 border-t theme-border flex items-center justify-between gap-3">
-          <label for="toggleZeroAbsences" class="text-xs sm:text-sm theme-text-secondary font-medium cursor-pointer select-none">
-<!-- ... existing code ... -->
+        <div class="pt-2 border-t theme-border flex items-center justify-between gap-3">
+          <label for="toggleZeroAbsences" class="text-xs sm:text-sm theme-text-secondary font-medium cursor-pointer select-none flex items-center gap-2">
+            <input type="checkbox" id="toggleZeroAbsences" class="w-4 h-4 rounded" style="accent-color: var(--accent);" checked />
+            <span>Mostrar también alumnos con 0 faltas</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tarjetas agrupadas -->
+      <div id="datosGroupsContainer" class="space-y-4"></div>
+    </section>
+
+    <!-- ======================================================================
+         VISTA 3: GRÁFICO DE PORCENTAJES Y RANKING VISUAL
+         ====================================================================== -->
+    <section id="view-grafico" class="hidden space-y-4 animate-fade-in">
+      <!-- Controles superiores -->
+      <div class="rounded-2xl border theme-surface p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-extrabold">Análisis Gráfico de Inasistencias</h2>
+          <p class="text-xs theme-text-muted">Comparativa porcentual por grupo y ranking de alumnos con mayor inasistencia.</p>
+        </div>
+
+        <div class="w-full sm:w-64">
+          <label for="graficoMonthFilter" class="block text-xs font-bold theme-text-secondary mb-1">Período a analizar</label>
+          <select id="graficoMonthFilter" class="w-full rounded-xl px-3 py-2.5 text-sm font-medium theme-input cursor-pointer"></select>
+        </div>
+      </div>
+
+      <!-- Gráfico 1: Porcentaje por Grupo (SVG + Barras limpias) -->
+      <div class="rounded-2xl border theme-surface p-4 sm:p-5 space-y-4">
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="text-sm sm:text-base font-extrabold">1. Porcentaje de Inasistencia por Grupo</h3>
+          <span id="graficoGroupTotalTag" class="text-xs font-bold px-2.5 py-1 rounded-full theme-accent-soft"></span>
+        </div>
+
+        <div id="graficoGroupsChartContainer" class="space-y-4"></div>
+      </div>
+
+      <!-- Gráfico 2: Ranking Visual de Alumnos con Mayor % de Faltas -->
+      <div class="rounded-2xl border theme-surface p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold">2. Ranking de Alumnos con Mayor Porcentaje de Faltas</h3>
+            <p class="text-xs theme-text-muted">Calculado sobre las sesiones registradas de su respectivo grupo.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <select id="graficoRankGroupFilter" class="rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold theme-input cursor-pointer">
+              <option value="ALL">Todos los grupos</option>
+              <option value="Miembros 1">Miembros 1</option>
+              <option value="Miembros 2">Miembros 2</option>
+              <option value="Miembros 3">Miembros 3</option>
+            </select>
+
+            <select id="graficoTopLimitFilter" class="rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold theme-input cursor-pointer">
+              <option value="10">Top 10</option>
+              <option value="20">Top 20</option>
+              <option value="ALL">Todos con faltas</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="graficoStudentsRankingContainer" class="space-y-2.5"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       MODAL GENÉRICO REUTILIZABLE (EXPORTAR, APARIENCIA, EDITAR SESIÓN, ACERCA DE)
+       ======================================================================== -->
+  <div id="appModalOverlay" class="hidden fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4">
+    <div id="appModalDialog" class="w-full max-w-lg rounded-2xl border theme-surface shadow-2xl overflow-hidden animate-fade-in">
+      <div class="px-5 py-4 border-b theme-border flex items-center justify-between gap-3">
+        <h3 id="appModalTitle" class="text-base font-extrabold">Título</h3>
+        <button type="button" id="appModalCloseX" class="p-1.5 rounded-lg theme-hover theme-text-secondary" aria-label="Cerrar ventana">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="appModalBody" class="p-5 max-h-[80vh] overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       CONTENEDOR DE NOTIFICACIONES TOAST
+       ======================================================================== -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ========================================================================
+       LÓGICA COMPLETA DE LA APLICACIÓN (VERSIÓN 1.3 — ORION)
+       ======================================================================== -->
+  <script>
+    (() => {
+      'use strict';
+
       /* ----------------------------------------------------------------------
-         1. CONSTANTES DE ALMACENAMIENTO Y CONFIGURACIÓN DE GRUPOS
+         1. CONFIGURACIÓN DE ALMACENAMIENTO, GRUPOS Y CALENDARIO EN ESPAÑOL
          ---------------------------------------------------------------------- */
       const PRIMARY_STORAGE_KEY = 'sistema_inasistencias_data_v1';
       const THEME_STORAGE_KEY = 'sistema_inasistencias_theme_v1';
@@ -46,173 +655,414 @@
         'sistema_inasistencias_orion_v1',
         'inasistenciasData',
         'inasistencias_data',
-        'attendance_data'
+        'attendance_data',
+        'sistema_inasistencias'
       ];
-<!-- ... existing code ... -->
-        // 1. Migrar tema (prioriza tema dedicado si existe, o el embebido en data)
+
+      const GROUPS_CONFIG = [
+        { id: 'Miembros 1', allowedDay: 5, dayName: 'viernes', dayNameCap: 'Viernes' },
+        { id: 'Miembros 2', allowedDay: 5, dayName: 'viernes', dayNameCap: 'Viernes' },
+        { id: 'Miembros 3', allowedDay: 3, dayName: 'miércoles', dayNameCap: 'Miércoles' }
+      ];
+
+      const SPANISH_DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const SPANISH_MONTHS = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+
+      function getGroupConfig(groupId) {
+        return GROUPS_CONFIG.find(g => g.id === groupId) || GROUPS_CONFIG[0];
+      }
+
+      /* ----------------------------------------------------------------------
+         2. UTILIDADES DE FECHAS LOCALES (SIN DESFASE UTC) Y SANITIZACIÓN
+         ---------------------------------------------------------------------- */
+      function escapeHTML(str) {
+        return String(str ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      // Parsea YYYY-MM-DD en hora local exacta
+      function parseLocalDate(isoStr) {
+        if (!isoStr || typeof isoStr !== 'string') return null;
+        const m = isoStr.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (!m) return null;
+        const year = Number(m[1]);
+        const month = Number(m[2]);
+        const day = Number(m[3]);
+        const d = new Date(year, month - 1, day);
+        if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return null;
+        return d;
+      }
+
+      function toISODateLocal(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      function formatShortDate(isoStr) {
+        const d = parseLocalDate(isoStr);
+        if (!d) return isoStr || '';
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      }
+
+      function formatMonthYearLabel(ym) {
+        if (!ym || ym === 'ALL') return 'Todos los meses';
+        const parts = ym.split('-');
+        if (parts.length !== 2) return ym;
+        const year = parts[0];
+        const mIdx = Number(parts[1]) - 1;
+        if (mIdx < 0 || mIdx > 11) return ym;
+        return `${SPANISH_MONTHS[mIdx]} ${year}`;
+      }
+
+      // Normaliza fechas desde Excel o texto (YYYY-MM-DD, DD/MM/YYYY, serial numérico de Excel)
+      function normalizeExcelDate(raw) {
+        if (raw === null || raw === undefined || raw === '') return null;
+        if (typeof raw === 'number' && isFinite(raw) && raw > 20000 && raw < 90000) {
+          const utcDays = Math.floor(raw - 25569);
+          const d = new Date(utcDays * 86400 * 1000);
+          const y = d.getUTCFullYear();
+          const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(d.getUTCDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+        const str = String(raw).trim();
+        // YYYY-MM-DD o YYYY/MM/DD
+        let m = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+        if (m) {
+          const iso = `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+          return parseLocalDate(iso) ? iso : null;
+        }
+        // DD/MM/YYYY o DD-MM-YYYY
+        m = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+        if (m) {
+          const iso = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+          return parseLocalDate(iso) ? iso : null;
+        }
+        return null;
+      }
+
+      // Encuentra el día de la semana válido más cercano (anterior o igual, o el más próximo)
+      function getNearestValidDateForGroup(groupId, baseIsoStr) {
+        const cfg = getGroupConfig(groupId);
+        const base = parseLocalDate(baseIsoStr) || new Date();
+        const currentDay = base.getDay();
+        if (currentDay === cfg.allowedDay) return toISODateLocal(base);
+
+        // Calcular distancia hacia atrás y hacia adelante en la semana (0..6)
+        const diffBack = (currentDay - cfg.allowedDay + 7) % 7;
+        const diffForward = (cfg.allowedDay - currentDay + 7) % 7;
+
+        const chosenOffset = diffBack <= diffForward ? -diffBack : diffForward;
+        const target = new Date(base.getFullYear(), base.getMonth(), base.getDate() + chosenOffset);
+        return toISODateLocal(target);
+      }
+
+      function normalizeGroupName(raw) {
+        if (!raw) return null;
+        const s = String(raw).trim().toLowerCase();
+        if (s.includes('miembros 1') || s === 'miembros1' || s === 'grupo 1' || s === 'm1') return 'Miembros 1';
+        if (s.includes('miembros 2') || s === 'miembros2' || s === 'grupo 2' || s === 'm2') return 'Miembros 2';
+        if (s.includes('miembros 3') || s === 'miembros3' || s === 'grupo 3' || s === 'm3') return 'Miembros 3';
+        return null;
+      }
+
+      /* ----------------------------------------------------------------------
+         3. ESTADO GLOBAL Y PERSISTENCIA COMPATIBLE HACIA ATRÁS
+         ---------------------------------------------------------------------- */
+      function createEmptyState() {
+        return {
+          students: {
+            'Miembros 1': [],
+            'Miembros 2': [],
+            'Miembros 3': []
+          },
+          absences: [], // { group, student, date: 'YYYY-MM-DD' }
+          sessions: [], // { group, date: 'YYYY-MM-DD' }
+          theme: {
+            bg: 'white',    // 'white' (Claro) | 'black' (Oscuro)
+            accent: 'leaf'  // 'leaf' (Verde Hoja) | 'autumn' (Otoño)
+          }
+        };
+      }
+
+      let appState = loadAndMigrateState();
+
+      const uiState = {
+        activeTab: 'registro',
+        registroGroup: 'Miembros 1',
+        registroDate: getNearestValidDateForGroup('Miembros 1', toISODateLocal(new Date())),
+        registroChecked: new Set(),
+        registroSearch: '',
+        registroManageMode: false,
+
+        datosFilterGroup: 'ALL',
+        datosFilterMonth: 'ALL',
+        datosSearch: '',
+        datosShowZero: true,
+
+        graficoFilterMonth: 'ALL',
+        graficoRankGroup: 'ALL',
+        graficoTopLimit: '10'
+      };
+
+      function loadAndMigrateState() {
+        const state = createEmptyState();
+        let rawPayload = null;
+
+        // 1. Buscar clave primaria o claves heredadas
+        try {
+          rawPayload = localStorage.getItem(PRIMARY_STORAGE_KEY);
+          if (!rawPayload) {
+            for (const legacyKey of LEGACY_STORAGE_KEYS) {
+              const found = localStorage.getItem(legacyKey);
+              if (found) {
+                rawPayload = found;
+                break;
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('No se pudo leer localStorage:', err);
+        }
+
+        let parsed = {};
+        if (rawPayload) {
+          try {
+            parsed = JSON.parse(rawPayload) || {};
+          } catch (e) {
+            parsed = {};
+          }
+        }
+
+        // 2. Cargar tema desde clave dedicada o desde payload
         try {
           const savedThemeRaw = localStorage.getItem(THEME_STORAGE_KEY);
           if (savedThemeRaw) {
-            const tObj = JSON.parse(savedThemeRaw);
-            state.theme.bg = (tObj.bg === 'black' || tObj.bg === 'dark') ? 'black' : 'white';
-            const acc = tObj.accent || tObj.style;
-            state.theme.accent = (acc === 'autumn') ? 'autumn' : 'leaf';
+            const t = JSON.parse(savedThemeRaw);
+            state.theme.bg = (t.bg === 'black' || t.bg === 'dark') ? 'black' : 'white';
+            const acc = t.accent || t.style;
+            state.theme.accent = acc === 'autumn' ? 'autumn' : 'leaf';
           } else if (parsed.theme && typeof parsed.theme === 'object') {
             state.theme.bg = (parsed.theme.bg === 'black' || parsed.theme.bg === 'dark') ? 'black' : 'white';
-            const accentVal = parsed.theme.accent || parsed.theme.style;
-            state.theme.accent = accentVal === 'autumn' ? 'autumn' : 'leaf';
+            const acc = parsed.theme.accent || parsed.theme.style;
+            state.theme.accent = acc === 'autumn' ? 'autumn' : 'leaf';
           }
         } catch (e) {
-          if (parsed.theme && typeof parsed.theme === 'object') {
-            state.theme.bg = parsed.theme.bg === 'black' ? 'black' : 'white';
-            state.theme.accent = parsed.theme.accent === 'autumn' ? 'autumn' : 'leaf';
-          }
+          // Mantener defaults
         }
-<!-- ... existing code ... -->
-        // 4. Migrar objeto o array `records` (esquema v1.0 / v1.2)
-        if (Array.isArray(parsed.records)) {
-          parsed.records.forEach(item => {
-            if (!item) return;
-            const grp = normalizeGroupName(item.group);
-            const dt = normalizeExcelDate(item.date);
-            if (grp && dt && item.student) {
-              addAbsenceUnique(grp, item.student, dt);
+
+        // Helper interno de deduplicación durante carga
+        const addStudent = (grp, name) => {
+          const g = normalizeGroupName(grp);
+          const clean = String(name || '').trim();
+          if (!g || !clean) return;
+          if (!state.students[g].some(s => s.toLowerCase() === clean.toLowerCase())) {
+            state.students[g].push(clean);
+          }
+        };
+
+        const addSession = (grp, dateIso) => {
+          const g = normalizeGroupName(grp);
+          const dt = normalizeExcelDate(dateIso);
+          if (!g || !dt) return;
+          if (!state.sessions.some(s => s.group === g && s.date === dt)) {
+            state.sessions.push({ group: g, date: dt });
+          }
+        };
+
+        const addAbsence = (grp, name, dateIso) => {
+          const g = normalizeGroupName(grp);
+          const clean = String(name || '').trim();
+          const dt = normalizeExcelDate(dateIso);
+          if (!g || !clean || !dt) return;
+          addStudent(g, clean);
+          addSession(g, dt);
+          if (!state.absences.some(a => a.group === g && a.student.toLowerCase() === clean.toLowerCase() && a.date === dt)) {
+            state.absences.push({ group: g, student: clean, date: dt });
+          }
+        };
+
+        // 3. Migrar listas de alumnos
+        if (parsed.students && typeof parsed.students === 'object') {
+          Object.entries(parsed.students).forEach(([grpKey, arr]) => {
+            if (Array.isArray(arr)) {
+              arr.forEach(st => addStudent(grpKey, st));
             }
+          });
+        }
+
+        // 4. Migrar sesiones
+        if (Array.isArray(parsed.sessions)) {
+          parsed.sessions.forEach(s => {
+            if (s && s.group && s.date) addSession(s.group, s.date);
+          });
+        }
+
+        // 5. Migrar inasistencias (`absences` o `records`)
+        if (Array.isArray(parsed.absences)) {
+          parsed.absences.forEach(a => {
+            if (a) addAbsence(a.group, a.student, a.date);
+          });
+        }
+        if (Array.isArray(parsed.records)) {
+          parsed.records.forEach(r => {
+            if (r) addAbsence(r.group, r.student, r.date);
           });
         } else if (parsed.records && typeof parsed.records === 'object') {
           Object.values(parsed.records).forEach(rec => {
             if (!rec) return;
-            const grp = normalizeGroupName(rec.group);
-            const dt = normalizeExcelDate(rec.date);
-            if (grp && dt) {
-              addSessionUnique(grp, dt);
-              if (Array.isArray(rec.absentees)) {
-                rec.absentees.forEach(st => addAbsenceUnique(grp, st, dt));
-              }
+            addSession(rec.group, rec.date);
+            if (Array.isArray(rec.absentees)) {
+              rec.absentees.forEach(st => addAbsence(rec.group, st, rec.date));
             }
           });
         }
-<!-- ... existing code ... -->
+
+        // Ordenar nóminas alfabéticamente
+        GROUPS_CONFIG.forEach(cfg => {
+          state.students[cfg.id].sort((a, b) => a.localeCompare(b, 'es'));
+        });
+
+        // Guardar inmediatamente en la clave estándar v1 para consolidar migración
+        saveStateToStorage(state);
+        return state;
+      }
+
       function saveStateToStorage(target = appState) {
         try {
-          const payloadToSave = {
+          const payload = {
             students: target.students,
             absences: target.absences,
-            records: target.absences,
+            records: target.absences, // Alias compatible con versiones previas
             sessions: target.sessions,
             theme: target.theme
           };
-          localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(payloadToSave));
-          localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify({
-            bg: target.theme.bg === 'black' ? 'dark' : 'light',
-            accent: target.theme.accent === 'autumn' ? 'autumn' : 'green'
-          }));
+          localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(payload));
+          localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(target.theme));
         } catch (err) {
-          showToast('No se pudo guardar en el navegador (memoria llena o bloqueada).', 'error');
+          showToast('No se pudo guardar en el navegador (almacenamiento bloqueado o lleno).', 'error');
         }
       }
-<!-- ... existing code ... -->
-        const zeroToggle = document.getElementById('toggleZeroAbsences');
-        zeroToggle.checked = uiState.datosShowZero;
 
-        const periodBanner = document.getElementById('datosPeriodBanner');
-        let globalSessions = 0;
-        let globalAbsences = 0;
-        GROUPS_CONFIG.forEach(cfg => {
-          const st = getGroupPeriodStats(cfg.id, uiState.datosFilterMonth);
-          globalSessions += st.sessionsCount;
-          globalAbsences += st.totalAbsences;
-        });
-        periodBanner.innerHTML = `
-          <span class="px-2.5 py-1 rounded-lg theme-surface-alt border theme-border">
-            Período: <strong>${escapeHTML(formatMonthYearLabel(uiState.datosFilterMonth))}</strong>
-          </span>
-          <span class="px-2.5 py-1 rounded-lg theme-accent-soft">
-            ${globalSessions} ${globalSessions === 1 ? 'sesión' : 'sesiones'} registradas
-          </span>
-          <span class="px-2.5 py-1 rounded-lg" style="background-color: var(--danger-soft); color: var(--danger-text);">
-            ${globalAbsences} ${globalAbsences === 1 ? 'falta total' : 'faltas totales'}
-          </span>
-        `;
-
-        const container = document.getElementById('datosAccordionsContainer');
-        container.innerHTML = '';
-<!-- ... existing code ... -->
-              const studentPct = stats.sessionsCount > 0
-                ? ((count / stats.sessionsCount) * 100).toFixed(1)
-                : '0.0';
-              return { name, records: sortedRecords, count, studentPct };
-            })
-            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-            .map((item, idx) => ({ ...item, rank: idx + 1 }));
-
-          const visibleEntries = uiState.datosShowZero
-            ? allEntries
-            : allEntries.filter(e => e.count > 0);
-<!-- ... existing code ... -->
-                itemCard.innerHTML = `
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-2 min-w-0">
-                        <span class="text-[11px] font-extrabold px-2 py-0.5 rounded-md shrink-0 ${entry.count > 0 ? 'theme-accent-soft' : 'theme-surface border theme-border theme-text-muted'}">
-                          #${entry.rank}
-                        </span>
-                        <p class="font-bold text-sm truncate">${escapeHTML(entry.name)}</p>
-                      </div>
-                      <div class="flex items-center gap-2 flex-wrap mt-1.5">
-                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full" style="${entry.count > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
-                          ${entry.count} ${entry.count === 1 ? 'falta' : 'faltas'}
-                        </span>
-                        <span class="text-xs font-semibold theme-text-muted">
-                          (${entry.studentPct}% de ${stats.sessionsCount} ${stats.sessionsCount === 1 ? 'clase' : 'clases'})
-                        </span>
-                      </div>
-                    </div>
-<!-- ... existing code ... -->
-      /* --- OPCIÓN 1: EXPORTAR A EXCEL (v1.2 AGRUPADO Y ORDENADO POR MAYOR FALTA) --- */
-      function buildHistorialRows(ymFilter) {
-        const filtered = appState.absences
-          .filter(a => ymFilter === 'ALL' || a.date.startsWith(ymFilter))
-          .slice()
-          .sort((a, b) => a.date.localeCompare(b.date) || a.group.localeCompare(b.group) || a.student.localeCompare(b.student));
-
-        if (filtered.length === 0) {
-          return [{ Grupo: '', Alumno: '', Fecha: '', Dia_Semana: '' }];
+      // Helpers mutadores deduplicados en tiempo de ejecución
+      function addStudentIfMissing(groupId, studentName) {
+        const g = normalizeGroupName(groupId);
+        const clean = String(studentName || '').trim();
+        if (!g || !clean) return false;
+        const exists = appState.students[g].some(s => s.toLowerCase() === clean.toLowerCase());
+        if (!exists) {
+          appState.students[g].push(clean);
+          appState.students[g].sort((a, b) => a.localeCompare(b, 'es'));
+          return true;
         }
-
-        return filtered.map(a => {
-          const d = parseLocalDate(a.date);
-          return {
-            Grupo: a.group,
-            Alumno: a.student,
-            Fecha: a.date,
-            Dia_Semana: d ? SPANISH_DAYS[d.getDay()] : ''
-          };
-        });
+        return false;
       }
 
-      function buildListasRows() {
-        const rows = [];
-        GROUPS_CONFIG.forEach(cfg => {
-          (appState.students[cfg.id] || []).forEach(st => {
-            rows.push({ Grupo: cfg.id, Alumno: st });
-          });
-        });
-        return rows.length > 0 ? rows : [{ Grupo: '', Alumno: '' }];
+      function addSessionUnique(groupId, dateIso) {
+        const g = normalizeGroupName(groupId);
+        const dt = normalizeExcelDate(dateIso);
+        if (!g || !dt) return false;
+        const exists = appState.sessions.some(s => s.group === g && s.date === dt);
+        if (!exists) {
+          appState.sessions.push({ group: g, date: dt });
+          return true;
+        }
+        return false;
       }
 
-      // Obtiene alumnos de un grupo ordenados de mayor a menor falta (y alfabéticamente)
+      function addAbsenceUnique(groupId, studentName, dateIso) {
+        const g = normalizeGroupName(groupId);
+        const clean = String(studentName || '').trim();
+        const dt = normalizeExcelDate(dateIso);
+        if (!g || !clean || !dt) return false;
+        addStudentIfMissing(g, clean);
+        addSessionUnique(g, dt);
+        const exists = appState.absences.some(
+          a => a.group === g && a.student.toLowerCase() === clean.toLowerCase() && a.date === dt
+        );
+        if (!exists) {
+          appState.absences.push({ group: g, student: clean, date: dt });
+          return true;
+        }
+        return false;
+      }
+
+      /* ----------------------------------------------------------------------
+         4. CÁLCULOS ESTADÍSTICOS POR GRUPO Y PERÍODO
+         ---------------------------------------------------------------------- */
+      function getRegisteredMonths() {
+        const monthsSet = new Set();
+        appState.sessions.forEach(s => {
+          if (s.date && s.date.length >= 7) monthsSet.add(s.date.slice(0, 7));
+        });
+        appState.absences.forEach(a => {
+          if (a.date && a.date.length >= 7) monthsSet.add(a.date.slice(0, 7));
+        });
+        return Array.from(monthsSet).sort((a, b) => b.localeCompare(a)); // Más reciente primero
+      }
+
+      function getGroupPeriodStats(groupId, ymFilter) {
+        const students = (appState.students[groupId] || []).slice().sort((a, b) => a.localeCompare(b, 'es'));
+        const distinctDatesSet = new Set();
+
+        appState.sessions.forEach(s => {
+          if (s.group === groupId && (ymFilter === 'ALL' || s.date.startsWith(ymFilter))) {
+            distinctDatesSet.add(s.date);
+          }
+        });
+
+        const periodAbsences = appState.absences.filter(
+          a => a.group === groupId && (ymFilter === 'ALL' || a.date.startsWith(ymFilter))
+        );
+
+        periodAbsences.forEach(a => distinctDatesSet.add(a.date));
+
+        const distinctDates = Array.from(distinctDatesSet).sort((a, b) => a.localeCompare(b));
+        const sessionsCount = distinctDates.length;
+        const studentsCount = students.length;
+        const totalAbsences = periodAbsences.length;
+        const denominator = studentsCount * sessionsCount;
+        const pct = denominator > 0 ? (totalAbsences / denominator) * 100 : 0;
+
+        return {
+          groupId,
+          students,
+          studentsCount,
+          distinctDates,
+          sessionsCount,
+          periodAbsences,
+          totalAbsences,
+          pct
+        };
+      }
+
+      // Matriz rankeada de alumnos de un grupo (de mayor a menor falta)
       function getRankedGroupMatrix(groupId, ymFilter) {
         const stats = getGroupPeriodStats(groupId, ymFilter);
-        const sessionDates = stats.distinctDates; // YYYY-MM-DD ordenados ascendentemente
+        const sessionDates = stats.distinctDates;
 
         const absenceSetByStudent = new Map();
         stats.students.forEach(st => absenceSetByStudent.set(st, new Set()));
         stats.periodAbsences.forEach(a => {
-          if (!absenceSetByStudent.has(a.student)) {
-            absenceSetByStudent.set(a.student, new Set());
+          const existingKey = Array.from(absenceSetByStudent.keys()).find(
+            k => k.toLowerCase() === a.student.toLowerCase()
+          ) || a.student;
+          if (!absenceSetByStudent.has(existingKey)) {
+            absenceSetByStudent.set(existingKey, new Set());
           }
-          absenceSetByStudent.get(a.student).add(a.date);
+          absenceSetByStudent.get(existingKey).add(a.date);
         });
 
         const rankedStudents = Array.from(absenceSetByStudent.entries())
@@ -235,7 +1085,7 @@
               dateSet
             };
           })
-          .sort((a, b) => b.count - a.count || a.student.localeCompare(b.student))
+          .sort((a, b) => b.count - a.count || a.student.localeCompare(b.student, 'es'))
           .map((item, idx) => ({ ...item, rank: idx + 1 }));
 
         const studentsWithAbsencesCount = rankedStudents.filter(s => s.count > 0).length;
@@ -248,56 +1098,780 @@
         };
       }
 
-      // Construye la hoja principal "Ranking_Por_Grupo" (Tabla resumen + 3 bloques agrupados y ordenados)
-      function buildRankingPorGrupoSheet(ymFilter) {
+      /* ----------------------------------------------------------------------
+         5. APLICACIÓN DE TEMAS, TOASTS Y MODAL GENÉRICO
+         ---------------------------------------------------------------------- */
+      function applyTheme() {
+        const htmlEl = document.documentElement;
+        htmlEl.setAttribute('data-bg', appState.theme.bg);
+        htmlEl.setAttribute('data-accent', appState.theme.accent);
+
+        const iconSun = document.getElementById('iconSun');
+        const iconMoon = document.getElementById('iconMoon');
+        if (appState.theme.bg === 'black') {
+          iconSun.classList.remove('hidden');
+          iconMoon.classList.add('hidden');
+        } else {
+          iconSun.classList.add('hidden');
+          iconMoon.classList.remove('hidden');
+        }
+      }
+
+      function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'pointer-events-auto rounded-2xl border px-4 py-3 shadow-lg text-xs sm:text-sm font-semibold flex items-center gap-2.5 animate-fade-in';
+
+        if (type === 'error') {
+          toast.style.backgroundColor = 'var(--danger-soft)';
+          toast.style.borderColor = 'var(--danger-border)';
+          toast.style.color = 'var(--danger-text)';
+        } else if (type === 'warning') {
+          toast.style.backgroundColor = 'var(--warning-soft)';
+          toast.style.borderColor = 'var(--warning-border)';
+          toast.style.color = 'var(--warning-text)';
+        } else {
+          toast.style.backgroundColor = 'var(--bg-surface)';
+          toast.style.borderColor = 'var(--accent)';
+          toast.style.color = 'var(--text-primary)';
+        }
+
+        toast.innerHTML = `
+          <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${type === 'error' ? 'var(--danger-text)' : type === 'warning' ? 'var(--warning-text)' : 'var(--accent)'};"></span>
+          <span class="flex-1">${escapeHTML(message)}</span>
+        `;
+
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transition = 'opacity 0.25s ease';
+          setTimeout(() => toast.remove(), 260);
+        }, 3600);
+      }
+
+      function openModal(title, bodyHTML, onMount) {
+        const overlay = document.getElementById('appModalOverlay');
+        const titleEl = document.getElementById('appModalTitle');
+        const bodyEl = document.getElementById('appModalBody');
+
+        titleEl.textContent = title;
+        bodyEl.innerHTML = bodyHTML;
+        overlay.classList.remove('hidden');
+
+        if (typeof onMount === 'function') {
+          onMount(bodyEl);
+        }
+      }
+
+      function closeModal() {
+        document.getElementById('appModalOverlay').classList.add('hidden');
+      }
+
+      /* ----------------------------------------------------------------------
+         6. NAVEGACIÓN ENTRE LAS 3 PESTAÑAS PRINCIPALES
+         ---------------------------------------------------------------------- */
+      function switchTab(tabId) {
+        uiState.activeTab = tabId;
+
+        document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+          const isActive = btn.getAttribute('data-tab') === tabId;
+          if (isActive) {
+            btn.classList.add('theme-accent-bg', 'shadow-sm');
+            btn.classList.remove('theme-text-secondary', 'theme-hover');
+          } else {
+            btn.classList.remove('theme-accent-bg', 'shadow-sm');
+            btn.classList.add('theme-text-secondary', 'theme-hover');
+          }
+        });
+
+        ['registro', 'datos', 'grafico'].forEach(v => {
+          const el = document.getElementById(`view-${v}`);
+          if (v === tabId) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        });
+
+        if (tabId === 'registro') {
+          syncRegistroChecksFromState();
+          renderRegistroView();
+        } else if (tabId === 'datos') {
+          populateMonthDropdowns();
+          renderDatosView();
+        } else if (tabId === 'grafico') {
+          populateMonthDropdowns();
+          renderGraficoView();
+        }
+      }
+
+      /* ----------------------------------------------------------------------
+         7. VISTA 1: REGISTRO DE INASISTENCIAS
+         ---------------------------------------------------------------------- */
+      function syncRegistroChecksFromState() {
+        uiState.registroChecked.clear();
+        const grp = uiState.registroGroup;
+        const dt = uiState.registroDate;
+        appState.absences.forEach(a => {
+          if (a.group === grp && a.date === dt) {
+            uiState.registroChecked.add(a.student);
+          }
+        });
+      }
+
+      function isRegistroDateValid() {
+        const cfg = getGroupConfig(uiState.registroGroup);
+        const d = parseLocalDate(uiState.registroDate);
+        if (!d) return false;
+        return d.getDay() === cfg.allowedDay;
+      }
+
+      function renderRegistroView() {
+        const groupSelect = document.getElementById('registroGroupSelect');
+        const dateInput = document.getElementById('registroDateInput');
+        const dayBadge = document.getElementById('registroSelectedDayLabel');
+        const invalidAlert = document.getElementById('invalidDayAlert');
+        const invalidTitle = document.getElementById('invalidDayTitle');
+        const invalidMsg = document.getElementById('invalidDayMessage');
+        const snapBtn = document.getElementById('snapNearestValidDateBtn');
+        const statusBadge = document.getElementById('registroSessionStatusBadge');
+        const saveBtn = document.getElementById('btnSaveAttendance');
+        const deleteSessionBtn = document.getElementById('btnDeleteCurrentSession');
+
+        groupSelect.value = uiState.registroGroup;
+        dateInput.value = uiState.registroDate;
+
+        const cfg = getGroupConfig(uiState.registroGroup);
+        const parsedDate = parseLocalDate(uiState.registroDate);
+        const valid = isRegistroDateValid();
+
+        if (parsedDate) {
+          dayBadge.textContent = SPANISH_DAYS[parsedDate.getDay()];
+        } else {
+          dayBadge.textContent = 'Sin fecha';
+        }
+
+        // Validación estricta de día de la semana
+        if (!valid) {
+          invalidAlert.classList.remove('hidden');
+          const chosenDayName = parsedDate ? SPANISH_DAYS[parsedDate.getDay()] : 'una fecha inválida';
+          const nearestIso = getNearestValidDateForGroup(uiState.registroGroup, uiState.registroDate);
+          invalidTitle.textContent = `Día no permitido para ${cfg.id}`;
+          invalidMsg.textContent = `Este grupo solo registra asistencia los días ${cfg.dayNameCap}. Seleccionaste ${chosenDayName} (${formatShortDate(uiState.registroDate)}).`;
+          snapBtn.textContent = `Ajustar al ${cfg.dayNameCap} más cercano (${formatShortDate(nearestIso)})`;
+          snapBtn.dataset.targetIso = nearestIso;
+          saveBtn.disabled = true;
+        } else {
+          invalidAlert.classList.add('hidden');
+          saveBtn.disabled = false;
+        }
+
+        // Verificar si ya existe sesión registrada en esa fecha
+        const sessionExists = valid && (
+          appState.sessions.some(s => s.group === uiState.registroGroup && s.date === uiState.registroDate) ||
+          appState.absences.some(a => a.group === uiState.registroGroup && a.date === uiState.registroDate)
+        );
+
+        if (sessionExists) {
+          statusBadge.innerHTML = `
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full theme-accent-soft">
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--accent);"></span>
+              Editando sesión (${formatShortDate(uiState.registroDate)})
+            </span>
+          `;
+          deleteSessionBtn.classList.remove('hidden');
+        } else {
+          statusBadge.innerHTML = `
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full theme-surface-alt border theme-border theme-text-muted">
+              Nueva sesión
+            </span>
+          `;
+          deleteSessionBtn.classList.add('hidden');
+        }
+
+        // Renderizar lista de alumnos
+        const allStudents = (appState.students[uiState.registroGroup] || []).slice().sort((a, b) => a.localeCompare(b, 'es'));
+        const term = uiState.registroSearch.trim().toLowerCase();
+        const filteredStudents = term
+          ? allStudents.filter(st => st.toLowerCase().includes(term))
+          : allStudents;
+
+        const rosterSummary = document.getElementById('registroRosterSummary');
+        rosterSummary.textContent = `${allStudents.length} ${allStudents.length === 1 ? 'alumno' : 'alumnos'} en ${cfg.id}`;
+
+        const listContainer = document.getElementById('registroStudentList');
+        listContainer.innerHTML = '';
+
+        if (filteredStudents.length === 0) {
+          listContainer.innerHTML = `
+            <div class="col-span-full text-center py-8 px-4 rounded-xl border border-dashed theme-border theme-text-muted text-xs sm:text-sm">
+              ${allStudents.length === 0
+                ? 'Aún no hay alumnos registrados en este grupo. Usa "+ Agregar alumno" para añadir estudiantes.'
+                : 'Ningún alumno coincide con tu búsqueda.'}
+            </div>
+          `;
+        } else {
+          filteredStudents.forEach(studentName => {
+            const isChecked = uiState.registroChecked.has(studentName);
+            const card = document.createElement('div');
+            card.className = `rounded-xl border p-3 flex items-center justify-between gap-2.5 transition-all cursor-pointer select-none ${
+              isChecked ? 'student-row-absent' : 'theme-surface-alt theme-border theme-hover'
+            }`;
+
+            card.innerHTML = `
+              <label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
+                <input
+                  type="checkbox"
+                  class="w-5 h-5 rounded cursor-pointer shrink-0"
+                  style="accent-color: var(--danger-text);"
+                  ${isChecked ? 'checked' : ''}
+                />
+                <span class="text-sm font-semibold truncate">${escapeHTML(studentName)}</span>
+              </label>
+              <div class="flex items-center gap-1.5 shrink-0">
+                ${isChecked
+                  ? `<span class="text-[11px] font-extrabold px-2 py-0.5 rounded-full" style="background-color: var(--danger-text); color: #fff;">Falta</span>`
+                  : `<span class="text-[11px] font-medium theme-text-muted">Presente</span>`
+                }
+                ${uiState.registroManageMode
+                  ? `<button type="button" class="btn-remove-student p-1.5 rounded-lg hover:bg-red-500/15 text-red-500" title="Eliminar alumno del grupo">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>`
+                  : ''
+                }
+              </div>
+            `;
+
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            card.addEventListener('click', (e) => {
+              if (e.target.closest('.btn-remove-student')) return;
+              if (e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+              }
+              if (checkbox.checked) {
+                uiState.registroChecked.add(studentName);
+              } else {
+                uiState.registroChecked.delete(studentName);
+              }
+              renderRegistroView();
+            });
+
+            const removeBtn = card.querySelector('.btn-remove-student');
+            if (removeBtn) {
+              removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                confirmRemoveStudentFromGroup(uiState.registroGroup, studentName);
+              });
+            }
+
+            listContainer.appendChild(card);
+          });
+        }
+
+        // Actualizar contador inferior
+        const checkedCount = uiState.registroChecked.size;
+        const pct = allStudents.length > 0 ? ((checkedCount / allStudents.length) * 100).toFixed(1) : '0.0';
+        document.getElementById('registroAbsentCounterBadge').textContent =
+          `${checkedCount} ${checkedCount === 1 ? 'falta marcada' : 'faltas marcadas'}`;
+        document.getElementById('registroSessionPctPreview').textContent =
+          `(${pct}% de inasistencia)`;
+      }
+
+      function confirmRemoveStudentFromGroup(groupId, studentName) {
+        openModal(
+          'Eliminar alumno del grupo',
+          `
+            <div class="space-y-4">
+              <p class="text-sm theme-text-secondary">
+                ¿Deseas quitar a <strong>${escapeHTML(studentName)}</strong> de <strong>${escapeHTML(groupId)}</strong>? También se eliminarán sus registros históricos de falta en este grupo.
+              </p>
+              <div class="flex justify-end gap-2">
+                <button type="button" id="cancelRemoveStBtn" class="px-4 py-2 rounded-xl border theme-border text-sm font-semibold theme-hover">Cancelar</button>
+                <button type="button" id="confirmRemoveStBtn" class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700">Eliminar</button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            el.querySelector('#cancelRemoveStBtn').addEventListener('click', closeModal);
+            el.querySelector('#confirmRemoveStBtn').addEventListener('click', () => {
+              appState.students[groupId] = appState.students[groupId].filter(
+                s => s.toLowerCase() !== studentName.toLowerCase()
+              );
+              appState.absences = appState.absences.filter(
+                a => !(a.group === groupId && a.student.toLowerCase() === studentName.toLowerCase())
+              );
+              uiState.registroChecked.delete(studentName);
+              saveStateToStorage();
+              closeModal();
+              renderRegistroView();
+              showToast(`Alumno "${studentName}" eliminado de ${groupId}.`);
+            });
+          }
+        );
+      }
+
+      function handleSaveAttendance() {
+        if (!isRegistroDateValid()) {
+          showToast('Selecciona una fecha válida para este grupo antes de guardar.', 'warning');
+          return;
+        }
+
+        const grp = uiState.registroGroup;
+        const dt = uiState.registroDate;
+
+        // Registrar la sesión oficialmente (incluso si tuvo 0 faltas)
+        addSessionUnique(grp, dt);
+
+        // Reemplazar faltas previas de esta fecha y grupo
+        appState.absences = appState.absences.filter(a => !(a.group === grp && a.date === dt));
+
+        uiState.registroChecked.forEach(studentName => {
+          addAbsenceUnique(grp, studentName, dt);
+        });
+
+        saveStateToStorage();
+        renderRegistroView();
+        showToast(`Asistencia guardada para ${grp} (${formatShortDate(dt)}): ${uiState.registroChecked.size} faltas.`);
+      }
+
+      function handleDeleteCurrentSession() {
+        const grp = uiState.registroGroup;
+        const dt = uiState.registroDate;
+
+        openModal(
+          'Eliminar sesión registrada',
+          `
+            <div class="space-y-4">
+              <p class="text-sm theme-text-secondary">
+                ¿Seguro que deseas eliminar la sesión del <strong>${formatShortDate(dt)}</strong> en <strong>${escapeHTML(grp)}</strong>? Se borrarán todas las faltas registradas en esa fecha.
+              </p>
+              <div class="flex justify-end gap-2">
+                <button type="button" id="cancelDelSessBtn" class="px-4 py-2 rounded-xl border theme-border text-sm font-semibold theme-hover">Cancelar</button>
+                <button type="button" id="confirmDelSessBtn" class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700">Eliminar sesión</button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            el.querySelector('#cancelDelSessBtn').addEventListener('click', closeModal);
+            el.querySelector('#confirmDelSessBtn').addEventListener('click', () => {
+              appState.sessions = appState.sessions.filter(s => !(s.group === grp && s.date === dt));
+              appState.absences = appState.absences.filter(a => !(a.group === grp && a.date === dt));
+              uiState.registroChecked.clear();
+              saveStateToStorage();
+              closeModal();
+              renderRegistroView();
+              showToast(`Sesión del ${formatShortDate(dt)} eliminada.`);
+            });
+          }
+        );
+      }
+
+      /* ----------------------------------------------------------------------
+         8. VISTA 2: DATOS DE INASISTENCIA (RANKING Y EDICIÓN PUNTUAL)
+         ---------------------------------------------------------------------- */
+      function populateMonthDropdowns() {
+        const months = getRegisteredMonths();
+        const optionsHTML = [
+          `<option value="ALL">Todos los meses</option>`,
+          ...months.map(ym => `<option value="${ym}">${escapeHTML(formatMonthYearLabel(ym))}</option>`)
+        ].join('');
+
+        const datosSel = document.getElementById('datosMonthFilter');
+        const graficoSel = document.getElementById('graficoMonthFilter');
+
+        if (uiState.datosFilterMonth !== 'ALL' && !months.includes(uiState.datosFilterMonth)) {
+          uiState.datosFilterMonth = 'ALL';
+        }
+        if (uiState.graficoFilterMonth !== 'ALL' && !months.includes(uiState.graficoFilterMonth)) {
+          uiState.graficoFilterMonth = 'ALL';
+        }
+
+        datosSel.innerHTML = optionsHTML;
+        datosSel.value = uiState.datosFilterMonth;
+
+        graficoSel.innerHTML = optionsHTML;
+        graficoSel.value = uiState.graficoFilterMonth;
+      }
+
+      function renderDatosView() {
+        const ymFilter = uiState.datosFilterMonth;
+        const groupFilter = uiState.datosFilterGroup;
+        const searchTerm = uiState.datosSearch.trim().toLowerCase();
+
+        document.getElementById('toggleZeroAbsences').checked = uiState.datosShowZero;
+
+        const targetGroups = groupFilter === 'ALL'
+          ? GROUPS_CONFIG
+          : GROUPS_CONFIG.filter(g => g.id === groupFilter);
+
+        let globalSessions = 0;
+        let globalAbsences = 0;
+        targetGroups.forEach(cfg => {
+          const st = getGroupPeriodStats(cfg.id, ymFilter);
+          globalSessions += st.sessionsCount;
+          globalAbsences += st.totalAbsences;
+        });
+
+        document.getElementById('datosPeriodBanner').innerHTML = `
+          <span class="px-2.5 py-1 rounded-lg theme-surface-alt border theme-border">
+            Período: <strong>${escapeHTML(formatMonthYearLabel(ymFilter))}</strong>
+          </span>
+          <span class="px-2.5 py-1 rounded-lg theme-accent-soft">
+            ${globalSessions} ${globalSessions === 1 ? 'sesión' : 'sesiones'}
+          </span>
+          <span class="px-2.5 py-1 rounded-lg" style="background-color: var(--danger-soft); color: var(--danger-text);">
+            ${globalAbsences} ${globalAbsences === 1 ? 'falta' : 'faltas'}
+          </span>
+        `;
+
+        const container = document.getElementById('datosGroupsContainer');
+        container.innerHTML = '';
+
+        targetGroups.forEach(cfg => {
+          const matrix = getRankedGroupMatrix(cfg.id, ymFilter);
+          let entries = matrix.rankedStudents;
+
+          if (!uiState.datosShowZero) {
+            entries = entries.filter(e => e.count > 0);
+          }
+          if (searchTerm) {
+            entries = entries.filter(e => e.student.toLowerCase().includes(searchTerm));
+          }
+
+          const card = document.createElement('div');
+          card.className = 'rounded-2xl border theme-surface overflow-hidden';
+
+          card.innerHTML = `
+            <div class="p-4 sm:p-5 border-b theme-border theme-surface-alt flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="text-base sm:text-lg font-extrabold">${escapeHTML(cfg.id)}</h3>
+                  <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-accent-soft">${cfg.dayNameCap}</span>
+                </div>
+                <p class="text-xs theme-text-secondary">
+                  <strong>${matrix.stats.studentsCount}</strong> alumnos ·
+                  <strong>${matrix.stats.sessionsCount}</strong> ${matrix.stats.sessionsCount === 1 ? 'sesión' : 'sesiones'} ·
+                  <strong>${matrix.stats.totalAbsences}</strong> ${matrix.stats.totalAbsences === 1 ? 'falta' : 'faltas'}
+                  (<strong>${matrix.stats.pct.toFixed(1)}%</strong>)
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="btn-edit-group-session self-start sm:self-center px-3.5 py-2 rounded-xl text-xs font-bold border theme-border theme-surface theme-hover flex items-center gap-1.5 shadow-2xs"
+                data-group="${escapeHTML(cfg.id)}"
+              >
+                <svg class="w-3.5 h-3.5" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span>Editar sesión</span>
+              </button>
+            </div>
+
+            <div class="p-4 sm:p-5 space-y-2.5 group-students-list"></div>
+          `;
+
+          card.querySelector('.btn-edit-group-session').addEventListener('click', () => {
+            openEditGroupSessionModal(cfg.id, ymFilter);
+          });
+
+          const listEl = card.querySelector('.group-students-list');
+
+          if (entries.length === 0) {
+            listEl.innerHTML = `
+              <p class="text-center py-6 text-xs sm:text-sm theme-text-muted">
+                No hay alumnos para mostrar con los filtros actuales.
+              </p>
+            `;
+          } else {
+            entries.forEach(entry => {
+              const row = document.createElement('div');
+              row.className = 'rounded-xl border theme-border theme-surface-alt p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+
+              const datesBadgesHTML = entry.datesAsc.length > 0
+                ? entry.datesAsc.map(dt => `
+                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg border" style="background-color: var(--danger-soft); border-color: var(--danger-border); color: var(--danger-text);">
+                      <span>${formatShortDate(dt)}</span>
+                      <button
+                        type="button"
+                        class="btn-delete-single-absence ml-0.5 w-4 h-4 rounded-full hover:bg-black/15 inline-flex items-center justify-center font-extrabold leading-none"
+                        title="Quitar falta del ${formatShortDate(dt)}"
+                        data-group="${escapeHTML(cfg.id)}"
+                        data-student="${escapeHTML(entry.student)}"
+                        data-date="${escapeHTML(dt)}"
+                      >×</button>
+                    </span>
+                  `).join('')
+                : `<span class="text-xs italic theme-text-muted">Sin faltas en el período</span>`;
+
+              row.innerHTML = `
+                <div class="space-y-1 min-w-0">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="text-xs font-extrabold px-2 py-0.5 rounded-md shrink-0 ${entry.count > 0 ? 'theme-accent-soft' : 'theme-surface border theme-border theme-text-muted'}">
+                      #${entry.rank}
+                    </span>
+                    <p class="font-bold text-sm truncate">${escapeHTML(entry.student)}</p>
+                  </div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full" style="${entry.count > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
+                      ${entry.count} ${entry.count === 1 ? 'falta' : 'faltas'}
+                    </span>
+                    <span class="text-xs font-semibold theme-text-muted">
+                      (${entry.pctStr} de ${matrix.stats.sessionsCount} ${matrix.stats.sessionsCount === 1 ? 'sesión' : 'sesiones'})
+                    </span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-1.5 sm:justify-end">
+                  ${datesBadgesHTML}
+                </div>
+              `;
+
+              row.querySelectorAll('.btn-delete-single-absence').forEach(delBtn => {
+                delBtn.addEventListener('click', () => {
+                  const g = delBtn.getAttribute('data-group');
+                  const st = delBtn.getAttribute('data-student');
+                  const dt = delBtn.getAttribute('data-date');
+                  appState.absences = appState.absences.filter(
+                    a => !(a.group === g && a.student.toLowerCase() === st.toLowerCase() && a.date === dt)
+                  );
+                  saveStateToStorage();
+                  renderDatosView();
+                  showToast(`Falta del ${formatShortDate(dt)} eliminada para ${st}.`);
+                });
+              });
+
+              listEl.appendChild(row);
+            });
+          }
+
+          container.appendChild(card);
+        });
+      }
+
+      function openEditGroupSessionModal(groupId, ymFilter) {
+        const stats = getGroupPeriodStats(groupId, ymFilter);
+        const datesDesc = stats.distinctDates.slice().sort((a, b) => b.localeCompare(a));
+
+        const sessionsListHTML = datesDesc.length > 0
+          ? datesDesc.map(dt => {
+              const count = stats.periodAbsences.filter(a => a.date === dt).length;
+              return `
+                <button
+                  type="button"
+                  class="pick-session-btn w-full p-3 rounded-xl border theme-border theme-surface-alt theme-hover flex items-center justify-between text-left"
+                  data-date="${dt}"
+                >
+                  <div>
+                    <p class="text-sm font-bold">${formatShortDate(dt)}</p>
+                    <p class="text-xs theme-text-muted">${count} ${count === 1 ? 'falta registrada' : 'faltas registradas'}</p>
+                  </div>
+                  <span class="text-xs font-bold px-3 py-1.5 rounded-lg theme-accent-soft">Abrir en Registro →</span>
+                </button>
+              `;
+            }).join('')
+          : `<p class="text-xs theme-text-muted py-3 text-center">No hay sesiones registradas en este período para ${escapeHTML(groupId)}.</p>`;
+
+        openModal(
+          `Editar sesión — ${groupId}`,
+          `
+            <div class="space-y-4">
+              <p class="text-xs theme-text-secondary">
+                Selecciona una sesión registrada para modificar sus inasistencias directamente en la pestaña <strong>Registro</strong>:
+              </p>
+              <div class="space-y-2 max-h-72 overflow-y-auto">
+                ${sessionsListHTML}
+              </div>
+              <div class="flex justify-end pt-2 border-t theme-border">
+                <button type="button" id="closeEditSessModalBtn" class="px-4 py-2 rounded-xl border theme-border text-sm font-semibold theme-hover">Cerrar</button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            el.querySelector('#closeEditSessModalBtn').addEventListener('click', closeModal);
+            el.querySelectorAll('.pick-session-btn').forEach(btn => {
+              btn.addEventListener('click', () => {
+                uiState.registroGroup = groupId;
+                uiState.registroDate = btn.getAttribute('data-date');
+                closeModal();
+                switchTab('registro');
+              });
+            });
+          }
+        );
+      }
+
+      /* ----------------------------------------------------------------------
+         9. VISTA 3: GRÁFICO DE BARRAS PORCENTUAL (SVG + HTML RESPONSIVO)
+         ---------------------------------------------------------------------- */
+      function renderGraficoView() {
+        const ymFilter = uiState.graficoFilterMonth;
+        const rankGroup = uiState.graficoRankGroup;
+        const topLimit = uiState.graficoTopLimit;
+
+        // 1) Gráfico por Grupo
+        const groupsData = GROUPS_CONFIG.map(cfg => {
+          const stats = getGroupPeriodStats(cfg.id, ymFilter);
+          return {
+            id: cfg.id,
+            dayName: cfg.dayNameCap,
+            pct: stats.pct,
+            absences: stats.totalAbsences,
+            sessions: stats.sessionsCount,
+            students: stats.studentsCount
+          };
+        });
+
+        const totalAbsAll = groupsData.reduce((acc, g) => acc + g.absences, 0);
+        document.getElementById('graficoGroupTotalTag').textContent =
+          `${totalAbsAll} ${totalAbsAll === 1 ? 'falta total' : 'faltas totales'}`;
+
+        const groupChartContainer = document.getElementById('graficoGroupsChartContainer');
+        groupChartContainer.innerHTML = groupsData.map(g => {
+          const widthPct = Math.min(100, Math.max(0, g.pct));
+          return `
+            <div class="rounded-xl border theme-border theme-surface-alt p-3.5 space-y-2">
+              <div class="flex items-center justify-between gap-2 text-xs sm:text-sm">
+                <div class="flex items-center gap-2">
+                  <span class="font-extrabold">${escapeHTML(g.id)}</span>
+                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full theme-surface border theme-border theme-text-muted">
+                    ${g.dayName}
+                  </span>
+                </div>
+                <div class="text-right">
+                  <span class="font-extrabold text-sm sm:text-base" style="color: var(--accent);">${g.pct.toFixed(1)}%</span>
+                  <span class="text-xs theme-text-muted ml-1.5">(${g.absences} faltas / ${g.sessions} ses.)</span>
+                </div>
+              </div>
+
+              <svg class="w-full h-4 rounded-full overflow-hidden block" role="img" aria-label="${escapeHTML(g.id)}: ${g.pct.toFixed(1)}%">
+                <rect x="0" y="0" width="100%" height="100%" rx="8" fill="var(--border-color)" opacity="0.55"></rect>
+                <rect x="0" y="0" width="${widthPct}%" height="100%" rx="8" fill="var(--accent)"></rect>
+              </svg>
+            </div>
+          `;
+        }).join('');
+
+        // 2) Ranking Visual de Alumnos con Mayor % de Faltas
+        const targetGroups = rankGroup === 'ALL'
+          ? GROUPS_CONFIG
+          : GROUPS_CONFIG.filter(g => g.id === rankGroup);
+
+        let allRanked = [];
+        targetGroups.forEach(cfg => {
+          const matrix = getRankedGroupMatrix(cfg.id, ymFilter);
+          matrix.rankedStudents.forEach(st => {
+            if (st.count > 0) {
+              allRanked.push({
+                ...st,
+                groupId: cfg.id,
+                sessionsCount: matrix.stats.sessionsCount
+              });
+            }
+          });
+        });
+
+        allRanked.sort((a, b) => b.pctNum - a.pctNum || b.count - a.count || a.student.localeCompare(b.student, 'es'));
+
+        if (topLimit !== 'ALL') {
+          allRanked = allRanked.slice(0, Number(topLimit));
+        }
+
+        const rankContainer = document.getElementById('graficoStudentsRankingContainer');
+        if (allRanked.length === 0) {
+          rankContainer.innerHTML = `
+            <div class="text-center py-8 rounded-xl border border-dashed theme-border theme-text-muted text-xs sm:text-sm">
+              No hay inasistencias registradas en este período para graficar.
+            </div>
+          `;
+          return;
+        }
+
+        rankContainer.innerHTML = allRanked.map((st, idx) => {
+          const barWidth = Math.min(100, Math.max(2, st.pctNum));
+          const isHigh = st.pctNum >= 50;
+          const barColor = isHigh ? 'var(--danger-text)' : 'var(--accent)';
+
+          return `
+            <div class="rounded-xl border theme-border theme-surface-alt p-3 space-y-1.5">
+              <div class="flex items-center justify-between gap-2 text-xs sm:text-sm">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-[11px] font-extrabold px-2 py-0.5 rounded-md theme-accent-soft shrink-0">#${idx + 1}</span>
+                  <span class="font-bold truncate">${escapeHTML(st.student)}</span>
+                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full theme-surface border theme-border theme-text-muted shrink-0">
+                    ${escapeHTML(st.groupId)}
+                  </span>
+                </div>
+                <div class="shrink-0 text-right">
+                  <span class="font-extrabold" style="color: ${barColor};">${st.pctStr}</span>
+                  <span class="text-xs theme-text-muted ml-1">(${st.count}/${st.sessionsCount})</span>
+                </div>
+              </div>
+
+              <svg class="w-full h-3 rounded-full overflow-hidden block" role="img" aria-label="${escapeHTML(st.student)}: ${st.pctStr}">
+                <rect x="0" y="0" width="100%" height="100%" rx="6" fill="var(--border-color)" opacity="0.5"></rect>
+                <rect x="0" y="0" width="${barWidth}%" height="100%" rx="6" fill="${barColor}"></rect>
+              </svg>
+            </div>
+          `;
+        }).join('');
+      }
+
+      /* ----------------------------------------------------------------------
+         10. EXPORTACIÓN A EXCEL DE UNA SOLA PESTAÑA (`Ranking_Por_Grupo`)
+         ---------------------------------------------------------------------- */
+      function buildSingleSheetRankingPorGrupo(ymFilter) {
         const periodLabel = formatMonthYearLabel(ymFilter);
+        const generatedDate = formatShortDate(toISODateLocal(new Date()));
+
         const aoa = [
           ['SISTEMA DE INASISTENCIAS — REPORTE AGRUPADO POR GRUPO Y RANKING DE FALTAS'],
-          [`Período: ${periodLabel}`],
+          [`Período: ${periodLabel} | Generado: ${generatedDate}`],
           [],
-          ['RESUMEN GENERAL POR GRUPO'],
-          ['Grupo', 'Día de Clase', 'Total Alumnos', 'Alumnos con Faltas', 'Sesiones Registradas', 'Total Faltas', '% Inasistencia']
+          ['RESUMEN EJECUTIVO POR GRUPO'],
+          ['Grupo', 'Día de Clase', 'Total Alumnos', 'Alumnos con Faltas', 'Total Faltas', '% Inasistencia']
         ];
 
         let grandStudents = 0;
         let grandWithAbs = 0;
-        let grandSessions = 0;
         let grandAbsences = 0;
         let grandDenominator = 0;
 
         GROUPS_CONFIG.forEach(cfg => {
           const data = getRankedGroupMatrix(cfg.id, ymFilter);
-          const pctStr = `${data.stats.pct.toFixed(1)}%`;
           aoa.push([
             cfg.id,
             cfg.dayNameCap,
             data.stats.studentsCount,
             data.studentsWithAbsencesCount,
-            data.stats.sessionsCount,
             data.stats.totalAbsences,
-            pctStr
+            `${data.stats.pct.toFixed(1)}%`
           ]);
           grandStudents += data.stats.studentsCount;
           grandWithAbs += data.studentsWithAbsencesCount;
-          grandSessions += data.stats.sessionsCount;
           grandAbsences += data.stats.totalAbsences;
           grandDenominator += data.stats.studentsCount * data.stats.sessionsCount;
         });
 
-        const grandPct = grandDenominator > 0 ? `${((grandAbsences / grandDenominator) * 100).toFixed(1)}%` : '0.0%';
-        aoa.push(['TOTAL GENERAL', '-', grandStudents, grandWithAbs, grandSessions, grandAbsences, grandPct]);
+        const grandPct = grandDenominator > 0
+          ? `${((grandAbsences / grandDenominator) * 100).toFixed(1)}%`
+          : '0.0%';
+
+        aoa.push(['Total General', '-', grandStudents, grandWithAbs, grandAbsences, grandPct]);
         aoa.push([]);
 
-        let maxCols = 7;
+        let maxCols = 6;
 
-        // Bloques individuales: MIEMBROS 1, MIEMBROS 2, MIEMBROS 3
+        // 3 Bloques separados: MIEMBROS 1, MIEMBROS 2 y MIEMBROS 3
         GROUPS_CONFIG.forEach(cfg => {
           const data = getRankedGroupMatrix(cfg.id, ymFilter);
           const dateHeaders = data.sessionDates.map(dt => formatShortDate(dt));
           const headerRow = ['Puesto', 'Alumno', 'Cantidad Faltas', '% Inasistencia', 'Fechas de Inasistencia', ...dateHeaders];
           if (headerRow.length > maxCols) maxCols = headerRow.length;
 
-          aoa.push([`${cfg.id.toUpperCase()} (${cfg.dayNameCap.toUpperCase()}) — ORDENADO DE MAYOR A MENOR FALTA`]);
+          aoa.push([`${cfg.id.toUpperCase()} (${cfg.dayNameCap.toUpperCase()}) — SESIONES REGISTRADAS: ${data.stats.sessionsCount}`]);
           aoa.push(headerRow);
 
           if (data.rankedStudents.length === 0) {
@@ -316,16 +1890,16 @@
             });
           }
 
-          // Fila de totales del grupo y por cada fecha de sesión
           const perDateTotals = data.sessionDates.map(dt =>
             data.rankedStudents.reduce((acc, st) => acc + (st.dateSet.has(dt) ? 1 : 0), 0)
           );
+
           aoa.push([
             '',
-            `TOTAL ${cfg.id.toUpperCase()}`,
+            `Total ${cfg.id}`,
             data.stats.totalAbsences,
             `${data.stats.pct.toFixed(1)}%`,
-            `${data.stats.sessionsCount} sesiones registradas`,
+            `${data.stats.sessionsCount} sesiones`,
             ...perDateTotals
           ]);
           aoa.push([]);
@@ -333,10 +1907,10 @@
 
         const ws = XLSX.utils.aoa_to_sheet(aoa);
         const colWidths = [
-          { wch: 10 }, // Puesto
-          { wch: 28 }, // Alumno
+          { wch: 10 }, // Puesto / Grupo
+          { wch: 28 }, // Alumno / Día de Clase
           { wch: 16 }, // Cantidad Faltas
-          { wch: 15 }, // % Inasistencia
+          { wch: 16 }, // % Inasistencia
           { wch: 38 }  // Fechas de Inasistencia
         ];
         for (let i = 5; i < maxCols; i++) {
@@ -344,117 +1918,6 @@
         }
         ws['!cols'] = colWidths;
         return ws;
-      }
-
-      // Construye la hoja individual para "Miembros 1", "Miembros 2" o "Miembros 3"
-      function buildIndividualGroupSheet(groupId, ymFilter) {
-        const cfg = getGroupConfig(groupId);
-        const data = getRankedGroupMatrix(groupId, ymFilter);
-        const periodLabel = formatMonthYearLabel(ymFilter);
-        const dateHeaders = data.sessionDates.map(dt => formatShortDate(dt));
-
-        const aoa = [
-          [`${groupId.toUpperCase()} — DÍA DE CLASE: ${cfg.dayNameCap.toUpperCase()}`],
-          [`Período: ${periodLabel} | Sesiones: ${data.stats.sessionsCount} | Total Faltas: ${data.stats.totalAbsences} (${data.stats.pct.toFixed(1)}%)`],
-          [],
-          ['Puesto', 'Alumno', 'Cantidad Faltas', '% Inasistencia', 'Fechas de Inasistencia', ...dateHeaders]
-        ];
-
-        if (data.rankedStudents.length === 0) {
-          aoa.push(['-', 'Sin alumnos inscritos en este grupo', 0, '0.0%', 'Sin faltas']);
-        } else {
-          data.rankedStudents.forEach(st => {
-            const marks = data.sessionDates.map(dt => (st.dateSet.has(dt) ? 'X' : ''));
-            aoa.push([
-              st.rank,
-              st.student,
-              st.count,
-              st.pctStr,
-              st.datesText,
-              ...marks
-            ]);
-          });
-        }
-
-        const perDateTotals = data.sessionDates.map(dt =>
-          data.rankedStudents.reduce((acc, st) => acc + (st.dateSet.has(dt) ? 1 : 0), 0)
-        );
-        aoa.push([
-          '',
-          `TOTAL ${groupId.toUpperCase()}`,
-          data.stats.totalAbsences,
-          `${data.stats.pct.toFixed(1)}%`,
-          `${data.stats.sessionsCount} sesiones`,
-          ...perDateTotals
-        ]);
-
-        const ws = XLSX.utils.aoa_to_sheet(aoa);
-        const colWidths = [
-          { wch: 10 },
-          { wch: 28 },
-          { wch: 16 },
-          { wch: 15 },
-          { wch: 38 }
-        ];
-        data.sessionDates.forEach(() => colWidths.push({ wch: 13 }));
-        ws['!cols'] = colWidths;
-        return ws;
-      }
-
-      // Construye la hoja "Ranking_General" para la exportación separada por meses
-      function buildRankingGeneralMonthlySheet(monthsAsc) {
-        const aoa = [
-          ['SISTEMA DE INASISTENCIAS — RESUMEN GENERAL POR MES Y GRUPO'],
-          [],
-          ['Mes / Período', 'Grupo', 'Día de Clase', 'Total Alumnos', 'Alumnos con Faltas', 'Sesiones', 'Total Faltas', '% Inasistencia']
-        ];
-
-        monthsAsc.forEach(ym => {
-          const mLabel = formatMonthYearLabel(ym);
-          GROUPS_CONFIG.forEach(cfg => {
-            const data = getRankedGroupMatrix(cfg.id, ym);
-            aoa.push([
-              mLabel,
-              cfg.id,
-              cfg.dayNameCap,
-              data.stats.studentsCount,
-              data.studentsWithAbsencesCount,
-              data.stats.sessionsCount,
-              data.stats.totalAbsences,
-              `${data.stats.pct.toFixed(1)}%`
-            ]);
-          });
-        });
-
-        const ws = XLSX.utils.aoa_to_sheet(aoa);
-        ws['!cols'] = [
-          { wch: 20 },
-          { wch: 15 },
-          { wch: 14 },
-          { wch: 15 },
-          { wch: 18 },
-          { wch: 12 },
-          { wch: 14 },
-          { wch: 15 }
-        ];
-        return ws;
-      }
-
-      function appendCompleteRankedWorkbookSheets(wb, ymFilter) {
-        // Hoja 1: Ranking_Por_Grupo
-        XLSX.utils.book_append_sheet(wb, buildRankingPorGrupoSheet(ymFilter), 'Ranking_Por_Grupo');
-        // Hojas 2, 3 y 4: Miembros 1, Miembros 2 y Miembros 3
-        GROUPS_CONFIG.forEach(cfg => {
-          XLSX.utils.book_append_sheet(wb, buildIndividualGroupSheet(cfg.id, ymFilter), cfg.id);
-        });
-        // Hoja 5: Historial_Inasistencias
-        const wsHist = XLSX.utils.json_to_sheet(buildHistorialRows(ymFilter));
-        wsHist['!cols'] = [{ wch: 15 }, { wch: 28 }, { wch: 14 }, { wch: 15 }];
-        XLSX.utils.book_append_sheet(wb, wsHist, 'Historial_Inasistencias');
-        // Hoja 6: Listas_Alumnos
-        const wsList = XLSX.utils.json_to_sheet(buildListasRows());
-        wsList['!cols'] = [{ wch: 15 }, { wch: 28 }];
-        XLSX.utils.book_append_sheet(wb, wsList, 'Listas_Alumnos');
       }
 
       function openExportExcelModal() {
@@ -467,20 +1930,20 @@
         const hasMonths = months.length > 0;
 
         openModal(
-          'Exportar a Excel (Agrupado)',
+          'Exportar a Excel',
           `
             <div class="space-y-3.5">
               <p class="text-xs theme-text-secondary">
-                Genera el reporte agrupado por <strong>Miembros 1, 2 y 3</strong> ordenado de <strong>mayor a menor cantidad de faltas</strong>, con fechas exactas y compatibilidad total para reimportar:
+                Genera el reporte agrupado por <strong>Miembros 1, 2 y 3</strong> ordenado de <strong>mayor a menor cantidad de faltas</strong>, con fechas exactas y compatibilidad completa de reimportación:
               </p>
 
-              <!-- Opción 1: Solo un mes específico -->
+              <!-- Opción A: Solo un mes específico (1 sola pestaña Ranking_Por_Grupo) -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
                 <input type="radio" name="exportMode" value="single_month" ${hasMonths ? 'checked' : 'disabled'} class="mt-1" style="accent-color: var(--accent);" />
                 <div class="flex-1 min-w-0 space-y-2">
                   <div>
                     <p class="font-bold text-sm">1. Solo un mes específico</p>
-                    <p class="text-xs theme-text-secondary">Genera 6 hojas (<em>Ranking_Por_Grupo</em>, <em>Miembros 1</em>, <em>Miembros 2</em>, <em>Miembros 3</em>, <em>Historial_Inasistencias</em> y <em>Listas_Alumnos</em>) filtradas para el mes elegido.</p>
+                    <p class="text-xs theme-text-secondary">Descarga <code>Inasistencias_YYYY-MM_Agrupado.xlsx</code> con <strong>una única pestaña</strong> (<em>Ranking_Por_Grupo</em>).</p>
                   </div>
                   <div id="exportSingleMonthBox" class="${hasMonths ? '' : 'hidden'} pt-1">
                     ${hasMonths
@@ -493,27 +1956,27 @@
                 </div>
               </label>
 
-              <!-- Opción 2: Todo el historial acumulado -->
+              <!-- Opción B: Todo el historial acumulado (1 sola pestaña Ranking_Por_Grupo) -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
                 <input type="radio" name="exportMode" value="all" ${!hasMonths ? 'checked' : ''} class="mt-1" style="accent-color: var(--accent);" />
                 <div>
                   <p class="font-bold text-sm">2. Todo el historial acumulado</p>
-                  <p class="text-xs theme-text-secondary">Genera las 6 hojas estructuradas con el ranking consolidado de todas las sesiones registradas.</p>
+                  <p class="text-xs theme-text-secondary">Descarga <code>Inasistencias_Completo_Agrupado.xlsx</code> con <strong>una única pestaña</strong> (<em>Ranking_Por_Grupo</em>).</p>
                 </div>
               </label>
 
-              <!-- Opción 3: Separado por hojas mensuales -->
+              <!-- Opción C: Separado por hojas mensuales -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
                 <input type="radio" name="exportMode" value="split_months" ${!hasMonths ? 'disabled' : ''} class="mt-1" style="accent-color: var(--accent);" />
                 <div>
                   <p class="font-bold text-sm">3. Separado por hojas mensuales</p>
-                  <p class="text-xs theme-text-secondary">Genera <em>Ranking_General</em>, una pestaña agrupada y ordenada por mayor falta por cada mes (<em>YYYY-MM</em>), más <em>Historial_Inasistencias</em> y <em>Listas_Alumnos</em>.</p>
+                  <p class="text-xs theme-text-secondary">Descarga <code>Inasistencias_Por_Mes_Agrupado.xlsx</code> con una pestaña agrupada por cada mes registrado.</p>
                 </div>
               </label>
 
               <div class="flex justify-end gap-2 pt-2">
-                <button type="button" id="cancelExportBtn" class="px-4 py-2.5 rounded-xl border theme-border font-semibold theme-hover">Cancelar</button>
-                <button type="button" id="confirmExportBtn" class="px-5 py-2.5 rounded-xl font-bold theme-accent-bg flex items-center gap-1.5">
+                <button type="button" id="cancelExportBtn" class="px-4 py-2.5 rounded-xl border theme-border text-sm font-semibold theme-hover">Cancelar</button>
+                <button type="button" id="confirmExportBtn" class="px-5 py-2.5 rounded-xl text-sm font-bold theme-accent-bg flex items-center gap-1.5">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
@@ -539,70 +2002,388 @@
 
                 if (mode === 'single_month') {
                   const ym = el.querySelector('#exportMonthSelect').value;
-                  appendCompleteRankedWorkbookSheets(wb, ym);
+                  XLSX.utils.book_append_sheet(wb, buildSingleSheetRankingPorGrupo(ym), 'Ranking_Por_Grupo');
                   XLSX.writeFile(wb, `Inasistencias_${ym}_Agrupado.xlsx`);
-                  showToast(`Excel agrupado de ${formatMonthYearLabel(ym)} descargado.`);
+                  showToast(`Archivo Inasistencias_${ym}_Agrupado.xlsx descargado.`);
                 } else if (mode === 'all') {
-                  appendCompleteRankedWorkbookSheets(wb, 'ALL');
+                  XLSX.utils.book_append_sheet(wb, buildSingleSheetRankingPorGrupo('ALL'), 'Ranking_Por_Grupo');
                   XLSX.writeFile(wb, 'Inasistencias_Completo_Agrupado.xlsx');
-                  showToast('Excel completo agrupado descargado correctamente.');
+                  showToast('Archivo Inasistencias_Completo_Agrupado.xlsx descargado.');
                 } else if (mode === 'split_months') {
                   const chronologicalMonths = months.slice().sort((a, b) => a.localeCompare(b));
-                  XLSX.utils.book_append_sheet(wb, buildRankingGeneralMonthlySheet(chronologicalMonths), 'Ranking_General');
-
                   chronologicalMonths.forEach(ym => {
-                    XLSX.utils.book_append_sheet(wb, buildRankingPorGrupoSheet(ym), ym);
+                    XLSX.utils.book_append_sheet(wb, buildSingleSheetRankingPorGrupo(ym), ym);
                   });
-
-                  const wsHist = XLSX.utils.json_to_sheet(buildHistorialRows('ALL'));
-                  wsHist['!cols'] = [{ wch: 15 }, { wch: 28 }, { wch: 14 }, { wch: 15 }];
-                  XLSX.utils.book_append_sheet(wb, wsHist, 'Historial_Inasistencias');
-
-                  const wsList = XLSX.utils.json_to_sheet(buildListasRows());
-                  wsList['!cols'] = [{ wch: 15 }, { wch: 28 }];
-                  XLSX.utils.book_append_sheet(wb, wsList, 'Listas_Alumnos');
-
                   XLSX.writeFile(wb, 'Inasistencias_Por_Mes_Agrupado.xlsx');
-                  showToast(`Excel separado en ${chronologicalMonths.length} hojas mensuales descargado.`);
+                  showToast(`Archivo con ${chronologicalMonths.length} hojas mensuales descargado.`);
                 }
 
                 closeModal();
               } catch (err) {
                 console.error(err);
-                showToast('Error al generar el archivo Excel.', 'error');
+                showToast('Ocurrió un error al generar el archivo Excel.', 'error');
               }
             });
           }
         );
       }
-<!-- ... existing code ... -->
-        workbook.SheetNames.forEach(sheetName => {
-          const sheet = workbook.Sheets[sheetName];
-          if (!sheet) return;
-          const lowerSheet = sheetName.trim().toLowerCase();
 
-          // Ignorar hojas puramente de resumen visual si existen hojas fuente
-          if (['ranking_por_grupo', 'ranking_general', 'resumen_octubre', 'resumen'].includes(lowerSheet)) {
-            recognizedStructuredSheet = true;
-            return;
+      /* ----------------------------------------------------------------------
+         11. IMPORTACIÓN UNIVERSAL DESDE EXCEL (HOJA ÚNICA + LEGACY MULTI-HOJA)
+         ---------------------------------------------------------------------- */
+      function parseSingleSheetRankedFormat(sheet, statsCounter) {
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        let currentGroup = null;
+        let inStudentTable = false;
+        let colIdxAlumno = 1;
+        let colIdxFechasText = 4;
+        let dateColumns = []; // [{ colIdx, isoDate }]
+        let foundAnyGroupBlock = false;
+
+        for (let r = 0; r < rows.length; r++) {
+          const row = rows[r];
+          if (!Array.isArray(row)) continue;
+
+          const firstCell = String(row[0] ?? '').trim();
+          const secondCell = String(row[1] ?? '').trim();
+          const upperFirst = firstCell.toUpperCase();
+
+          // 1. Detectar banner de bloque MIEMBROS 1 / 2 / 3 (evitando la tabla Resumen Ejecutivo de arriba)
+          const isGroupBanner =
+            (upperFirst.startsWith('MIEMBROS 1') || upperFirst.startsWith('MIEMBROS 2') || upperFirst.startsWith('MIEMBROS 3')) &&
+            !secondCell; // En el resumen ejecutivo row[1] es 'Viernes' o 'Miércoles'; en el banner de bloque row[1] está vacío
+
+          if (isGroupBanner) {
+            currentGroup = normalizeGroupName(firstCell);
+            inStudentTable = false;
+            dateColumns = [];
+            foundAnyGroupBlock = true;
+            continue;
           }
 
-          // A) Hojas de nóminas: Listas_Alumnos, Alumnos, Resumen_Alumnos, Resumen_General
-          if (['listas_alumnos', 'alumnos', 'resumen_alumnos', 'resumen_general'].includes(lowerSheet)) {
-<!-- ... existing code ... -->
-                const studentVal = String(row[nameColIdx] || '').trim();
-                if (!studentVal || studentVal === '-') continue;
-                const lowerSt = studentVal.toLowerCase();
-                if (lowerSt.startsWith('total') || lowerSt.startsWith('porcentaje') || lowerSt.startsWith('resumen') || lowerSt.startsWith('sin alumnos')) continue;
+          // 2. Detectar fila de encabezados de alumnos dentro del bloque activo
+          if (currentGroup && !inStudentTable) {
+            const lowerRow = row.map(c => String(c ?? '').trim().toLowerCase());
+            const alumnoIdx = lowerRow.findIndex(c => c === 'alumno' || c === 'estudiante' || c === 'nombre');
+            if (alumnoIdx !== -1) {
+              inStudentTable = true;
+              colIdxAlumno = alumnoIdx;
+              const fechasIdx = lowerRow.findIndex(c => c.includes('fechas de inasistencia') || c === 'fechas');
+              colIdxFechasText = fechasIdx !== -1 ? fechasIdx : 4;
 
-                addStudentIfMissing(groupFromTab, studentVal);
-<!-- ... existing code ... -->
-      /* --- OPCIÓN 5: ACERCA DE (VERSIÓN 1.2) --- */
+              dateColumns = [];
+              for (let c = 0; c < row.length; c++) {
+                const iso = normalizeExcelDate(row[c]);
+                if (iso) {
+                  dateColumns.push({ colIdx: c, isoDate: iso });
+                  if (addSessionUnique(currentGroup, iso)) {
+                    statsCounter.sessionsAdded++;
+                  }
+                }
+              }
+              continue;
+            }
+          }
+
+          // 3. Procesar filas de alumnos dentro del bloque activo
+          if (currentGroup && inStudentTable) {
+            const studentName = String(row[colIdxAlumno] ?? '').trim();
+            const lowerSt = studentName.toLowerCase();
+
+            // Fin de bloque si aparece fila de totales o fila vacía
+            if (
+              !studentName ||
+              lowerSt.startsWith('total ') ||
+              lowerSt.startsWith('total general') ||
+              lowerSt.startsWith('sin alumnos')
+            ) {
+              inStudentTable = false;
+              continue;
+            }
+
+            // Rescatar 100% de alumnos, incluso con 0 faltas
+            if (addStudentIfMissing(currentGroup, studentName)) {
+              statsCounter.studentsAdded++;
+            }
+
+            // A) Extraer fechas desde la columna texto "Fechas de Inasistencia"
+            const rawDatesStr = String(row[colIdxFechasText] ?? '').trim();
+            if (rawDatesStr && rawDatesStr.toLowerCase() !== 'sin faltas' && rawDatesStr !== '-') {
+              rawDatesStr.split(/[,;]+/).forEach(part => {
+                const iso = normalizeExcelDate(part.trim());
+                if (iso && addAbsenceUnique(currentGroup, studentName, iso)) {
+                  statsCounter.absencesAdded++;
+                }
+              });
+            }
+
+            // B) Extraer fechas desde las columnas DD/MM/YYYY marcadas con "X"
+            dateColumns.forEach(({ colIdx, isoDate }) => {
+              const mark = String(row[colIdx] ?? '').trim().toUpperCase();
+              if (mark === 'X' || mark === '1' || mark === 'SI' || mark === 'SÍ') {
+                if (addAbsenceUnique(currentGroup, studentName, isoDate)) {
+                  statsCounter.absencesAdded++;
+                }
+              }
+            });
+          }
+        }
+
+        return foundAnyGroupBlock;
+      }
+
+      function handleImportExcelFile(file) {
+        if (!file) return;
+        if (typeof XLSX === 'undefined') {
+          showToast('La librería Excel aún está cargando, intenta de nuevo.', 'warning');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            const counter = {
+              studentsAdded: 0,
+              sessionsAdded: 0,
+              absencesAdded: 0
+            };
+
+            let handledStructured = false;
+
+            workbook.SheetNames.forEach(sheetName => {
+              const sheet = workbook.Sheets[sheetName];
+              if (!sheet) return;
+              const lowerSheet = sheetName.trim().toLowerCase();
+
+              // 1. Intentar leer formato de hoja única `Ranking_Por_Grupo` o pestañas mensuales `YYYY-MM`
+              if (
+                lowerSheet === 'ranking_por_grupo' ||
+                /^\d{4}-\d{2}$/.test(lowerSheet) ||
+                parseSingleSheetRankedFormat(sheet, counter)
+              ) {
+                if (lowerSheet === 'ranking_por_grupo' || /^\d{4}-\d{2}$/.test(lowerSheet)) {
+                  parseSingleSheetRankedFormat(sheet, counter);
+                }
+                handledStructured = true;
+                return;
+              }
+
+              // 2. Compatibilidad con hojas legadas: Listas_Alumnos / Resumen_Alumnos
+              if (['listas_alumnos', 'alumnos', 'resumen_alumnos', 'resumen_general'].includes(lowerSheet)) {
+                const jsonRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                jsonRows.forEach(r => {
+                  const grp = normalizeGroupName(r.Grupo || r.grupo || r.Clase);
+                  const st = String(r.Alumno || r.alumno || r.Estudiante || r.Nombre || '').trim();
+                  if (grp && st && !st.toLowerCase().startsWith('total')) {
+                    if (addStudentIfMissing(grp, st)) counter.studentsAdded++;
+                  }
+                });
+                handledStructured = true;
+                return;
+              }
+
+              // 3. Compatibilidad con hojas legadas: Historial_Inasistencias
+              if (['historial_inasistencias', 'historial', 'inasistencias'].includes(lowerSheet)) {
+                const jsonRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                jsonRows.forEach(r => {
+                  const grp = normalizeGroupName(r.Grupo || r.grupo || r.Clase);
+                  const st = String(r.Alumno || r.alumno || r.Estudiante || r.Nombre || '').trim();
+                  const dt = normalizeExcelDate(r.Fecha || r.fecha || r.Date);
+                  if (grp && st && dt) {
+                    if (addAbsenceUnique(grp, st, dt)) counter.absencesAdded++;
+                  }
+                });
+                handledStructured = true;
+                return;
+              }
+
+              // 4. Compatibilidad con hojas individuales por grupo (Miembros 1, Miembros 2, Miembros 3)
+              const tabGroup = normalizeGroupName(sheetName);
+              if (tabGroup) {
+                const aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                let headerIdx = -1;
+                let nameCol = 1;
+                let datesTextCol = -1;
+                const dCols = [];
+
+                for (let i = 0; i < aoa.length; i++) {
+                  const lower = aoa[i].map(c => String(c ?? '').trim().toLowerCase());
+                  const aIdx = lower.findIndex(c => c === 'alumno' || c === 'estudiante' || c === 'nombre');
+                  if (aIdx !== -1) {
+                    headerIdx = i;
+                    nameCol = aIdx;
+                    datesTextCol = lower.findIndex(c => c.includes('fechas'));
+                    aoa[i].forEach((cell, cIdx) => {
+                      const iso = normalizeExcelDate(cell);
+                      if (iso) {
+                        dCols.push({ cIdx, iso });
+                        if (addSessionUnique(tabGroup, iso)) counter.sessionsAdded++;
+                      }
+                    });
+                    break;
+                  }
+                }
+
+                if (headerIdx !== -1) {
+                  for (let i = headerIdx + 1; i < aoa.length; i++) {
+                    const row = aoa[i];
+                    const st = String(row[nameCol] ?? '').trim();
+                    if (!st || st.toLowerCase().startsWith('total') || st.toLowerCase().startsWith('sin alumnos')) continue;
+                    if (addStudentIfMissing(tabGroup, st)) counter.studentsAdded++;
+
+                    if (datesTextCol !== -1) {
+                      const txt = String(row[datesTextCol] ?? '').trim();
+                      if (txt && txt.toLowerCase() !== 'sin faltas') {
+                        txt.split(/[,;]+/).forEach(p => {
+                          const iso = normalizeExcelDate(p.trim());
+                          if (iso && addAbsenceUnique(tabGroup, st, iso)) counter.absencesAdded++;
+                        });
+                      }
+                    }
+
+                    dCols.forEach(({ cIdx, iso }) => {
+                      const mk = String(row[cIdx] ?? '').trim().toUpperCase();
+                      if (mk === 'X' || mk === '1') {
+                        if (addAbsenceUnique(tabGroup, st, iso)) counter.absencesAdded++;
+                      }
+                    });
+                  }
+                  handledStructured = true;
+                }
+              }
+            });
+
+            // Respaldo genérico si la hoja tenía columnas planas sin nombre estándar
+            if (!handledStructured && workbook.SheetNames.length > 0) {
+              const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+              const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+              rows.forEach(r => {
+                const grp = normalizeGroupName(r.Grupo || r.grupo || r.Clase);
+                const st = String(r.Alumno || r.alumno || r.Estudiante || r.Nombre || '').trim();
+                const dt = normalizeExcelDate(r.Fecha || r.fecha);
+                if (grp && st) {
+                  if (addStudentIfMissing(grp, st)) counter.studentsAdded++;
+                  if (dt && addAbsenceUnique(grp, st, dt)) counter.absencesAdded++;
+                }
+              });
+            }
+
+            saveStateToStorage();
+            populateMonthDropdowns();
+            syncRegistroChecksFromState();
+            switchTab(uiState.activeTab);
+
+            showToast(
+              `Importación completada: +${counter.studentsAdded} alumnos, +${counter.sessionsAdded} sesiones, +${counter.absencesAdded} faltas nuevas.`
+            );
+          } catch (err) {
+            console.error(err);
+            showToast('No se pudo leer el archivo Excel. Verifica que sea un .xlsx válido.', 'error');
+          }
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      /* ----------------------------------------------------------------------
+         12. MODALES DE APARIENCIA Y ACERCA DE (VERSIÓN 1.3 — ORION)
+         ---------------------------------------------------------------------- */
+      function openAppearanceModal() {
+        openModal(
+          'Apariencia y Tema',
+          `
+            <div class="space-y-5">
+              <div class="space-y-2">
+                <p class="text-xs font-extrabold uppercase tracking-wider theme-text-muted">Fondo de interfaz</p>
+                <div class="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    data-bg-choice="white"
+                    class="theme-bg-choice p-3.5 rounded-xl border text-left transition-all ${appState.theme.bg === 'white' ? 'ring-2' : 'theme-border theme-surface-alt'}"
+                    style="${appState.theme.bg === 'white' ? 'border-color: var(--accent); --tw-ring-color: var(--accent-ring);' : ''}"
+                  >
+                    <div class="w-6 h-6 rounded-full bg-white border border-slate-300 mb-2"></div>
+                    <p class="text-sm font-bold">Fondo Claro</p>
+                    <p class="text-[11px] theme-text-muted">Limpio y luminoso</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    data-bg-choice="black"
+                    class="theme-bg-choice p-3.5 rounded-xl border text-left transition-all ${appState.theme.bg === 'black' ? 'ring-2' : 'theme-border theme-surface-alt'}"
+                    style="${appState.theme.bg === 'black' ? 'border-color: var(--accent); --tw-ring-color: var(--accent-ring);' : ''}"
+                  >
+                    <div class="w-6 h-6 rounded-full bg-slate-900 border border-slate-600 mb-2"></div>
+                    <p class="text-sm font-bold">Fondo Oscuro</p>
+                    <p class="text-[11px] theme-text-muted">Descanso visual nocturno</p>
+                  </button>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <p class="text-xs font-extrabold uppercase tracking-wider theme-text-muted">Paleta de color</p>
+                <div class="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    data-accent-choice="leaf"
+                    class="theme-accent-choice p-3.5 rounded-xl border text-left transition-all ${appState.theme.accent === 'leaf' ? 'ring-2' : 'theme-border theme-surface-alt'}"
+                    style="${appState.theme.accent === 'leaf' ? 'border-color: var(--accent); --tw-ring-color: var(--accent-ring);' : ''}"
+                  >
+                    <div class="w-6 h-6 rounded-full mb-2" style="background-color: #15803d;"></div>
+                    <p class="text-sm font-bold">Verde Hoja</p>
+                    <p class="text-[11px] theme-text-muted">Natural y equilibrado</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    data-accent-choice="autumn"
+                    class="theme-accent-choice p-3.5 rounded-xl border text-left transition-all ${appState.theme.accent === 'autumn' ? 'ring-2' : 'theme-border theme-surface-alt'}"
+                    style="${appState.theme.accent === 'autumn' ? 'border-color: var(--accent); --tw-ring-color: var(--accent-ring);' : ''}"
+                  >
+                    <div class="w-6 h-6 rounded-full mb-2" style="background-color: #c2410c;"></div>
+                    <p class="text-sm font-bold">Otoño</p>
+                    <p class="text-[11px] theme-text-muted">Cálido y expresivo</p>
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-2">
+                <button type="button" id="closeAppearanceBtn" class="px-5 py-2.5 rounded-xl text-sm font-bold theme-accent-bg">Listo</button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            el.querySelectorAll('.theme-bg-choice').forEach(btn => {
+              btn.addEventListener('click', () => {
+                appState.theme.bg = btn.getAttribute('data-bg-choice');
+                applyTheme();
+                saveStateToStorage();
+                openAppearanceModal(); // Re-render selección activa
+              });
+            });
+
+            el.querySelectorAll('.theme-accent-choice').forEach(btn => {
+              btn.addEventListener('click', () => {
+                appState.theme.accent = btn.getAttribute('data-accent-choice');
+                applyTheme();
+                saveStateToStorage();
+                openAppearanceModal();
+              });
+            });
+
+            el.querySelector('#closeAppearanceBtn').addEventListener('click', closeModal);
+          }
+        );
+      }
+
       function openAboutModal() {
         openModal(
           'Acerca de',
           `
-            <div class="text-center py-3 space-y-4">
+            <div class="text-center py-2 space-y-4">
               <div class="w-14 h-14 rounded-2xl theme-accent-bg mx-auto flex items-center justify-center shadow-md">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -627,12 +2408,12 @@
                 <div class="border-t theme-border"></div>
                 <div class="flex items-center justify-between">
                   <span class="theme-text-secondary">Versión:</span>
-                  <span class="font-bold">1.2</span>
+                  <span class="font-bold">1.3</span>
                 </div>
               </div>
 
               <div class="pt-1">
-                <button type="button" id="closeAboutBtn" class="w-full py-2.5 rounded-xl font-bold theme-accent-bg">Cerrar</button>
+                <button type="button" id="closeAboutBtn" class="w-full py-2.5 rounded-xl text-sm font-bold theme-accent-bg">Cerrar</button>
               </div>
             </div>
           `,
@@ -643,8 +2424,194 @@
       }
 
       /* ----------------------------------------------------------------------
-         12. INICIALIZACIÓN DE LA APLICACIÓN
+         13. ENLACE DE EVENTOS E INICIALIZACIÓN
          ---------------------------------------------------------------------- */
+      function bindEvents() {
+        // Navegación principal
+        document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+
+        // Toggle rápido de fondo claro / oscuro
+        document.getElementById('quickBgToggleBtn').addEventListener('click', () => {
+          appState.theme.bg = appState.theme.bg === 'white' ? 'black' : 'white';
+          applyTheme();
+          saveStateToStorage();
+        });
+
+        // Menú de 3 puntos (⋮)
+        const kebabBtn = document.getElementById('kebabMenuBtn');
+        const kebabDropdown = document.getElementById('kebabDropdown');
+
+        kebabBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isHidden = kebabDropdown.classList.contains('hidden');
+          kebabDropdown.classList.toggle('hidden', !isHidden);
+          kebabBtn.setAttribute('aria-expanded', String(isHidden));
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!document.getElementById('kebabMenuWrapper').contains(e.target)) {
+            kebabDropdown.classList.add('hidden');
+            kebabBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        document.getElementById('menuExportExcel').addEventListener('click', () => {
+          kebabDropdown.classList.add('hidden');
+          openExportExcelModal();
+        });
+
+        const fileInput = document.getElementById('excelFileInput');
+        document.getElementById('menuImportExcel').addEventListener('click', () => {
+          kebabDropdown.classList.add('hidden');
+          fileInput.value = '';
+          fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) {
+            handleImportExcelFile(e.target.files[0]);
+          }
+        });
+
+        document.getElementById('menuAppearance').addEventListener('click', () => {
+          kebabDropdown.classList.add('hidden');
+          openAppearanceModal();
+        });
+
+        document.getElementById('menuAbout').addEventListener('click', () => {
+          kebabDropdown.classList.add('hidden');
+          openAboutModal();
+        });
+
+        // Cerrar modal con botón X o clic fuera del diálogo
+        document.getElementById('appModalCloseX').addEventListener('click', closeModal);
+        document.getElementById('appModalOverlay').addEventListener('click', (e) => {
+          if (e.target.id === 'appModalOverlay') closeModal();
+        });
+
+        // --- Eventos Vista 1: Registro ---
+        document.getElementById('registroGroupSelect').addEventListener('change', (e) => {
+          uiState.registroGroup = e.target.value;
+          // Si la fecha actual no coincide con el nuevo grupo, ajustar automáticamente al válido más cercano
+          if (!isRegistroDateValid()) {
+            uiState.registroDate = getNearestValidDateForGroup(uiState.registroGroup, uiState.registroDate);
+          }
+          syncRegistroChecksFromState();
+          renderRegistroView();
+        });
+
+        document.getElementById('registroDateInput').addEventListener('change', (e) => {
+          if (e.target.value) {
+            uiState.registroDate = e.target.value;
+            syncRegistroChecksFromState();
+            renderRegistroView();
+          }
+        });
+
+        document.getElementById('snapNearestValidDateBtn').addEventListener('click', (e) => {
+          const targetIso = e.currentTarget.dataset.targetIso;
+          if (targetIso) {
+            uiState.registroDate = targetIso;
+            syncRegistroChecksFromState();
+            renderRegistroView();
+            showToast(`Fecha ajustada al ${formatShortDate(targetIso)}.`);
+          }
+        });
+
+        document.getElementById('registroSearchInput').addEventListener('input', (e) => {
+          uiState.registroSearch = e.target.value;
+          renderRegistroView();
+        });
+
+        // Agregar alumno inline
+        const addForm = document.getElementById('inlineAddStudentForm');
+        const addInput = document.getElementById('inlineNewStudentName');
+
+        document.getElementById('btnOpenAddStudent').addEventListener('click', () => {
+          addForm.classList.toggle('hidden');
+          if (!addForm.classList.contains('hidden')) {
+            addInput.focus();
+          }
+        });
+
+        document.getElementById('btnCancelAddStudent').addEventListener('click', () => {
+          addForm.classList.add('hidden');
+          addInput.value = '';
+        });
+
+        addForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const name = addInput.value.trim();
+          if (!name) return;
+          const added = addStudentIfMissing(uiState.registroGroup, name);
+          if (added) {
+            saveStateToStorage();
+            addInput.value = '';
+            addForm.classList.add('hidden');
+            renderRegistroView();
+            showToast(`Alumno "${name}" agregado a ${uiState.registroGroup}.`);
+          } else {
+            showToast(`"${name}" ya existe en ${uiState.registroGroup}.`, 'warning');
+          }
+        });
+
+        document.getElementById('btnToggleManageStudents').addEventListener('click', (e) => {
+          uiState.registroManageMode = !uiState.registroManageMode;
+          e.currentTarget.classList.toggle('theme-accent-soft', uiState.registroManageMode);
+          renderRegistroView();
+        });
+
+        document.getElementById('btnClearChecks').addEventListener('click', () => {
+          uiState.registroChecked.clear();
+          renderRegistroView();
+        });
+
+        document.getElementById('btnSaveAttendance').addEventListener('click', handleSaveAttendance);
+        document.getElementById('btnDeleteCurrentSession').addEventListener('click', handleDeleteCurrentSession);
+
+        // --- Eventos Vista 2: Datos de inasistencia ---
+        document.getElementById('datosGroupFilter').addEventListener('change', (e) => {
+          uiState.datosFilterGroup = e.target.value;
+          renderDatosView();
+        });
+
+        document.getElementById('datosMonthFilter').addEventListener('change', (e) => {
+          uiState.datosFilterMonth = e.target.value;
+          renderDatosView();
+        });
+
+        document.getElementById('datosSearchInput').addEventListener('input', (e) => {
+          uiState.datosSearch = e.target.value;
+          renderDatosView();
+        });
+
+        document.getElementById('toggleZeroAbsences').addEventListener('change', (e) => {
+          uiState.datosShowZero = e.target.checked;
+          renderDatosView();
+        });
+
+        // --- Eventos Vista 3: Gráfico ---
+        document.getElementById('graficoMonthFilter').addEventListener('change', (e) => {
+          uiState.graficoFilterMonth = e.target.value;
+          renderGraficoView();
+        });
+
+        document.getElementById('graficoRankGroupFilter').addEventListener('change', (e) => {
+          uiState.graficoRankGroup = e.target.value;
+          renderGraficoView();
+        });
+
+        document.getElementById('graficoTopLimitFilter').addEventListener('change', (e) => {
+          uiState.graficoTopLimit = e.target.value;
+          renderGraficoView();
+        });
+      }
+
+      // Inicialización
+      applyTheme();
+      bindEvents();
       switchTab('registro');
     })();
   </script>
