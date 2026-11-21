@@ -1,37 +1,37 @@
 <!DOCTYPE html>
-<html lang="es" data-bg="white" data-style="leaf">
+<html lang="es" data-bg="white" data-accent="leaf">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Inasistencias</title>
+  <title>Sistema de Inasistencias — v1.1</title>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SheetJS (xlsx) para importar y exportar archivos Excel reales -->
+  <!-- SheetJS (xlsx) para importar y exportar archivos Excel (.xlsx/.xls/.csv) -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
   <style>
     /* ==========================================================================
-       SISTEMA DE TEMAS DINÁMICOS (Fondo: Blanco/Negro × Estilo: Verde hoja/Otoño)
+       SISTEMA DE TEMAS COMBINABLES (Fondo: Blanco/Negro × Estilo: Verde hoja/Otoño)
        ========================================================================== */
     :root {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      --transition-speed: 0.22s;
+      --transition-speed: 0.2s;
     }
 
     /* 1. Blanco + Verde hoja */
-    html[data-bg="white"][data-style="leaf"] {
+    html[data-bg="white"][data-accent="leaf"] {
       --bg-app: #f4f7f5;
       --bg-surface: #ffffff;
       --bg-surface-alt: #edf3ef;
-      --bg-hover: #e3ede6;
+      --bg-hover: #e2ede6;
       --text-primary: #132218;
-      --text-secondary: #486150;
-      --text-muted: #6f8777;
-      --border-color: #d5e2d9;
+      --text-secondary: #465f4e;
+      --text-muted: #6c8574;
+      --border-color: #d4e2d8;
       --accent: #16a34a;
       --accent-hover: #15803d;
       --accent-soft: #dcfce7;
@@ -46,19 +46,19 @@
       --warning-border: #f59e0b;
       --warning-text: #92400e;
       --shadow-card: 0 2px 10px rgba(19, 34, 24, 0.05);
-      --shadow-modal: 0 20px 35px rgba(19, 34, 24, 0.18);
+      --shadow-modal: 0 22px 40px rgba(19, 34, 24, 0.18);
     }
 
     /* 2. Negro + Verde hoja */
-    html[data-bg="black"][data-style="leaf"] {
-      --bg-app: #090d0b;
-      --bg-surface: #121915;
-      --bg-surface-alt: #1a241e;
-      --bg-hover: #223027;
+    html[data-bg="black"][data-accent="leaf"] {
+      --bg-app: #080c0a;
+      --bg-surface: #111814;
+      --bg-surface-alt: #19231d;
+      --bg-hover: #212f27;
       --text-primary: #f0f7f2;
       --text-secondary: #a7c0b0;
       --text-muted: #738f7d;
-      --border-color: #26362c;
+      --border-color: #25362c;
       --accent: #22c55e;
       --accent-hover: #16a34a;
       --accent-soft: rgba(34, 197, 94, 0.16);
@@ -73,15 +73,15 @@
       --warning-border: #d97706;
       --warning-text: #fcd34d;
       --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.35);
-      --shadow-modal: 0 24px 45px rgba(0, 0, 0, 0.65);
+      --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.7);
     }
 
     /* 3. Blanco + Otoño */
-    html[data-bg="white"][data-style="autumn"] {
+    html[data-bg="white"][data-accent="autumn"] {
       --bg-app: #fbf8f4;
       --bg-surface: #ffffff;
       --bg-surface-alt: #f5ede3;
-      --bg-hover: #ede0d1;
+      --bg-hover: #ece0d1;
       --text-primary: #27170c;
       --text-secondary: #684b36;
       --text-muted: #8f7058;
@@ -100,15 +100,15 @@
       --warning-border: #d97706;
       --warning-text: #78350f;
       --shadow-card: 0 2px 10px rgba(39, 23, 12, 0.05);
-      --shadow-modal: 0 20px 35px rgba(39, 23, 12, 0.18);
+      --shadow-modal: 0 22px 40px rgba(39, 23, 12, 0.18);
     }
 
     /* 4. Negro + Otoño */
-    html[data-bg="black"][data-style="autumn"] {
-      --bg-app: #0e0a07;
-      --bg-surface: #18110c;
-      --bg-surface-alt: #241912;
-      --bg-hover: #302218;
+    html[data-bg="black"][data-accent="autumn"] {
+      --bg-app: #0d0906;
+      --bg-surface: #17100b;
+      --bg-surface-alt: #231811;
+      --bg-hover: #2f2117;
       --text-primary: #fbf3ec;
       --text-secondary: #cbb39f;
       --text-muted: #937a66;
@@ -127,7 +127,7 @@
       --warning-border: #d97706;
       --warning-text: #fde68a;
       --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.4);
-      --shadow-modal: 0 24px 45px rgba(0, 0, 0, 0.7);
+      --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.72);
     }
 
     body {
@@ -191,7 +191,6 @@
       box-shadow: 0 0 0 3px var(--accent-soft);
     }
 
-    /* Color scheme hint for native date picker */
     html[data-bg="black"] input[type="date"] {
       color-scheme: dark;
     }
@@ -199,16 +198,14 @@
       color-scheme: light;
     }
 
-    /* Animación suave de barras */
     .chart-bar-fill {
       transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease;
     }
 
-    /* Toast notification animation */
     @keyframes slideUpFade {
       from {
         opacity: 0;
-        transform: translateY(16px) scale(0.97);
+        transform: translateY(14px) scale(0.97);
       }
       to {
         opacity: 1;
@@ -216,33 +213,38 @@
       }
     }
     .toast-enter {
-      animation: slideUpFade 0.25s ease forwards;
+      animation: slideUpFade 0.22s ease forwards;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:opacity-90">
+<body class="min-h-screen flex flex-col antialiased">
 
   <!-- ========================================================================
-       ENCABEZADO SUPERIOR FIJO Y NAVEGACIÓN DE 3 PESTAÑAS
+       ENCABEZADO FIJO Y NAVEGACIÓN DE 3 PESTAÑAS
        ======================================================================== -->
   <header class="sticky top-0 z-30 theme-surface border-b">
-    <div class="max-w-4xl mx-auto px-4 pt-3 pb-2">
-      <!-- Fila Superior: Título y Menú de Tres Puntos -->
+    <div class="max-w-4xl mx-auto px-4 pt-3 pb-2.5">
       <div class="flex items-center justify-between gap-3">
+        <!-- Identidad y Estado Local -->
         <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-9 h-9 rounded-xl theme-accent-bg flex items-center justify-center shrink-0 shadow-sm">
-            <!-- Icono Lista/Asistencia SVG -->
+          <div class="w-10 h-10 rounded-xl theme-accent-bg flex items-center justify-center shrink-0 shadow-xs">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
           </div>
-          <div class="truncate">
-            <h1 class="text-lg sm:text-xl font-bold tracking-tight truncate">Sistema de Inasistencias</h1>
-            <p class="text-xs theme-text-muted hidden sm:block">Control por grupo, fecha e historial</p>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h1 class="text-base sm:text-xl font-extrabold tracking-tight truncate">Sistema de Inasistencias</h1>
+              <span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full theme-accent-soft shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--accent);"></span>
+                Guardado local
+              </span>
+            </div>
+            <p class="text-xs theme-text-muted truncate">Control académico por grupo, fecha e historial</p>
           </div>
         </div>
 
-        <!-- Botón Menú de Tres Puntos (⋮) -->
+        <!-- Botón de Menú de Tres Puntos (⋮) -->
         <div class="relative shrink-0" id="menuContainer">
           <button
             id="menuToggleBtn"
@@ -258,28 +260,28 @@
             </svg>
           </button>
 
-          <!-- Dropdown de Tres Puntos -->
+          <!-- Menú Desplegable -->
           <div
             id="threeDotsDropdown"
             class="hidden absolute right-0 mt-2 w-60 rounded-2xl theme-surface border py-1.5 z-50"
             style="box-shadow: var(--shadow-modal);"
           >
             <button type="button" data-menu-action="export" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition">
-              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               <span>Exportar a Excel</span>
             </button>
 
             <button type="button" data-menu-action="import" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition">
-              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
               <span>Importar de Excel</span>
             </button>
 
             <button type="button" data-menu-action="themes" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition">
-              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
               </svg>
               <span>Opciones de temas</span>
@@ -288,7 +290,7 @@
             <div class="my-1 border-t theme-border"></div>
 
             <button type="button" data-menu-action="delete" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition" style="color: var(--danger);">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               <span>Eliminar</span>
@@ -297,7 +299,7 @@
             <div class="my-1 border-t theme-border"></div>
 
             <button type="button" data-menu-action="about" class="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 theme-hover transition">
-              <svg class="w-4 h-4 shrink-0 theme-text-secondary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 shrink-0 theme-text-secondary" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>Acerca de</span>
@@ -306,7 +308,7 @@
         </div>
       </div>
 
-      <!-- Barra de Navegación con 3 Pestañas Principales -->
+      <!-- Barra de Navegación Principal (3 Pestañas) -->
       <nav class="grid grid-cols-3 gap-1.5 mt-3 p-1 rounded-xl theme-surface-alt border" aria-label="Navegación principal">
         <button
           type="button"
@@ -349,29 +351,29 @@
        ======================================================================== -->
   <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-5 pb-16">
 
-    <!-- ==================== PESTAÑA 1: REGISTRO ==================== -->
+    <!-- ==================== VISTA 1: REGISTRO ==================== -->
     <section id="view-registro" class="space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-2 px-1">
         <div>
           <h2 class="text-base sm:text-lg font-bold">Panel de Registro por Grupo</h2>
           <p class="text-xs sm:text-sm theme-text-secondary">
-            <strong>Miembros 1 y 2:</strong> solo viernes &bull; <strong>Miembros 3:</strong> solo miércoles
+            <strong>Miembros 1 y 2:</strong> solo Viernes &bull; <strong>Miembros 3:</strong> solo Miércoles
           </p>
         </div>
+        <div id="registroQuickSummary" class="text-xs font-semibold px-3 py-1.5 rounded-xl theme-surface border theme-border"></div>
       </div>
 
-      <!-- Contenedor de Acordeones de Grupos -->
+      <!-- Acordeones de los 3 Grupos -->
       <div id="registroAccordionsContainer" class="space-y-3.5"></div>
     </section>
 
-    <!-- ==================== PESTAÑA 2: DATOS DE INASISTENCIA ==================== -->
+    <!-- ==================== VISTA 2: DATOS DE INASISTENCIA ==================== -->
     <section id="view-datos" class="hidden space-y-4">
-      <!-- Barra de Filtros -->
       <div class="theme-surface border rounded-2xl p-4 space-y-3">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 class="text-base sm:text-lg font-bold">Historial y Consulta de Faltas</h2>
-            <p class="text-xs theme-text-secondary">Consulta por mes o acumulado y edita registros puntuales.</p>
+            <p class="text-xs theme-text-secondary">Filtra por mes o consulta el acumulado, porcentajes y fechas puntuales.</p>
           </div>
 
           <div class="w-full sm:w-64">
@@ -380,30 +382,28 @@
           </div>
         </div>
 
-        <div class="pt-2 border-t theme-border flex items-center justify-between gap-2">
+        <div class="pt-2.5 border-t theme-border flex items-center justify-between gap-3">
           <label for="toggleZeroAbsences" class="text-xs sm:text-sm theme-text-secondary font-medium cursor-pointer select-none">
-            Mostrar también alumnos con 0 faltas en el período
+            Mostrar también alumnos sin faltas en el período
           </label>
           <input
             id="toggleZeroAbsences"
             type="checkbox"
-            class="w-5 h-5 rounded accent-current cursor-pointer"
+            class="w-5 h-5 rounded cursor-pointer"
             style="accent-color: var(--accent);"
           />
         </div>
       </div>
 
-      <!-- Acordeones de Resultados por Grupo -->
       <div id="datosAccordionsContainer" class="space-y-3.5"></div>
     </section>
 
-    <!-- ==================== PESTAÑA 3: GRÁFICA ==================== -->
+    <!-- ==================== VISTA 3: GRÁFICA ==================== -->
     <section id="view-grafica" class="hidden space-y-4">
-      <!-- Filtro de Período para Gráfica -->
       <div class="theme-surface border rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 class="text-base sm:text-lg font-bold">Porcentaje de Inasistencia por Grupo</h2>
-          <p class="text-xs theme-text-secondary">Comparativa porcentual (0% a 100%) de los tres grupos de clase.</p>
+          <p class="text-xs theme-text-secondary">Comparativa porcentual (0% a 100%) sincronizada con tus sesiones registradas.</p>
         </div>
 
         <div class="w-full sm:w-64">
@@ -412,41 +412,38 @@
         </div>
       </div>
 
-      <!-- Contenedor del Gráfico de Barras Vertical -->
+      <!-- Tarjeta del Gráfico de Barras Vertical -->
       <div class="theme-surface border rounded-2xl p-4 sm:p-6">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between gap-2 mb-4">
           <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted">Porcentaje de Inasistencia (%)</span>
-          <span id="graficaPeriodBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full theme-accent-soft">Acumulado general</span>
+          <span id="graficaPeriodBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full theme-accent-soft">Todos los meses</span>
         </div>
 
-        <!-- Área del Gráfico de Barras -->
-        <div class="relative pt-8 pb-2 px-2 sm:px-6">
-          <!-- Líneas guía horizontales (100%, 75%, 50%, 25%, 0%) -->
+        <div class="relative pt-8 pb-2 px-1 sm:px-6">
+          <!-- Líneas guía horizontales -->
           <div class="relative h-64 sm:h-72 flex flex-col justify-between border-b theme-border">
             <div class="w-full border-t border-dashed theme-border relative">
-              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">100%</span>
+              <span class="absolute -top-2.5 left-0 text-[11px] theme-text-muted font-medium">100%</span>
             </div>
             <div class="w-full border-t border-dashed theme-border relative">
-              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">75%</span>
+              <span class="absolute -top-2.5 left-0 text-[11px] theme-text-muted font-medium">75%</span>
             </div>
             <div class="w-full border-t border-dashed theme-border relative">
-              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">50%</span>
+              <span class="absolute -top-2.5 left-0 text-[11px] theme-text-muted font-medium">50%</span>
             </div>
             <div class="w-full border-t border-dashed theme-border relative">
-              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">25%</span>
+              <span class="absolute -top-2.5 left-0 text-[11px] theme-text-muted font-medium">25%</span>
             </div>
             <div class="w-full relative">
-              <span class="absolute -top-2.5 -left-1 text-[11px] theme-text-muted font-medium">0%</span>
+              <span class="absolute -top-2.5 left-0 text-[11px] theme-text-muted font-medium">0%</span>
             </div>
 
-            <!-- Columnas de Barras -->
-            <div id="chartBarsWrapper" class="absolute inset-0 pl-9 pr-2 grid grid-cols-3 gap-4 sm:gap-10 items-end">
-              <!-- Renderizado dinámico por JS -->
-            </div>
+            <!-- Barras verticales -->
+            <div id="chartBarsWrapper" class="absolute inset-0 pl-10 pr-2 grid grid-cols-3 gap-4 sm:gap-10 items-end"></div>
           </div>
 
           <!-- Etiquetas eje X -->
-          <div class="pl-9 pr-2 grid grid-cols-3 gap-4 sm:gap-10 pt-3 text-center">
+          <div class="pl-10 pr-2 grid grid-cols-3 gap-4 sm:gap-10 pt-3 text-center">
             <div>
               <p class="text-xs sm:text-sm font-bold">Miembros 1</p>
               <p class="text-[11px] theme-text-muted">Viernes</p>
@@ -462,23 +459,22 @@
           </div>
         </div>
 
-        <!-- Nota de fórmula -->
         <div class="mt-4 pt-3 border-t theme-border text-xs theme-text-muted flex items-start gap-2">
           <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>Cálculo: (Total de inasistencias &divide; [Alumnos del grupo &times; Fechas de clase registradas]) &times; 100.</span>
+          <span>Cálculo: (Total de faltas &divide; [Alumnos inscritos &times; Sesiones registradas]) &times; 100.</span>
         </div>
       </div>
 
-      <!-- 3 Tarjetas Resumen debajo del gráfico -->
+      <!-- 3 Tarjetas de Resumen debajo del gráfico -->
       <div id="graficaSummaryCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5"></div>
     </section>
 
   </main>
 
   <!-- ========================================================================
-       MODAL UNIVERSAL (Opciones de temas, Importar Excel, Editar Faltas, Eliminar, Acerca de, Confirmación)
+       MODAL UNIVERSAL (Exportar, Importar, Temas, Editar Sesión, Eliminar, Acerca de)
        ======================================================================== -->
   <div
     id="modalBackdrop"
@@ -491,9 +487,8 @@
       class="w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl theme-surface border max-h-[90vh] flex flex-col overflow-hidden"
       style="box-shadow: var(--shadow-modal);"
     >
-      <!-- Cabecera del Modal -->
       <div class="px-5 py-4 border-b theme-border flex items-center justify-between gap-3">
-        <h3 id="modalTitle" class="text-base sm:text-lg font-bold">Título</h3>
+        <h3 id="modalTitle" class="text-base sm:text-lg font-bold">Ventana</h3>
         <button
           id="modalCloseBtn"
           type="button"
@@ -506,7 +501,6 @@
         </button>
       </div>
 
-      <!-- Cuerpo del Modal -->
       <div id="modalBody" class="p-5 overflow-y-auto space-y-4 text-sm"></div>
     </div>
   </div>
@@ -517,16 +511,21 @@
   <div id="toastContainer" class="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <!-- ========================================================================
-       LÓGICA DE LA APLICACIÓN (JAVASCRIPT)
+       LÓGICA DE LA APLICACIÓN (JAVASCRIPT AUTOCONTENIDO)
        ======================================================================== -->
   <script>
     (function () {
       'use strict';
 
       /* ----------------------------------------------------------------------
-         1. CONSTANTES Y CONFIGURACIÓN DE GRUPOS
+         1. CONSTANTES DE ALMACENAMIENTO Y CONFIGURACIÓN DE GRUPOS
          ---------------------------------------------------------------------- */
-      const STORAGE_KEY = 'sistema_inasistencias_orion_v1';
+      const PRIMARY_STORAGE_KEY = 'sistema_inasistencias_data_v1';
+      const LEGACY_STORAGE_KEYS = [
+        'sistema_inasistencias_orion_v1',
+        'inasistencias_data',
+        'attendance_data'
+      ];
 
       const GROUPS_CONFIG = [
         { id: 'Miembros 1', requiredDay: 5, dayName: 'viernes', dayNameCap: 'Viernes', barVar: '--bar-1' },
@@ -535,13 +534,14 @@
       ];
 
       const SPANISH_DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const SPANISH_DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
       const SPANISH_MONTHS = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
       ];
 
       /* ----------------------------------------------------------------------
-         2. UTILIDADES DE FECHA (SIN DESFASES DE ZONA HORARIA UTC)
+         2. UTILIDADES DE FECHA Y NORMALIZACIÓN DE EXCEL
          ---------------------------------------------------------------------- */
       function parseLocalDate(isoStr) {
         if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return null;
@@ -559,27 +559,82 @@
       function formatSpanishFullDate(isoStr) {
         const d = parseLocalDate(isoStr);
         if (!d) return 'Fecha inválida';
-        const dayName = SPANISH_DAYS[d.getDay()];
-        const dayNum = d.getDate();
-        const monthName = SPANISH_MONTHS[d.getMonth()].toLowerCase();
-        const year = d.getFullYear();
-        return `${dayName}, ${dayNum} de ${monthName} de ${year}`;
+        return `${SPANISH_DAYS[d.getDay()]}, ${d.getDate()} de ${SPANISH_MONTHS[d.getMonth()].toLowerCase()} de ${d.getFullYear()}`;
       }
 
-      function formatShortChipDate(isoStr) {
+      // Formato solicitado para chips en Datos de Inasistencia: "02/10/2026 (Vie)"
+      function formatChipDateWithDay(isoStr) {
         const d = parseLocalDate(isoStr);
         if (!d) return isoStr;
-        const shortDay = SPANISH_DAYS[d.getDay()].slice(0, 3);
         const dd = String(d.getDate()).padStart(2, '0');
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const yyyy = d.getFullYear();
-        return `${shortDay} ${dd}/${mm}/${yyyy}`;
+        const shortDay = SPANISH_DAYS_SHORT[d.getDay()];
+        return `${dd}/${mm}/${yyyy} (${shortDay})`;
+      }
+
+      function formatShortDate(isoStr) {
+        const d = parseLocalDate(isoStr);
+        if (!d) return isoStr;
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        return `${dd}/${mm}/${d.getFullYear()}`;
       }
 
       function formatMonthYearLabel(ym) {
-        if (ym === 'ALL') return 'Todos los meses (Acumulado general)';
+        if (ym === 'ALL') return 'Todos los meses (Acumulado)';
         const [y, m] = ym.split('-').map(Number);
+        if (!y || !m || m < 1 || m > 12) return ym;
         return `${SPANISH_MONTHS[m - 1]} ${y}`;
+      }
+
+      // Convierte fechas de Excel (serial numérico, YYYY-MM-DD, DD/MM/YYYY o Date) a YYYY-MM-DD
+      function normalizeExcelDate(rawVal) {
+        if (rawVal === null || rawVal === undefined || rawVal === '') return null;
+
+        if (typeof rawVal === 'number' && rawVal > 20000 && rawVal < 80000) {
+          // Fecha serial de Excel (epoch 1899-12-30)
+          const utcDays = Math.floor(rawVal - 25569);
+          const dateObj = new Date(utcDays * 86400 * 1000);
+          const y = dateObj.getUTCFullYear();
+          const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+          const d = String(dateObj.getUTCDate()).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
+
+        if (rawVal instanceof Date && !isNaN(rawVal.getTime())) {
+          return formatLocalISO(rawVal);
+        }
+
+        const str = String(rawVal).trim();
+        // YYYY-MM-DD o YYYY/MM/DD
+        const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (isoMatch) {
+          const y = isoMatch[1];
+          const m = isoMatch[2].padStart(2, '0');
+          const d = isoMatch[3].padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
+
+        // DD/MM/YYYY o DD-MM-YYYY
+        const dmyMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        if (dmyMatch) {
+          const d = dmyMatch[1].padStart(2, '0');
+          const m = dmyMatch[2].padStart(2, '0');
+          const y = dmyMatch[3];
+          return `${y}-${m}-${d}`;
+        }
+
+        return null;
+      }
+
+      function normalizeGroupName(raw) {
+        if (!raw) return null;
+        const clean = String(raw).trim().toLowerCase().replace(/\s+/g, ' ');
+        if (clean === 'miembros 1' || clean === 'miembros1' || clean === 'grupo 1') return 'Miembros 1';
+        if (clean === 'miembros 2' || clean === 'miembros2' || clean === 'grupo 2') return 'Miembros 2';
+        if (clean === 'miembros 3' || clean === 'miembros3' || clean === 'grupo 3') return 'Miembros 3';
+        return null;
       }
 
       function getGroupConfig(groupId) {
@@ -589,11 +644,9 @@
       function isDateValidForGroup(groupId, isoStr) {
         const d = parseLocalDate(isoStr);
         if (!d) return false;
-        const cfg = getGroupConfig(groupId);
-        return d.getDay() === cfg.requiredDay;
+        return d.getDay() === getGroupConfig(groupId).requiredDay;
       }
 
-      // Obtiene el día válido más reciente hacia atrás desde hoy (o desde una fecha base)
       function getMostRecentValidDate(groupId, baseDate = new Date()) {
         const cfg = getGroupConfig(groupId);
         const probe = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
@@ -606,7 +659,6 @@
         return formatLocalISO(probe);
       }
 
-      // Obtiene el día válido más cercano (hacia atrás o adelante) respecto a una fecha elegida
       function getNearestValidDate(groupId, isoStr) {
         const base = parseLocalDate(isoStr) || new Date();
         const cfg = getGroupConfig(groupId);
@@ -622,102 +674,154 @@
         return getMostRecentValidDate(groupId);
       }
 
+      function generateAbsenceId(group, student, date) {
+        return `${group}__${date}__${student.toLowerCase().trim()}`;
+      }
+
       /* ----------------------------------------------------------------------
-         3. ESTADO GLOBAL Y PERSISTENCIA EN LOCALSTORAGE
+         3. PERSISTENCIA RETROCOMPATIBLE EN LOCALSTORAGE
          ---------------------------------------------------------------------- */
-      function buildSampleData() {
-        // Genera fechas recientes válidas relativas a hoy para que la vista previa sea realista
-        const now = new Date();
-        const fri1 = getMostRecentValidDate('Miembros 1', now);
-        const fri1Date = parseLocalDate(fri1);
-        const fri0Date = new Date(fri1Date.getFullYear(), fri1Date.getMonth(), fri1Date.getDate() - 7);
-        const fri0 = formatLocalISO(fri0Date);
-
-        const wed1 = getMostRecentValidDate('Miembros 3', now);
-        const wed1Date = parseLocalDate(wed1);
-        const wed0Date = new Date(wed1Date.getFullYear(), wed1Date.getMonth(), wed1Date.getDate() - 7);
-        const wed0 = formatLocalISO(wed0Date);
-
+      function createEmptyState() {
         return {
-          groups: {
-            'Miembros 1': ['Ana Sofía Mendoza', 'Carlos Eduardo Ríos', 'Valeria Torres', 'Diego Armando Vega', 'Lucía Fernández'],
-            'Miembros 2': ['Mateo Quispe', 'Camila Huamán', 'Sebastián Paredes', 'Isabella Rojas'],
-            'Miembros 3': ['Sofía Castillo', 'Alejandro Flores', 'Mariana Salazar', 'Gabriel Romero', 'Daniela Cruz']
+          students: {
+            'Miembros 1': [],
+            'Miembros 2': [],
+            'Miembros 3': []
           },
-          records: {
-            [`Miembros 1__${fri0}`]: {
-              group: 'Miembros 1',
-              date: fri0,
-              absentees: ['Carlos Eduardo Ríos']
-            },
-            [`Miembros 1__${fri1}`]: {
-              group: 'Miembros 1',
-              date: fri1,
-              absentees: ['Carlos Eduardo Ríos', 'Diego Armando Vega']
-            },
-            [`Miembros 2__${fri1}`]: {
-              group: 'Miembros 2',
-              date: fri1,
-              absentees: ['Sebastián Paredes']
-            },
-            [`Miembros 3__${wed0}`]: {
-              group: 'Miembros 3',
-              date: wed0,
-              absentees: ['Alejandro Flores', 'Gabriel Romero']
-            },
-            [`Miembros 3__${wed1}`]: {
-              group: 'Miembros 3',
-              date: wed1,
-              absentees: ['Daniela Cruz']
-            }
+          absences: [], // Array de { id, group, student, date }
+          sessions: [], // Array de { group, date } para contabilizar clases con 0 faltas
+          theme: {
+            bg: 'white',
+            accent: 'leaf'
           }
         };
+      }
+
+      // Migra cualquier estructura previa (como sistema_inasistencias_orion_v1) al esquema v1.1
+      function normalizeAndMigratePayload(parsed) {
+        const state = createEmptyState();
+        if (!parsed || typeof parsed !== 'object') return state;
+
+        // 1. Migrar tema
+        if (parsed.theme && typeof parsed.theme === 'object') {
+          state.theme.bg = parsed.theme.bg === 'black' ? 'black' : 'white';
+          const accentVal = parsed.theme.accent || parsed.theme.style;
+          state.theme.accent = accentVal === 'autumn' ? 'autumn' : 'leaf';
+        }
+
+        // 2. Migrar listas de alumnos (soporta `students` o `groups`)
+        const rawStudentsObj = parsed.students || parsed.groups || {};
+        GROUPS_CONFIG.forEach(cfg => {
+          const arr = Array.isArray(rawStudentsObj[cfg.id]) ? rawStudentsObj[cfg.id] : [];
+          arr.forEach(name => {
+            const cleanName = String(name || '').trim();
+            if (cleanName && !state.students[cfg.id].some(s => s.toLowerCase() === cleanName.toLowerCase())) {
+              state.students[cfg.id].push(cleanName);
+            }
+          });
+        });
+
+        const seenAbsenceIds = new Set();
+        const seenSessions = new Set();
+
+        function addSessionUnique(group, date) {
+          if (!group || !date) return;
+          const sKey = `${group}__${date}`;
+          if (!seenSessions.has(sKey)) {
+            seenSessions.add(sKey);
+            state.sessions.push({ group, date });
+          }
+        }
+
+        function addAbsenceUnique(group, student, date) {
+          const cleanStudent = String(student || '').trim();
+          if (!group || !cleanStudent || !date) return;
+          const id = generateAbsenceId(group, cleanStudent, date);
+          if (!seenAbsenceIds.has(id)) {
+            seenAbsenceIds.add(id);
+            state.absences.push({ id, group, student: cleanStudent, date });
+          }
+          if (!state.students[group].some(s => s.toLowerCase() === cleanStudent.toLowerCase())) {
+            state.students[group].push(cleanStudent);
+          }
+          addSessionUnique(group, date);
+        }
+
+        // 3. Migrar array `absences` si ya existe
+        if (Array.isArray(parsed.absences)) {
+          parsed.absences.forEach(item => {
+            const grp = normalizeGroupName(item.group);
+            const dt = normalizeExcelDate(item.date);
+            if (grp && dt && item.student) {
+              addAbsenceUnique(grp, item.student, dt);
+            }
+          });
+        }
+
+        // 4. Migrar objeto `records` (esquema v1.0: { "Miembros 1__2026-10-02": { group, date, absentees: [...] } })
+        if (parsed.records && typeof parsed.records === 'object') {
+          Object.values(parsed.records).forEach(rec => {
+            if (!rec) return;
+            const grp = normalizeGroupName(rec.group);
+            const dt = normalizeExcelDate(rec.date);
+            if (grp && dt) {
+              addSessionUnique(grp, dt);
+              if (Array.isArray(rec.absentees)) {
+                rec.absentees.forEach(st => addAbsenceUnique(grp, st, dt));
+              }
+            }
+          });
+        }
+
+        // 5. Migrar `sessions` explícitas si existen
+        if (Array.isArray(parsed.sessions)) {
+          parsed.sessions.forEach(s => {
+            const grp = normalizeGroupName(s.group);
+            const dt = normalizeExcelDate(s.date);
+            if (grp && dt) addSessionUnique(grp, dt);
+          });
+        }
+
+        return state;
       }
 
       function loadInitialState() {
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            return {
-              theme: {
-                bg: parsed.theme?.bg === 'black' ? 'black' : 'white',
-                style: parsed.theme?.style === 'autumn' ? 'autumn' : 'leaf'
-              },
-              groups: {
-                'Miembros 1': Array.isArray(parsed.groups?.['Miembros 1']) ? parsed.groups['Miembros 1'] : [],
-                'Miembros 2': Array.isArray(parsed.groups?.['Miembros 2']) ? parsed.groups['Miembros 2'] : [],
-                'Miembros 3': Array.isArray(parsed.groups?.['Miembros 3']) ? parsed.groups['Miembros 3'] : []
-              },
-              records: parsed.records && typeof parsed.records === 'object' ? parsed.records : {}
-            };
+          // Primero revisar clave principal v1.1
+          const primaryRaw = localStorage.getItem(PRIMARY_STORAGE_KEY);
+          if (primaryRaw) {
+            return normalizeAndMigratePayload(JSON.parse(primaryRaw));
+          }
+
+          // Buscar en claves heredadas para no perder datos al actualizar
+          for (const legacyKey of LEGACY_STORAGE_KEYS) {
+            const legacyRaw = localStorage.getItem(legacyKey);
+            if (legacyRaw) {
+              const migrated = normalizeAndMigratePayload(JSON.parse(legacyRaw));
+              saveStateToStorage(migrated);
+              return migrated;
+            }
           }
         } catch (err) {
-          console.error('Error leyendo localStorage:', err);
+          console.error('Error cargando almacenamiento local:', err);
         }
 
-        // Primera carga limpia: inicializar con datos de demostración listos para probar
-        const sample = buildSampleData();
-        const initial = {
-          theme: { bg: 'white', style: 'leaf' },
-          groups: sample.groups,
-          records: sample.records
-        };
-        saveStateToStorage(initial);
-        return initial;
+        const fresh = createEmptyState();
+        saveStateToStorage(fresh);
+        return fresh;
       }
 
-      function saveStateToStorage(targetState = appState) {
+      function saveStateToStorage(target = appState) {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(targetState));
+          localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(target));
         } catch (err) {
-          showToast('No se pudo guardar en el almacenamiento local.', 'error');
+          showToast('No se pudo guardar en el navegador (memoria llena o bloqueada).', 'error');
         }
       }
 
       let appState = loadInitialState();
 
-      // Estado efímero de la interfaz (pestaña activa, acordeones abiertos, fechas seleccionadas en Registro)
+      // Estado efímero de interfaz
       const uiState = {
         activeTab: 'registro',
         openRegistroAccordions: { 'Miembros 1': true, 'Miembros 2': false, 'Miembros 3': false },
@@ -727,7 +831,6 @@
           'Miembros 2': getMostRecentValidDate('Miembros 2'),
           'Miembros 3': getMostRecentValidDate('Miembros 3')
         },
-        // Borrador de checkboxes marcados por grupo en la vista Registro
         draftAbsentees: {
           'Miembros 1': new Set(),
           'Miembros 2': new Set(),
@@ -738,16 +841,21 @@
         graficaFilterMonth: 'ALL'
       };
 
-      // Sincroniza el borrador de checkboxes de un grupo según la fecha seleccionada
+      function isSessionRegistered(groupId, dateStr) {
+        return appState.sessions.some(s => s.group === groupId && s.date === dateStr) ||
+               appState.absences.some(a => a.group === groupId && a.date === dateStr);
+      }
+
+      function getAbsenteesForSession(groupId, dateStr) {
+        return appState.absences
+          .filter(a => a.group === groupId && a.date === dateStr)
+          .map(a => a.student);
+      }
+
       function syncDraftFromSavedRecord(groupId) {
         const dateStr = uiState.selectedDates[groupId];
-        const key = `${groupId}__${dateStr}`;
-        const existing = appState.records[key];
-        if (existing && Array.isArray(existing.absentees)) {
-          uiState.draftAbsentees[groupId] = new Set(existing.absentees);
-        } else {
-          uiState.draftAbsentees[groupId] = new Set();
-        }
+        const saved = getAbsenteesForSession(groupId, dateStr);
+        uiState.draftAbsentees[groupId] = new Set(saved);
       }
 
       GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
@@ -757,14 +865,23 @@
          ---------------------------------------------------------------------- */
       function applyTheme() {
         document.documentElement.setAttribute('data-bg', appState.theme.bg);
-        document.documentElement.setAttribute('data-style', appState.theme.style);
+        document.documentElement.setAttribute('data-accent', appState.theme.accent);
       }
 
       applyTheme();
 
       /* ----------------------------------------------------------------------
-         5. NOTIFICACIONES TOAST (SIN ALERT)
+         5. NOTIFICACIONES TOAST Y MODAL UNIVERSAL (SIN ALERT / CONFIRM)
          ---------------------------------------------------------------------- */
+      function escapeHTML(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
       function showToast(message, type = 'success') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
@@ -796,21 +913,9 @@
           toast.style.transform = 'translateY(8px)';
           toast.style.transition = 'all 0.2s ease';
           setTimeout(() => toast.remove(), 220);
-        }, 3200);
+        }, 3400);
       }
 
-      function escapeHTML(str) {
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#039;');
-      }
-
-      /* ----------------------------------------------------------------------
-         6. MODAL UNIVERSAL (REEMPLAZA CONFIRM / PROMPT / DIALOGS)
-         ---------------------------------------------------------------------- */
       const modalBackdrop = document.getElementById('modalBackdrop');
       const modalTitle = document.getElementById('modalTitle');
       const modalBody = document.getElementById('modalBody');
@@ -836,7 +941,7 @@
       });
 
       /* ----------------------------------------------------------------------
-         7. NAVEGACIÓN ENTRE LAS 3 PESTAÑAS
+         6. NAVEGACIÓN ENTRE LAS 3 PESTAÑAS
          ---------------------------------------------------------------------- */
       function switchTab(tabName) {
         uiState.activeTab = tabName;
@@ -866,26 +971,29 @@
       });
 
       /* ----------------------------------------------------------------------
-         8. RENDERIZADO PESTAÑA 1: REGISTRO
+         7. VISTA 1: PANEL DE REGISTRO POR GRUPO
          ---------------------------------------------------------------------- */
       function renderRegistroView() {
+        const totalStudents = GROUPS_CONFIG.reduce((sum, g) => sum + (appState.students[g.id] || []).length, 0);
+        const quickBadge = document.getElementById('registroQuickSummary');
+        quickBadge.textContent = `${totalStudents} alumnos • ${appState.absences.length} faltas`;
+
         const container = document.getElementById('registroAccordionsContainer');
         container.innerHTML = '';
 
         GROUPS_CONFIG.forEach((cfg) => {
           const groupId = cfg.id;
-          const students = appState.groups[groupId] || [];
+          const students = appState.students[groupId] || [];
           const isOpen = !!uiState.openRegistroAccordions[groupId];
           const selectedDate = uiState.selectedDates[groupId];
           const isValidDay = isDateValidForGroup(groupId, selectedDate);
-          const recordKey = `${groupId}__${selectedDate}`;
-          const alreadySaved = Boolean(appState.records[recordKey]);
+          const alreadyRegistered = isSessionRegistered(groupId, selectedDate);
           const draftSet = uiState.draftAbsentees[groupId];
 
           const card = document.createElement('div');
           card.className = 'theme-surface border rounded-2xl overflow-hidden';
 
-          // Cabecera del Acordeón
+          // Cabecera Acordeón
           const headerBtn = document.createElement('button');
           headerBtn.type = 'button';
           headerBtn.className = 'w-full px-4 py-4 flex items-center justify-between gap-3 text-left theme-hover transition';
@@ -895,7 +1003,7 @@
               <div class="min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="font-bold text-base">${escapeHTML(groupId)}</span>
-                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full theme-accent-soft">Solo ${cfg.dayName}</span>
+                  <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full theme-accent-soft">Solo ${cfg.dayNameCap}</span>
                 </div>
                 <p class="text-xs theme-text-muted mt-0.5">${students.length} ${students.length === 1 ? 'alumno inscrito' : 'alumnos inscritos'}</p>
               </div>
@@ -910,20 +1018,83 @@
           });
           card.appendChild(headerBtn);
 
-          // Contenido desplegable del Acordeón
           if (isOpen) {
             const body = document.createElement('div');
-            body.className = 'px-4 pb-5 pt-2 border-t theme-border space-y-4';
+            body.className = 'px-4 pb-5 pt-3 border-t theme-border space-y-4';
 
-            // A) Formulario compacto para agregar nuevo alumno
+            // A) Selector de Fecha con Regla Estricta (Viernes / Miércoles)
+            const dateBox = document.createElement('div');
+            dateBox.className = 'p-3.5 rounded-xl theme-surface-alt border space-y-2.5';
+            dateBox.innerHTML = `
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <label class="text-xs font-semibold theme-text-secondary">Fecha de clase (${cfg.dayNameCap})</label>
+                    ${alreadyRegistered && isValidDay
+                      ? '<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-accent-soft">Sesión ya registrada - modo edición</span>'
+                      : ''
+                    }
+                  </div>
+                  <p class="text-sm font-bold mt-1 ${isValidDay ? '' : 'text-red-500'}">
+                    ${escapeHTML(formatSpanishFullDate(selectedDate))}
+                  </p>
+                </div>
+                <input
+                  type="date"
+                  value="${selectedDate}"
+                  class="rounded-xl px-3.5 py-2.5 text-sm font-semibold theme-input cursor-pointer"
+                />
+              </div>
+            `;
+
+            const dateInput = dateBox.querySelector('input[type="date"]');
+            dateInput.addEventListener('change', (e) => {
+              if (!e.target.value) return;
+              uiState.selectedDates[groupId] = e.target.value;
+              syncDraftFromSavedRecord(groupId);
+              renderRegistroView();
+            });
+
+            if (!isValidDay) {
+              const nearest = getNearestValidDate(groupId, selectedDate);
+              const warnBanner = document.createElement('div');
+              warnBanner.className = 'rounded-xl p-3 border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs';
+              warnBanner.style.backgroundColor = 'var(--warning-bg)';
+              warnBanner.style.borderColor = 'var(--warning-border)';
+              warnBanner.style.color = 'var(--warning-text)';
+
+              warnBanner.innerHTML = `
+                <div class="flex items-center gap-2 font-semibold">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span>Fecha inválida: <strong>${escapeHTML(groupId)}</strong> solo tiene clases los <strong>${cfg.dayName}</strong>.</span>
+                </div>
+                <button type="button" class="snap-date-btn px-3 py-2 rounded-lg font-bold bg-white text-gray-900 hover:bg-gray-50 transition shrink-0 shadow-2xs">
+                  Ir al ${cfg.dayName} más cercano (${formatShortDate(nearest)})
+                </button>
+              `;
+
+              warnBanner.querySelector('.snap-date-btn').addEventListener('click', () => {
+                uiState.selectedDates[groupId] = nearest;
+                syncDraftFromSavedRecord(groupId);
+                renderRegistroView();
+              });
+
+              dateBox.appendChild(warnBanner);
+            }
+
+            body.appendChild(dateBox);
+
+            // B) Agregar Nuevo Alumno al Grupo
             const addForm = document.createElement('form');
             addForm.className = 'flex gap-2';
             addForm.innerHTML = `
               <input
                 type="text"
-                placeholder="Agregar nombre de alumno a ${escapeHTML(groupId)}..."
+                placeholder="Nuevo alumno en ${escapeHTML(groupId)}..."
                 class="flex-1 min-w-0 rounded-xl px-3.5 py-2.5 text-sm theme-input"
-                maxlength="60"
+                maxlength="70"
               />
               <button
                 type="submit"
@@ -943,96 +1114,33 @@
                 showToast('Escribe el nombre del alumno antes de agregar.', 'warning');
                 return;
               }
-              const exists = appState.groups[groupId].some(s => s.toLowerCase() === name.toLowerCase());
+              const exists = appState.students[groupId].some(s => s.toLowerCase() === name.toLowerCase());
               if (exists) {
-                showToast('Ese alumno ya está registrado en este grupo.', 'warning');
+                showToast('Ese alumno ya está en la lista de este grupo.', 'warning');
                 return;
               }
-              appState.groups[groupId].push(name);
+              appState.students[groupId].push(name);
               saveStateToStorage();
               showToast(`Alumno "${name}" agregado a ${groupId}.`);
               renderRegistroView();
             });
             body.appendChild(addForm);
 
-            // B) Selector de Fecha con Restricción Estricta (Viernes / Miércoles)
-            const dateBox = document.createElement('div');
-            dateBox.className = 'p-3.5 rounded-xl theme-surface-alt border space-y-2.5';
-            dateBox.innerHTML = `
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <label class="block text-xs font-semibold theme-text-secondary">Fecha de clase (${cfg.dayNameCap})</label>
-                  <p class="text-sm font-bold mt-0.5 ${isValidDay ? '' : 'text-red-500'}">
-                    ${escapeHTML(formatSpanishFullDate(selectedDate))}
-                  </p>
-                </div>
-                <div class="flex items-center gap-2">
-                  ${alreadySaved && isValidDay ? '<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full theme-accent-soft">✓ Clase guardada</span>' : ''}
-                  <input
-                    type="date"
-                    value="${selectedDate}"
-                    class="rounded-xl px-3 py-2 text-sm font-medium theme-input cursor-pointer"
-                  />
-                </div>
-              </div>
-            `;
-
-            const dateInput = dateBox.querySelector('input[type="date"]');
-            dateInput.addEventListener('change', (e) => {
-              const newVal = e.target.value;
-              if (!newVal) return;
-              uiState.selectedDates[groupId] = newVal;
-              syncDraftFromSavedRecord(groupId);
-              renderRegistroView();
-            });
-
-            // Mensaje de advertencia si el día no corresponde al grupo
-            if (!isValidDay) {
-              const nearest = getNearestValidDate(groupId, selectedDate);
-              const warnBanner = document.createElement('div');
-              warnBanner.className = 'rounded-xl p-3 border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs';
-              warnBanner.style.backgroundColor = 'var(--warning-bg)';
-              warnBanner.style.borderColor = 'var(--warning-border)';
-              warnBanner.style.color = 'var(--warning-text)';
-
-              warnBanner.innerHTML = `
-                <div class="flex items-center gap-2 font-semibold">
-                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <span>Este grupo solo tiene clases los ${cfg.dayName}</span>
-                </div>
-                <button type="button" class="snap-date-btn px-3 py-1.5 rounded-lg font-bold bg-white/90 text-gray-900 hover:bg-white transition shrink-0 shadow-xs">
-                  Ajustar al ${cfg.dayName} más cercano (${formatShortChipDate(nearest)})
-                </button>
-              `;
-
-              warnBanner.querySelector('.snap-date-btn').addEventListener('click', () => {
-                uiState.selectedDates[groupId] = nearest;
-                syncDraftFromSavedRecord(groupId);
-                renderRegistroView();
-              });
-
-              dateBox.appendChild(warnBanner);
-            }
-
-            body.appendChild(dateBox);
-
-            // C) Lista interactiva de alumnos del grupo
+            // C) Lista de Alumnos para Marcar Faltas
             const listWrapper = document.createElement('div');
             listWrapper.className = 'space-y-2';
 
             if (students.length === 0) {
               listWrapper.innerHTML = `
-                <div class="text-center py-6 px-4 rounded-xl border border-dashed theme-border theme-text-muted text-sm">
-                  Aún no hay alumnos registrados en <strong>${escapeHTML(groupId)}</strong>. Agrega nombres arriba para comenzar.
+                <div class="text-center py-6 px-4 rounded-xl border border-dashed theme-border theme-text-muted text-xs sm:text-sm">
+                  No hay alumnos inscritos en <strong>${escapeHTML(groupId)}</strong>. Agrega nombres arriba o importa tu Excel desde el menú <strong>⋮</strong>.
                 </div>
               `;
             } else {
               const listHeader = document.createElement('div');
               listHeader.className = 'flex items-center justify-between text-xs font-semibold theme-text-secondary px-1';
               listHeader.innerHTML = `
-                <span>Marca quiénes faltaron:</span>
+                <span>Toca un alumno para marcar/desmarcar falta:</span>
                 <span>${draftSet.size} de ${students.length} faltaron</span>
               `;
               listWrapper.appendChild(listHeader);
@@ -1048,7 +1156,6 @@
                   row.classList.add('theme-surface-alt');
                 }
 
-                // Zona táctil principal para marcar/desmarcar falta
                 const toggleArea = document.createElement('button');
                 toggleArea.type = 'button';
                 toggleArea.className = 'flex-1 flex items-center gap-3 text-left min-w-0 py-0.5';
@@ -1073,7 +1180,6 @@
                   renderRegistroView();
                 });
 
-                // Botón eliminar alumno de la lista (con confirmación modal)
                 const removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
                 removeBtn.title = 'Eliminar alumno de la lista';
@@ -1084,9 +1190,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 `;
-                removeBtn.addEventListener('click', () => {
-                  confirmRemoveStudent(groupId, studentName);
-                });
+                removeBtn.addEventListener('click', () => confirmRemoveStudent(groupId, studentName));
 
                 row.appendChild(toggleArea);
                 row.appendChild(removeBtn);
@@ -1096,19 +1200,19 @@
 
             body.appendChild(listWrapper);
 
-            // D) Botón Guardar
+            // D) Botón Guardar Inasistencias
             const footerAction = document.createElement('div');
             footerAction.className = 'pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5';
             footerAction.innerHTML = `
               <p class="text-xs theme-text-muted">
                 ${isValidDay
-                  ? `Se guardará el registro del <strong>${escapeHTML(formatShortChipDate(selectedDate))}</strong>.`
-                  : 'Selecciona un día válido para habilitar el guardado.'}
+                  ? `Fecha a guardar: <strong>${escapeHTML(formatShortDate(selectedDate))} (${cfg.dayNameCap})</strong>.`
+                  : `Selecciona un ${cfg.dayName} válido para habilitar el guardado.`}
               </p>
               <button
                 type="button"
                 ${!isValidDay || students.length === 0 ? 'disabled' : ''}
-                class="save-group-btn w-full sm:w-auto px-5 py-3 rounded-xl text-sm font-bold theme-accent-bg disabled:opacity-45 disabled:cursor-not-allowed transition active:scale-95 flex items-center justify-center gap-2 shadow-sm"
+                class="save-group-btn w-full sm:w-auto px-5 py-3 rounded-xl text-sm font-bold theme-accent-bg disabled:opacity-45 disabled:cursor-not-allowed transition active:scale-95 flex items-center justify-center gap-2 shadow-xs"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -1122,14 +1226,29 @@
                 showToast(`Este grupo solo tiene clases los ${cfg.dayName}.`, 'error');
                 return;
               }
+
+              // Eliminar faltas previas de esa fecha/grupo y grabar las actuales
+              appState.absences = appState.absences.filter(
+                a => !(a.group === groupId && a.date === selectedDate)
+              );
+
               const cleanAbsentees = students.filter(s => draftSet.has(s));
-              appState.records[recordKey] = {
-                group: groupId,
-                date: selectedDate,
-                absentees: cleanAbsentees
-              };
+              cleanAbsentees.forEach(student => {
+                appState.absences.push({
+                  id: generateAbsenceId(groupId, student, selectedDate),
+                  group: groupId,
+                  student,
+                  date: selectedDate
+                });
+              });
+
+              // Registrar sesión (incluso si hubo 0 faltas)
+              if (!appState.sessions.some(s => s.group === groupId && s.date === selectedDate)) {
+                appState.sessions.push({ group: groupId, date: selectedDate });
+              }
+
               saveStateToStorage();
-              showToast(`Guardado: ${cleanAbsentees.length} ${cleanAbsentees.length === 1 ? 'falta' : 'faltas'} en ${groupId} (${formatShortChipDate(selectedDate)}).`);
+              showToast(`Guardado: ${cleanAbsentees.length} ${cleanAbsentees.length === 1 ? 'falta' : 'faltas'} en ${groupId} (${formatShortDate(selectedDate)}).`);
               renderRegistroView();
             });
 
@@ -1146,9 +1265,9 @@
           'Eliminar alumno del grupo',
           `
             <p class="theme-text-secondary">
-              ¿Deseas eliminar a <strong>${escapeHTML(studentName)}</strong> de la lista de <strong>${escapeHTML(groupId)}</strong>?
+              ¿Deseas eliminar a <strong>${escapeHTML(studentName)}</strong> de <strong>${escapeHTML(groupId)}</strong>?
             </p>
-            <p class="text-xs theme-text-muted">También se limpiará su nombre de los registros de fechas donde haya sido marcado.</p>
+            <p class="text-xs theme-text-muted">Se eliminarán también las faltas asociadas a este alumno en el historial.</p>
             <div class="flex justify-end gap-2 pt-2">
               <button type="button" id="cancelDelStudent" class="px-4 py-2.5 rounded-xl border theme-border font-semibold theme-hover">Cancelar</button>
               <button type="button" id="confirmDelStudent" class="px-4 py-2.5 rounded-xl font-semibold text-white" style="background-color: var(--danger);">Eliminar alumno</button>
@@ -1157,16 +1276,14 @@
           (el) => {
             el.querySelector('#cancelDelStudent').addEventListener('click', closeModal);
             el.querySelector('#confirmDelStudent').addEventListener('click', () => {
-              appState.groups[groupId] = appState.groups[groupId].filter(s => s !== studentName);
+              appState.students[groupId] = appState.students[groupId].filter(s => s !== studentName);
               uiState.draftAbsentees[groupId].delete(studentName);
-              Object.values(appState.records).forEach(rec => {
-                if (rec.group === groupId) {
-                  rec.absentees = rec.absentees.filter(a => a !== studentName);
-                }
-              });
+              appState.absences = appState.absences.filter(
+                a => !(a.group === groupId && a.student === studentName)
+              );
               saveStateToStorage();
               closeModal();
-              showToast(`Alumno "${studentName}" eliminado de ${groupId}.`);
+              showToast(`Alumno "${studentName}" eliminado.`);
               renderRegistroView();
             });
           }
@@ -1174,52 +1291,74 @@
       }
 
       /* ----------------------------------------------------------------------
-         9. UTILIDAD DE MESES DISPONIBLES Y ESTADÍSTICAS
+         8. MÉTRICAS Y MESES DISPONIBLES
          ---------------------------------------------------------------------- */
-      function getAvailableMonthOptions() {
+      function getRegisteredMonths() {
         const monthSet = new Set();
-        const now = new Date();
-        const currentYear = now.getFullYear();
-
-        // Agregar los 12 meses del año actual
-        for (let m = 1; m <= 12; m++) {
-          monthSet.add(`${currentYear}-${String(m).padStart(2, '0')}`);
-        }
-
-        // Agregar cualquier mes adicional presente en los registros
-        Object.values(appState.records).forEach(rec => {
-          if (rec && rec.date && rec.date.length >= 7) {
-            monthSet.add(rec.date.slice(0, 7));
-          }
+        appState.absences.forEach(a => {
+          if (a.date && a.date.length >= 7) monthSet.add(a.date.slice(0, 7));
         });
-
-        const sorted = Array.from(monthSet).sort((a, b) => b.localeCompare(a));
-        return ['ALL', ...sorted];
+        appState.sessions.forEach(s => {
+          if (s.date && s.date.length >= 7) monthSet.add(s.date.slice(0, 7));
+        });
+        return Array.from(monthSet).sort((a, b) => b.localeCompare(a));
       }
 
-      function populateMonthSelect(selectEl, currentValue) {
-        const options = getAvailableMonthOptions();
+      function populateMonthFilterSelect(selectEl, currentValue) {
+        const registered = getRegisteredMonths();
+        const options = ['ALL', ...registered];
+        if (currentValue !== 'ALL' && !registered.includes(currentValue)) {
+          options.push(currentValue);
+        }
         selectEl.innerHTML = options.map(ym => `
           <option value="${ym}" ${ym === currentValue ? 'selected' : ''}>${escapeHTML(formatMonthYearLabel(ym))}</option>
         `).join('');
       }
 
-      function getRecordsForGroupAndMonth(groupId, ymFilter) {
-        return Object.values(appState.records)
-          .filter(rec => {
-            if (!rec || rec.group !== groupId) return false;
-            if (ymFilter === 'ALL') return true;
-            return rec.date.startsWith(ymFilter);
-          })
-          .sort((a, b) => a.date.localeCompare(b.date));
+      function getGroupPeriodStats(groupId, ymFilter) {
+        const students = appState.students[groupId] || [];
+
+        // Fechas distintas registradas para este grupo en el período
+        const sessionDatesSet = new Set();
+        appState.sessions.forEach(s => {
+          if (s.group === groupId && (ymFilter === 'ALL' || s.date.startsWith(ymFilter))) {
+            sessionDatesSet.add(s.date);
+          }
+        });
+        appState.absences.forEach(a => {
+          if (a.group === groupId && (ymFilter === 'ALL' || a.date.startsWith(ymFilter))) {
+            sessionDatesSet.add(a.date);
+          }
+        });
+
+        const distinctDates = Array.from(sessionDatesSet).sort((a, b) => a.localeCompare(b));
+        const sessionsCount = distinctDates.length;
+
+        const periodAbsences = appState.absences.filter(
+          a => a.group === groupId && (ymFilter === 'ALL' || a.date.startsWith(ymFilter))
+        );
+
+        const totalAbsences = periodAbsences.length;
+        const denominator = students.length * sessionsCount;
+        const pct = denominator > 0 ? Math.min(100, (totalAbsences / denominator) * 100) : 0;
+
+        return {
+          students,
+          studentsCount: students.length,
+          distinctDates,
+          sessionsCount,
+          periodAbsences,
+          totalAbsences,
+          pct
+        };
       }
 
       /* ----------------------------------------------------------------------
-         10. RENDERIZADO PESTAÑA 2: DATOS DE INASISTENCIA + MODAL DE EDICIÓN
+         9. VISTA 2: DATOS DE INASISTENCIA (CON CHIPS ELIMINABLES Y EDICIÓN)
          ---------------------------------------------------------------------- */
       function renderDatosView() {
         const monthSelect = document.getElementById('datosMonthFilter');
-        populateMonthSelect(monthSelect, uiState.datosFilterMonth);
+        populateMonthFilterSelect(monthSelect, uiState.datosFilterMonth);
 
         const zeroToggle = document.getElementById('toggleZeroAbsences');
         zeroToggle.checked = uiState.datosShowZero;
@@ -1230,41 +1369,34 @@
         GROUPS_CONFIG.forEach((cfg) => {
           const groupId = cfg.id;
           const isOpen = !!uiState.openDatosAccordions[groupId];
-          const students = appState.groups[groupId] || [];
-          const groupRecords = getRecordsForGroupAndMonth(groupId, uiState.datosFilterMonth);
+          const stats = getGroupPeriodStats(groupId, uiState.datosFilterMonth);
 
-          // Mapear fechas de falta por alumno
-          const studentAbsencesMap = new Map();
-          students.forEach(s => studentAbsencesMap.set(s, []));
-
-          let totalGroupAbsences = 0;
-          groupRecords.forEach(rec => {
-            (rec.absentees || []).forEach(absentStudent => {
-              totalGroupAbsences++;
-              if (!studentAbsencesMap.has(absentStudent)) {
-                studentAbsencesMap.set(absentStudent, []);
-              }
-              studentAbsencesMap.get(absentStudent).push(rec.date);
-            });
+          // Agrupar fechas por alumno
+          const mapByStudent = new Map();
+          stats.students.forEach(s => mapByStudent.set(s, []));
+          stats.periodAbsences.forEach(a => {
+            if (!mapByStudent.has(a.student)) mapByStudent.set(a.student, []);
+            mapByStudent.get(a.student).push(a);
           });
 
-          // Ordenar alumnos: primero los que tienen más faltas
-          const allEntries = Array.from(studentAbsencesMap.entries())
-            .map(([name, dates]) => ({
-              name,
-              dates: dates.slice().sort((a, b) => a.localeCompare(b)),
-              count: dates.length
-            }))
+          const allEntries = Array.from(mapByStudent.entries())
+            .map(([name, records]) => {
+              const sortedRecords = records.slice().sort((a, b) => a.date.localeCompare(b.date));
+              const count = sortedRecords.length;
+              const studentPct = stats.sessionsCount > 0
+                ? ((count / stats.sessionsCount) * 100).toFixed(1)
+                : '0.0';
+              return { name, records: sortedRecords, count, studentPct };
+            })
             .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
           const visibleEntries = uiState.datosShowZero
             ? allEntries
-            : allEntries.filter(item => item.count > 0);
+            : allEntries.filter(e => e.count > 0);
 
           const card = document.createElement('div');
           card.className = 'theme-surface border rounded-2xl overflow-hidden';
 
-          // Cabecera Acordeón Datos
           const headerBtn = document.createElement('button');
           headerBtn.type = 'button';
           headerBtn.className = 'w-full px-4 py-4 flex items-center justify-between gap-3 text-left theme-hover transition';
@@ -1274,11 +1406,11 @@
               <div class="min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="font-bold text-base">${escapeHTML(groupId)}</span>
-                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full" style="${totalGroupAbsences > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
-                    ${totalGroupAbsences} ${totalGroupAbsences === 1 ? 'falta' : 'faltas'}
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full" style="${stats.totalAbsences > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
+                    ${stats.totalAbsences} ${stats.totalAbsences === 1 ? 'falta' : 'faltas'}
                   </span>
                 </div>
-                <p class="text-xs theme-text-muted mt-0.5">${groupRecords.length} ${groupRecords.length === 1 ? 'clase registrada' : 'clases registradas'} en el período</p>
+                <p class="text-xs theme-text-muted mt-0.5">${stats.sessionsCount} ${stats.sessionsCount === 1 ? 'sesión registrada' : 'sesiones registradas'} en el período</p>
               </div>
             </div>
             <svg class="w-5 h-5 theme-text-secondary shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -1295,42 +1427,48 @@
             const body = document.createElement('div');
             body.className = 'px-4 pb-4 pt-3 border-t theme-border space-y-3';
 
-            // Barra superior de acción del grupo para editar cualquier fecha de clase
-            const groupBar = document.createElement('div');
-            groupBar.className = 'flex items-center justify-between gap-2 pb-1';
-            groupBar.innerHTML = `
+            // Barra superior del grupo con botón Editar sesión
+            const topBar = document.createElement('div');
+            topBar.className = 'flex flex-wrap items-center justify-between gap-2 pb-1';
+            topBar.innerHTML = `
               <span class="text-xs font-semibold theme-text-secondary">
-                ${visibleEntries.length} ${visibleEntries.length === 1 ? 'alumno mostrado' : 'alumnos mostrados'}
+                Mostrando ${visibleEntries.length} de ${allEntries.length} alumnos
               </span>
-              <button type="button" class="edit-group-dates-btn text-xs font-semibold px-3 py-1.5 rounded-xl border theme-border theme-hover flex items-center gap-1.5 transition">
+              <button type="button" class="edit-session-modal-btn text-xs font-semibold px-3 py-1.5 rounded-xl border theme-border theme-hover flex items-center gap-1.5 transition">
                 <svg class="w-3.5 h-3.5" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
-                <span>Editar fechas de clase</span>
+                <span>Editar sesión del grupo</span>
               </button>
             `;
-            groupBar.querySelector('.edit-group-dates-btn').addEventListener('click', () => {
-              openEditModal(groupId, null);
+            topBar.querySelector('.edit-session-modal-btn').addEventListener('click', () => {
+              openSessionEditorModal(groupId, stats.distinctDates[stats.distinctDates.length - 1] || null);
             });
-            body.appendChild(groupBar);
+            body.appendChild(topBar);
 
             if (visibleEntries.length === 0) {
-              const emptyDiv = document.createElement('div');
-              emptyDiv.className = 'text-center py-6 px-4 rounded-xl theme-surface-alt border border-dashed theme-border text-xs sm:text-sm theme-text-muted';
-              emptyDiv.textContent = 'No se registran inasistencias para este grupo en el período seleccionado.';
-              body.appendChild(emptyDiv);
+              const emptyBox = document.createElement('div');
+              emptyBox.className = 'text-center py-6 px-4 rounded-xl theme-surface-alt border border-dashed theme-border text-xs sm:text-sm theme-text-muted';
+              emptyBox.textContent = 'No hay inasistencias registradas para este grupo en el período seleccionado.';
+              body.appendChild(emptyBox);
             } else {
               visibleEntries.forEach(entry => {
                 const itemCard = document.createElement('div');
                 itemCard.className = 'p-3.5 rounded-xl theme-surface-alt border space-y-2.5';
 
-                const datesChipsHTML = entry.dates.length > 0
-                  ? entry.dates.map(dt => `
-                      <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg theme-surface border theme-border">
-                        <svg class="w-3 h-3 text-red-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>${escapeHTML(formatShortChipDate(dt))}</span>
+                const chipsHTML = entry.records.length > 0
+                  ? entry.records.map(rec => `
+                      <span class="inline-flex items-center gap-1.5 text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-lg theme-surface border theme-border">
+                        <span>${escapeHTML(formatChipDateWithDay(rec.date))}</span>
+                        <button
+                          type="button"
+                          data-delete-absence-id="${escapeHTML(rec.id)}"
+                          data-student-name="${escapeHTML(entry.name)}"
+                          data-date-str="${escapeHTML(rec.date)}"
+                          title="Eliminar esta falta puntual"
+                          aria-label="Eliminar falta del ${escapeHTML(rec.date)}"
+                          class="w-5 h-5 rounded-md flex items-center justify-center hover:bg-red-500 hover:text-white transition text-red-500 font-bold"
+                        >&times;</button>
                       </span>
                     `).join('')
                   : '<span class="text-xs theme-text-muted italic">Sin faltas registradas</span>';
@@ -1339,13 +1477,19 @@
                   <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
                       <p class="font-bold text-sm truncate">${escapeHTML(entry.name)}</p>
-                      <span class="inline-block mt-1 text-xs font-bold px-2.5 py-0.5 rounded-full" style="${entry.count > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
-                        Total: ${entry.count} ${entry.count === 1 ? 'falta' : 'faltas'}
-                      </span>
+                      <div class="flex items-center gap-2 flex-wrap mt-1">
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full" style="${entry.count > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
+                          ${entry.count} ${entry.count === 1 ? 'falta' : 'faltas'}
+                        </span>
+                        <span class="text-xs font-semibold theme-text-muted">
+                          (${entry.studentPct}% de ${stats.sessionsCount} ${stats.sessionsCount === 1 ? 'clase' : 'clases'})
+                        </span>
+                      </div>
                     </div>
+
                     <button
                       type="button"
-                      class="edit-student-btn px-3 py-1.5 rounded-xl text-xs font-semibold theme-accent-bg shrink-0 transition active:scale-95 flex items-center gap-1"
+                      class="edit-student-session-btn px-3 py-1.5 rounded-xl text-xs font-semibold theme-accent-bg shrink-0 transition active:scale-95 flex items-center gap-1"
                     >
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -1353,13 +1497,28 @@
                       <span>Editar</span>
                     </button>
                   </div>
+
                   <div class="flex flex-wrap gap-1.5 pt-1">
-                    ${datesChipsHTML}
+                    ${chipsHTML}
                   </div>
                 `;
 
-                itemCard.querySelector('.edit-student-btn').addEventListener('click', () => {
-                  openEditModal(groupId, entry.name);
+                // Evento (×) en cada chip para quitar esa falta puntual con confirmación
+                itemCard.querySelectorAll('[data-delete-absence-id]').forEach(btn => {
+                  btn.addEventListener('click', () => {
+                    const absId = btn.getAttribute('data-delete-absence-id');
+                    const stName = btn.getAttribute('data-student-name');
+                    const dtStr = btn.getAttribute('data-date-str');
+                    confirmDeleteSingleAbsence(absId, groupId, stName, dtStr);
+                  });
+                });
+
+                // Botón Editar del alumno
+                itemCard.querySelector('.edit-student-session-btn').addEventListener('click', () => {
+                  const defaultDate = entry.records.length > 0
+                    ? entry.records[entry.records.length - 1].date
+                    : (stats.distinctDates[stats.distinctDates.length - 1] || null);
+                  openSessionEditorModal(groupId, defaultDate);
                 });
 
                 body.appendChild(itemCard);
@@ -1383,191 +1542,162 @@
         renderDatosView();
       });
 
-      // Modal Completo para Editar Inasistencias (por alumno y por fecha de clase)
-      function openEditModal(groupId, focusStudentName) {
-        const cfg = getGroupConfig(groupId);
-        const students = appState.groups[groupId] || [];
-        const allGroupRecords = Object.values(appState.records)
-          .filter(r => r && r.group === groupId)
-          .sort((a, b) => b.date.localeCompare(a.date));
-
-        let selectedClassDate = allGroupRecords.length > 0
-          ? allGroupRecords[0].date
-          : getMostRecentValidDate(groupId);
-
-        function renderModalContent() {
-          const currentStudentDates = focusStudentName
-            ? allGroupRecords.filter(r => (r.absentees || []).includes(focusStudentName)).map(r => r.date)
-            : [];
-
-          const isDateValid = isDateValidForGroup(groupId, selectedClassDate);
-          const targetRec = appState.records[`${groupId}__${selectedClassDate}`];
-          const absentSetForDate = new Set(targetRec ? targetRec.absentees : []);
-
-          const studentSectionHTML = focusStudentName ? `
-            <div class="p-3.5 rounded-xl theme-surface-alt border space-y-2.5">
-              <div class="flex items-center justify-between">
-                <h4 class="font-bold text-sm">Faltas de ${escapeHTML(focusStudentName)}</h4>
-                <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background-color: var(--danger-soft); color: var(--danger-text);">
-                  ${currentStudentDates.length} ${currentStudentDates.length === 1 ? 'falta' : 'faltas'}
-                </span>
-              </div>
-              ${currentStudentDates.length === 0
-                ? '<p class="text-xs theme-text-muted">Este alumno no tiene faltas registradas actualmente.</p>'
-                : `<div class="space-y-1.5">
-                    ${currentStudentDates.map(dt => `
-                      <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg theme-surface border theme-border">
-                        <span class="text-xs font-semibold">${escapeHTML(formatSpanishFullDate(dt))}</span>
-                        <button type="button" data-remove-student-date="${dt}" class="text-xs font-bold px-2.5 py-1 rounded-lg text-white transition" style="background-color: var(--danger);">
-                          Quitar falta
-                        </button>
-                      </div>
-                    `).join('')}
-                  </div>`
-              }
+      function confirmDeleteSingleAbsence(absenceId, groupId, studentName, dateStr) {
+        openModal(
+          'Eliminar falta puntual',
+          `
+            <p class="theme-text-secondary">
+              ¿Deseas quitar la falta de <strong>${escapeHTML(studentName)}</strong> correspondiente al <strong>${escapeHTML(formatChipDateWithDay(dateStr))}</strong> en <strong>${escapeHTML(groupId)}</strong>?
+            </p>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" id="cancelSingleAbsBtn" class="px-4 py-2.5 rounded-xl border theme-border font-semibold theme-hover">Cancelar</button>
+              <button type="button" id="confirmSingleAbsBtn" class="px-4 py-2.5 rounded-xl font-bold text-white" style="background-color: var(--danger);">Quitar falta</button>
             </div>
-          ` : '';
+          `,
+          (el) => {
+            el.querySelector('#cancelSingleAbsBtn').addEventListener('click', closeModal);
+            el.querySelector('#confirmSingleAbsBtn').addEventListener('click', () => {
+              appState.absences = appState.absences.filter(a => a.id !== absenceId);
+              saveStateToStorage();
+              syncDraftFromSavedRecord(groupId);
+              closeModal();
+              showToast(`Falta del ${formatShortDate(dateStr)} eliminada.`);
+              renderDatosView();
+            });
+          }
+        );
+      }
 
-          const html = `
-            ${studentSectionHTML}
+      // Modal rápido para editar cualquier sesión guardada o saltar directo a Registro
+      function openSessionEditorModal(groupId, initialDateStr) {
+        const cfg = getGroupConfig(groupId);
+        const students = appState.students[groupId] || [];
+        const allDates = getGroupPeriodStats(groupId, 'ALL').distinctDates.slice().reverse();
+        let activeDate = initialDateStr || allDates[0] || getMostRecentValidDate(groupId);
 
-            <div class="p-3.5 rounded-xl theme-surface-alt border space-y-3">
-              <div>
-                <h4 class="font-bold text-sm">Editar asistencia por fecha (${escapeHTML(groupId)})</h4>
-                <p class="text-xs theme-text-muted">Elige una fecha registrada o cualquier ${cfg.dayName} para ajustar faltas.</p>
-              </div>
+        function renderEditor() {
+          const valid = isDateValidForGroup(groupId, activeDate);
+          const currentAbsSet = new Set(getAbsenteesForSession(groupId, activeDate));
 
-              ${allGroupRecords.length > 0 ? `
-                <div>
-                  <label class="block text-xs font-semibold theme-text-secondary mb-1">Fechas ya registradas:</label>
-                  <select id="editRecordedDateSelect" class="w-full rounded-xl px-3 py-2 text-xs sm:text-sm font-medium theme-input">
-                    ${allGroupRecords.map(r => `
-                      <option value="${r.date}" ${r.date === selectedClassDate ? 'selected' : ''}>
-                        ${escapeHTML(formatSpanishFullDate(r.date))} (${(r.absentees || []).length} faltas)
-                      </option>
-                    `).join('')}
-                  </select>
+          openModal(
+            `Editar sesión — ${groupId}`,
+            `
+              <div class="space-y-4">
+                <div class="p-3.5 rounded-xl theme-surface-alt border space-y-2.5">
+                  ${allDates.length > 0 ? `
+                    <div>
+                      <label class="block text-xs font-semibold theme-text-secondary mb-1">Sesiones registradas en ${escapeHTML(groupId)}:</label>
+                      <select id="modalSessionSelect" class="w-full rounded-xl px-3 py-2 text-xs sm:text-sm font-medium theme-input">
+                        ${allDates.map(dt => {
+                          const cnt = getAbsenteesForSession(groupId, dt).length;
+                          return `<option value="${dt}" ${dt === activeDate ? 'selected' : ''}>${escapeHTML(formatSpanishFullDate(dt))} (${cnt} faltas)</option>`;
+                        }).join('')}
+                      </select>
+                    </div>
+                  ` : ''}
+
+                  <div>
+                    <label class="block text-xs font-semibold theme-text-secondary mb-1">O elige fecha (${cfg.dayNameCap}):</label>
+                    <input id="modalSessionDateInput" type="date" value="${activeDate}" class="w-full rounded-xl px-3 py-2 text-sm font-medium theme-input" />
+                    ${!valid ? `<p class="text-xs text-red-500 font-semibold mt-1">Este grupo solo tiene clases los ${cfg.dayName}.</p>` : ''}
+                  </div>
                 </div>
-              ` : ''}
 
-              <div>
-                <label class="block text-xs font-semibold theme-text-secondary mb-1">O selecciona otro ${cfg.dayName}:</label>
-                <input id="editCustomDateInput" type="date" value="${selectedClassDate}" class="w-full rounded-xl px-3 py-2 text-sm font-medium theme-input" />
-                ${!isDateValid ? `<p class="text-xs text-red-500 font-semibold mt-1">Este grupo solo tiene clases los ${cfg.dayName}.</p>` : ''}
-              </div>
-
-              ${isDateValid && students.length > 0 ? `
-                <div class="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-                  ${students.map(st => {
-                    const checked = absentSetForDate.has(st);
-                    return `
+                ${valid && students.length > 0 ? `
+                  <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                    ${students.map(st => `
                       <label class="flex items-center justify-between gap-2 p-2.5 rounded-xl border theme-surface theme-border cursor-pointer">
                         <span class="text-xs sm:text-sm font-medium truncate">${escapeHTML(st)}</span>
-                        <input type="checkbox" data-edit-student-cb="${escapeHTML(st)}" ${checked ? 'checked' : ''} class="w-4 h-4 cursor-pointer" style="accent-color: var(--danger);" />
+                        <input type="checkbox" data-modal-abs-cb="${escapeHTML(st)}" ${currentAbsSet.has(st) ? 'checked' : ''} class="w-4 h-4 cursor-pointer" style="accent-color: var(--danger);" />
                       </label>
-                    `;
-                  }).join('')}
-                </div>
+                    `).join('')}
+                  </div>
 
-                <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
-                  ${targetRec ? `
-                    <button type="button" id="deleteWholeClassDateBtn" class="text-xs font-semibold px-3 py-2 rounded-xl border transition" style="border-color: var(--danger); color: var(--danger);">
-                      Eliminar fecha completa
+                  <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t theme-border">
+                    <button type="button" id="jumpToRegistroBtn" class="text-xs font-semibold px-3 py-2 rounded-xl border theme-border theme-hover">
+                      Abrir en Registro
                     </button>
-                  ` : '<span></span>'}
+                    <button type="button" id="saveModalSessionBtn" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold theme-accent-bg">
+                      Guardar cambios
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            `,
+            (el) => {
+              const sel = el.querySelector('#modalSessionSelect');
+              if (sel) {
+                sel.addEventListener('change', (e) => {
+                  activeDate = e.target.value;
+                  renderEditor();
+                });
+              }
 
-                  <button type="button" id="saveEditedClassDateBtn" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold theme-accent-bg">
-                    Guardar cambios de fecha
-                  </button>
-                </div>
-              ` : ''}
-            </div>
-          `;
-
-          openModal(`Editar: ${groupId}`, html, (el) => {
-            // Quitar falta puntual del alumno
-            el.querySelectorAll('[data-remove-student-date]').forEach(btn => {
-              btn.addEventListener('click', () => {
-                const dt = btn.getAttribute('data-remove-student-date');
-                const key = `${groupId}__${dt}`;
-                if (appState.records[key]) {
-                  appState.records[key].absentees = appState.records[key].absentees.filter(s => s !== focusStudentName);
-                  saveStateToStorage();
-                  syncDraftFromSavedRecord(groupId);
-                  showToast(`Falta del ${formatShortChipDate(dt)} eliminada.`);
-                  renderDatosView();
-                  openEditModal(groupId, focusStudentName);
-                }
-              });
-            });
-
-            const recSelect = el.querySelector('#editRecordedDateSelect');
-            if (recSelect) {
-              recSelect.addEventListener('change', (e) => {
-                selectedClassDate = e.target.value;
-                renderModalContent();
-              });
-            }
-
-            const dateInp = el.querySelector('#editCustomDateInput');
-            if (dateInp) {
-              dateInp.addEventListener('change', (e) => {
-                if (e.target.value) {
-                  selectedClassDate = e.target.value;
-                  renderModalContent();
-                }
-              });
-            }
-
-            const saveBtn = el.querySelector('#saveEditedClassDateBtn');
-            if (saveBtn) {
-              saveBtn.addEventListener('click', () => {
-                if (!isDateValidForGroup(groupId, selectedClassDate)) {
-                  showToast(`Este grupo solo tiene clases los ${cfg.dayName}.`, 'error');
-                  return;
-                }
-                const updatedAbsentees = [];
-                el.querySelectorAll('[data-edit-student-cb]').forEach(cb => {
-                  if (cb.checked) {
-                    updatedAbsentees.push(cb.getAttribute('data-edit-student-cb'));
+              const inp = el.querySelector('#modalSessionDateInput');
+              if (inp) {
+                inp.addEventListener('change', (e) => {
+                  if (e.target.value) {
+                    activeDate = e.target.value;
+                    renderEditor();
                   }
                 });
-                appState.records[`${groupId}__${selectedClassDate}`] = {
-                  group: groupId,
-                  date: selectedClassDate,
-                  absentees: updatedAbsentees
-                };
-                saveStateToStorage();
-                syncDraftFromSavedRecord(groupId);
-                showToast(`Asistencia del ${formatShortChipDate(selectedClassDate)} actualizada.`);
-                renderDatosView();
-                closeModal();
-              });
-            }
+              }
 
-            const delDateBtn = el.querySelector('#deleteWholeClassDateBtn');
-            if (delDateBtn) {
-              delDateBtn.addEventListener('click', () => {
-                delete appState.records[`${groupId}__${selectedClassDate}`];
-                saveStateToStorage();
-                syncDraftFromSavedRecord(groupId);
-                showToast(`Registro de clase del ${formatShortChipDate(selectedClassDate)} eliminado.`);
-                renderDatosView();
-                closeModal();
-              });
+              const jumpBtn = el.querySelector('#jumpToRegistroBtn');
+              if (jumpBtn) {
+                jumpBtn.addEventListener('click', () => {
+                  uiState.openRegistroAccordions[groupId] = true;
+                  uiState.selectedDates[groupId] = activeDate;
+                  syncDraftFromSavedRecord(groupId);
+                  closeModal();
+                  switchTab('registro');
+                });
+              }
+
+              const saveBtn = el.querySelector('#saveModalSessionBtn');
+              if (saveBtn) {
+                saveBtn.addEventListener('click', () => {
+                  if (!isDateValidForGroup(groupId, activeDate)) {
+                    showToast(`Este grupo solo tiene clases los ${cfg.dayName}.`, 'error');
+                    return;
+                  }
+                  appState.absences = appState.absences.filter(
+                    a => !(a.group === groupId && a.date === activeDate)
+                  );
+                  el.querySelectorAll('[data-modal-abs-cb]').forEach(cb => {
+                    if (cb.checked) {
+                      const st = cb.getAttribute('data-modal-abs-cb');
+                      appState.absences.push({
+                        id: generateAbsenceId(groupId, st, activeDate),
+                        group: groupId,
+                        student: st,
+                        date: activeDate
+                      });
+                    }
+                  });
+                  if (!appState.sessions.some(s => s.group === groupId && s.date === activeDate)) {
+                    appState.sessions.push({ group: groupId, date: activeDate });
+                  }
+                  saveStateToStorage();
+                  syncDraftFromSavedRecord(groupId);
+                  closeModal();
+                  showToast(`Sesión del ${formatShortDate(activeDate)} actualizada.`);
+                  renderDatosView();
+                });
+              }
             }
-          });
+          );
         }
 
-        renderModalContent();
+        renderEditor();
       }
 
       /* ----------------------------------------------------------------------
-         11. RENDERIZADO PESTAÑA 3: GRÁFICA DE BARRAS
+         10. VISTA 3: GRÁFICA DE BARRAS Y TARJETAS DE RESUMEN
          ---------------------------------------------------------------------- */
       function renderGraficaView() {
         const selectEl = document.getElementById('graficaMonthFilter');
-        populateMonthSelect(selectEl, uiState.graficaFilterMonth);
+        populateMonthFilterSelect(selectEl, uiState.graficaFilterMonth);
 
         const badgeEl = document.getElementById('graficaPeriodBadge');
         badgeEl.textContent = formatMonthYearLabel(uiState.graficaFilterMonth);
@@ -1579,42 +1709,29 @@
 
         GROUPS_CONFIG.forEach((cfg) => {
           const groupId = cfg.id;
-          const studentsCount = (appState.groups[groupId] || []).length;
-          const records = getRecordsForGroupAndMonth(groupId, uiState.graficaFilterMonth);
-          const classesCount = records.length;
-
-          let totalAbsences = 0;
-          records.forEach(r => {
-            totalAbsences += (r.absentees || []).length;
-          });
-
-          // Fórmula solicitada:
-          // (Total inasistencias / (Alumnos del grupo * Fechas de clase registradas)) * 100
-          const denominator = studentsCount * classesCount;
-          const rawPct = denominator > 0 ? (totalAbsences / denominator) * 100 : 0;
-          const clampedPct = Math.min(100, Math.max(0, rawPct));
-          const displayPct = Number.isInteger(clampedPct) ? `${clampedPct}%` : `${clampedPct.toFixed(1)}%`;
+          const stats = getGroupPeriodStats(groupId, uiState.graficaFilterMonth);
+          const displayPct = Number.isInteger(stats.pct) ? `${stats.pct}%` : `${stats.pct.toFixed(1)}%`;
 
           // Barra vertical
           const barCol = document.createElement('div');
-          barCol.className = 'h-full flex flex-col justify-end items-center group';
+          barCol.className = 'h-full flex flex-col justify-end items-center';
           barCol.innerHTML = `
             <span class="text-xs sm:text-sm font-extrabold mb-1.5 px-2 py-0.5 rounded-lg theme-surface border theme-border shadow-2xs">
               ${displayPct}
             </span>
             <div class="w-full max-w-[74px] h-full flex items-end justify-center">
               <div
-                class="chart-bar-fill w-full rounded-t-xl shadow-sm relative"
-                style="height: ${Math.max(clampedPct, 2)}%; background-color: var(${cfg.barVar}); opacity: ${clampedPct === 0 ? '0.35' : '1'};"
-                title="${escapeHTML(groupId)}: ${displayPct} (${totalAbsences} faltas en ${classesCount} clases)"
+                class="chart-bar-fill w-full rounded-t-xl shadow-xs"
+                style="height: ${Math.max(stats.pct, 2)}%; background-color: var(${cfg.barVar}); opacity: ${stats.pct === 0 ? '0.35' : '1'};"
+                title="${escapeHTML(groupId)}: ${displayPct} (${stats.totalAbsences} faltas en ${stats.sessionsCount} sesiones)"
               ></div>
             </div>
           `;
           barsWrapper.appendChild(barCol);
 
-          // Tarjeta resumen debajo del gráfico
+          // Tarjeta resumen (4 métricas solicitadas)
           const card = document.createElement('div');
-          card.className = 'theme-surface border rounded-2xl p-4 space-y-2.5';
+          card.className = 'theme-surface border rounded-2xl p-4 space-y-3';
           card.innerHTML = `
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -1623,18 +1740,22 @@
               </div>
               <span class="text-lg font-extrabold" style="color: var(${cfg.barVar});">${displayPct}</span>
             </div>
-            <div class="grid grid-cols-3 gap-1.5 pt-2 border-t theme-border text-center">
-              <div class="p-1.5 rounded-lg theme-surface-alt">
-                <p class="text-[11px] theme-text-muted">Faltas</p>
-                <p class="text-sm font-bold">${totalAbsences}</p>
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t theme-border text-xs">
+              <div class="p-2 rounded-xl theme-surface-alt flex items-center justify-between">
+                <span class="theme-text-muted">Alumnos</span>
+                <span class="font-bold text-sm">${stats.studentsCount}</span>
               </div>
-              <div class="p-1.5 rounded-lg theme-surface-alt">
-                <p class="text-[11px] theme-text-muted">Clases</p>
-                <p class="text-sm font-bold">${classesCount}</p>
+              <div class="p-2 rounded-xl theme-surface-alt flex items-center justify-between">
+                <span class="theme-text-muted">Sesiones</span>
+                <span class="font-bold text-sm">${stats.sessionsCount}</span>
               </div>
-              <div class="p-1.5 rounded-lg theme-surface-alt">
-                <p class="text-[11px] theme-text-muted">Alumnos</p>
-                <p class="text-sm font-bold">${studentsCount}</p>
+              <div class="p-2 rounded-xl theme-surface-alt flex items-center justify-between">
+                <span class="theme-text-muted">Total faltas</span>
+                <span class="font-bold text-sm">${stats.totalAbsences}</span>
+              </div>
+              <div class="p-2 rounded-xl theme-surface-alt flex items-center justify-between">
+                <span class="theme-text-muted">% Inasist.</span>
+                <span class="font-bold text-sm">${displayPct}</span>
               </div>
             </div>
           `;
@@ -1648,7 +1769,7 @@
       });
 
       /* ----------------------------------------------------------------------
-         12. MENÚ DE TRES PUNTOS (⋮) Y SUS 5 ACCIONES
+         11. MENÚ DE TRES PUNTOS (⋮) Y SUS 5 FUNCIONES
          ---------------------------------------------------------------------- */
       const menuToggleBtn = document.getElementById('menuToggleBtn');
       const threeDotsDropdown = document.getElementById('threeDotsDropdown');
@@ -1671,7 +1792,7 @@
         btn.addEventListener('click', () => {
           threeDotsDropdown.classList.add('hidden');
           const action = btn.dataset.menuAction;
-          if (action === 'export') handleExportExcel();
+          if (action === 'export') openExportExcelModal();
           if (action === 'import') openImportExcelModal();
           if (action === 'themes') openThemesModal();
           if (action === 'delete') openDeleteModal();
@@ -1679,146 +1800,205 @@
         });
       });
 
-      /* --- OPCIÓN 1: EXPORTAR A EXCEL (.XLSX CON 3 HOJAS) --- */
-      function handleExportExcel() {
+      /* --- OPCIÓN 1: EXPORTAR A EXCEL (MODAL CON 3 MODOS) --- */
+      function buildHistorialRows(ymFilter) {
+        const filtered = appState.absences
+          .filter(a => ymFilter === 'ALL' || a.date.startsWith(ymFilter))
+          .slice()
+          .sort((a, b) => a.date.localeCompare(b.date) || a.group.localeCompare(b.group) || a.student.localeCompare(b.student));
+
+        if (filtered.length === 0) {
+          return [{ Grupo: '', Alumno: '', Fecha: '', Dia_Semana: '' }];
+        }
+
+        return filtered.map(a => {
+          const d = parseLocalDate(a.date);
+          return {
+            Grupo: a.group,
+            Alumno: a.student,
+            Fecha: a.date,
+            Dia_Semana: d ? SPANISH_DAYS[d.getDay()] : ''
+          };
+        });
+      }
+
+      function buildResumenRows(ymFilter) {
+        const rows = [];
+        GROUPS_CONFIG.forEach(cfg => {
+          const groupId = cfg.id;
+          const stats = getGroupPeriodStats(groupId, ymFilter);
+          stats.students.forEach(st => {
+            const faltas = stats.periodAbsences.filter(a => a.student === st).length;
+            const pct = stats.sessionsCount > 0
+              ? `${((faltas / stats.sessionsCount) * 100).toFixed(1)}%`
+              : '0%';
+            rows.push({
+              Grupo: groupId,
+              Alumno: st,
+              Total_Faltas: faltas,
+              Porcentaje_Inasistencia: pct
+            });
+          });
+        });
+
+        return rows.length > 0
+          ? rows
+          : [{ Grupo: '', Alumno: '', Total_Faltas: 0, Porcentaje_Inasistencia: '0%' }];
+      }
+
+      function buildListasRows() {
+        const rows = [];
+        GROUPS_CONFIG.forEach(cfg => {
+          (appState.students[cfg.id] || []).forEach(st => {
+            rows.push({ Grupo: cfg.id, Alumno: st });
+          });
+        });
+        return rows.length > 0 ? rows : [{ Grupo: '', Alumno: '' }];
+      }
+
+      function openExportExcelModal() {
         if (typeof XLSX === 'undefined') {
           showToast('La librería Excel aún está cargando, intenta de nuevo.', 'warning');
           return;
         }
 
-        try {
-          const wb = XLSX.utils.book_new();
+        const months = getRegisteredMonths();
 
-          // Hoja 1: Historial_Inasistencias (Grupo, Alumno, Fecha, Dia_Semana)
-          const historialRows = [];
-          const sortedRecords = Object.values(appState.records).sort((a, b) => a.date.localeCompare(b.date));
-          sortedRecords.forEach(rec => {
-            const d = parseLocalDate(rec.date);
-            const dayWeek = d ? SPANISH_DAYS[d.getDay()] : '';
-            (rec.absentees || []).forEach(student => {
-              historialRows.push({
-                Grupo: rec.group,
-                Alumno: student,
-                Fecha: rec.date,
-                Dia_Semana: dayWeek
+        openModal(
+          'Exportar a Excel',
+          `
+            <div class="space-y-3.5">
+              <p class="text-xs theme-text-secondary">Elige cómo deseas estructurar el archivo <strong>.xlsx</strong>:</p>
+
+              <!-- Opción 1: Todo el historial -->
+              <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
+                <input type="radio" name="exportMode" value="all" checked class="mt-1" style="accent-color: var(--accent);" />
+                <div>
+                  <p class="font-bold text-sm">1. Todo el historial</p>
+                  <p class="text-xs theme-text-secondary">Exporta todas las fechas acumuladas en 3 hojas: <em>Historial_Inasistencias</em>, <em>Resumen_Alumnos</em> y <em>Listas_Alumnos</em>.</p>
+                </div>
+              </label>
+
+              <!-- Opción 2: Solo un mes específico -->
+              <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
+                <input type="radio" name="exportMode" value="single_month" ${months.length === 0 ? 'disabled' : ''} class="mt-1" style="accent-color: var(--accent);" />
+                <div class="flex-1 min-w-0 space-y-2">
+                  <div>
+                    <p class="font-bold text-sm">2. Solo un mes específico</p>
+                    <p class="text-xs theme-text-secondary">Filtra los registros y porcentajes únicamente para las sesiones del mes elegido.</p>
+                  </div>
+                  <div id="exportSingleMonthBox" class="hidden pt-1">
+                    ${months.length > 0
+                      ? `<select id="exportMonthSelect" class="w-full rounded-xl px-3 py-2 text-xs sm:text-sm font-medium theme-input">
+                          ${months.map(ym => `<option value="${ym}">${escapeHTML(formatMonthYearLabel(ym))}</option>`).join('')}
+                        </select>`
+                      : '<p class="text-xs text-amber-600 font-medium">Aún no hay meses con registros guardados.</p>'
+                    }
+                  </div>
+                </div>
+              </label>
+
+              <!-- Opción 3: Separado por hojas mensuales -->
+              <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
+                <input type="radio" name="exportMode" value="split_months" ${months.length === 0 ? 'disabled' : ''} class="mt-1" style="accent-color: var(--accent);" />
+                <div>
+                  <p class="font-bold text-sm">3. Separado por hojas mensuales</p>
+                  <p class="text-xs theme-text-secondary">Genera <em>Listas_Alumnos</em>, <em>Resumen_General</em> y una hoja independiente por cada mes (ej. <em>2026-10</em>, <em>2026-11</em>).</p>
+                </div>
+              </label>
+
+              <div class="flex justify-end gap-2 pt-2">
+                <button type="button" id="cancelExportBtn" class="px-4 py-2.5 rounded-xl border theme-border font-semibold theme-hover">Cancelar</button>
+                <button type="button" id="confirmExportBtn" class="px-5 py-2.5 rounded-xl font-bold theme-accent-bg flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <span>Descargar Excel</span>
+                </button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            const singleMonthBox = el.querySelector('#exportSingleMonthBox');
+            el.querySelectorAll('input[name="exportMode"]').forEach(radio => {
+              radio.addEventListener('change', (e) => {
+                singleMonthBox.classList.toggle('hidden', e.target.value !== 'single_month');
               });
             });
-          });
-          if (historialRows.length === 0) {
-            historialRows.push({ Grupo: '', Alumno: '', Fecha: '', Dia_Semana: '' });
-          }
-          const wsHistorial = XLSX.utils.json_to_sheet(historialRows);
-          XLSX.utils.book_append_sheet(wb, wsHistorial, 'Historial_Inasistencias');
 
-          // Hoja 2: Resumen_Alumnos (Grupo, Alumno, Total_Faltas, Porcentaje_Inasistencia)
-          const resumenRows = [];
-          GROUPS_CONFIG.forEach(cfg => {
-            const groupId = cfg.id;
-            const students = appState.groups[groupId] || [];
-            const recs = getRecordsForGroupAndMonth(groupId, 'ALL');
-            const totalClasses = recs.length;
+            el.querySelector('#cancelExportBtn').addEventListener('click', closeModal);
 
-            students.forEach(st => {
-              let faltas = 0;
-              recs.forEach(r => {
-                if ((r.absentees || []).includes(st)) faltas++;
-              });
-              const pct = totalClasses > 0 ? ((faltas / totalClasses) * 100).toFixed(1) + '%' : '0%';
-              resumenRows.push({
-                Grupo: groupId,
-                Alumno: st,
-                Total_Faltas: faltas,
-                Porcentaje_Inasistencia: pct
-              });
+            el.querySelector('#confirmExportBtn').addEventListener('click', () => {
+              try {
+                const mode = el.querySelector('input[name="exportMode"]:checked').value;
+                const wb = XLSX.utils.book_new();
+
+                if (mode === 'all') {
+                  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(buildHistorialRows('ALL')), 'Historial_Inasistencias');
+                  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(buildResumenRows('ALL')), 'Resumen_Alumnos');
+                  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(buildListasRows()), 'Listas_Alumnos');
+
+                  const todayStr = formatLocalISO(new Date());
+                  XLSX.writeFile(wb, `Sistema_Inasistencias_${todayStr}.xlsx`);
+                  showToast('Excel completo exportado correctamente.');
+                } else if (mode === 'single_month') {
+                  const ym = el.querySelector('#exportMonthSelect').value;
+                  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(buildHistorialRows(ym)), 'Historial_Inasistencias');
+                  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(buildResumenRows(ym)), 'Resumen_Alumnos');
+                  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(buildListasRows()), 'Listas_Alumnos');
+
+                  XLSX.writeFile(wb, `Inasistencias_${ym}.xlsx`);
+                  showToast(`Excel de ${formatMonthYearLabel(ym)} exportado.`);
+                } else if (mode === 'split_months') {
+                  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(buildListasRows()), 'Listas_Alumnos');
+                  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(buildResumenRows('ALL')), 'Resumen_General');
+
+                  // Una pestaña independiente por cada mes en orden cronológico
+                  const chronologicalMonths = months.slice().sort((a, b) => a.localeCompare(b));
+                  chronologicalMonths.forEach(ym => {
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(buildHistorialRows(ym)), ym);
+                  });
+
+                  const todayStr = formatLocalISO(new Date());
+                  XLSX.writeFile(wb, `Inasistencias_Por_Meses_${todayStr}.xlsx`);
+                  showToast(`Excel separado en ${chronologicalMonths.length} hojas mensuales exportado.`);
+                }
+
+                closeModal();
+              } catch (err) {
+                console.error(err);
+                showToast('Error al generar el archivo Excel.', 'error');
+              }
             });
-          });
-          if (resumenRows.length === 0) {
-            resumenRows.push({ Grupo: '', Alumno: '', Total_Faltas: 0, Porcentaje_Inasistencia: '0%' });
           }
-          const wsResumen = XLSX.utils.json_to_sheet(resumenRows);
-          XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen_Alumnos');
-
-          // Hoja 3: Listas_Alumnos (Grupo, Alumno)
-          const listasRows = [];
-          GROUPS_CONFIG.forEach(cfg => {
-            (appState.groups[cfg.id] || []).forEach(st => {
-              listasRows.push({
-                Grupo: cfg.id,
-                Alumno: st
-              });
-            });
-          });
-          if (listasRows.length === 0) {
-            listasRows.push({ Grupo: '', Alumno: '' });
-          }
-          const wsListas = XLSX.utils.json_to_sheet(listasRows);
-          XLSX.utils.book_append_sheet(wb, wsListas, 'Listas_Alumnos');
-
-          const todayStr = formatLocalISO(new Date());
-          XLSX.writeFile(wb, `Sistema_Inasistencias_${todayStr}.xlsx`);
-          showToast('Archivo Excel exportado correctamente.');
-        } catch (err) {
-          console.error(err);
-          showToast('Ocurrió un error al exportar el archivo Excel.', 'error');
-        }
+        );
       }
 
-      /* --- OPCIÓN 2: IMPORTAR DE EXCEL --- */
+      /* --- OPCIÓN 2: IMPORTAR DE EXCEL (MULTI-FORMATO SIN DUPLICADOS) --- */
       function openImportExcelModal() {
         openModal(
           'Importar desde Excel',
           `
             <div class="space-y-4">
-              <div class="space-y-2">
-                <label class="block text-xs font-bold uppercase tracking-wider theme-text-muted">1. Elige el modo de importación</label>
-
-                <label class="flex items-start gap-3 p-3 rounded-xl border theme-border theme-surface-alt cursor-pointer">
-                  <input type="radio" name="importMode" value="backup" checked class="mt-1" style="accent-color: var(--accent);" />
-                  <div>
-                    <p class="font-bold text-sm">Restaurar respaldo completo</p>
-                    <p class="text-xs theme-text-secondary">Lee un Excel exportado por este sistema (listas e historial de faltas).</p>
-                  </div>
-                </label>
-
-                <label class="flex items-start gap-3 p-3 rounded-xl border theme-border theme-surface-alt cursor-pointer">
-                  <input type="radio" name="importMode" value="names" class="mt-1" style="accent-color: var(--accent);" />
-                  <div>
-                    <p class="font-bold text-sm">Cargar lista de nombres</p>
-                    <p class="text-xs theme-text-secondary">Sube un Excel con una columna de nombres (o columnas por grupo) para agregar alumnos.</p>
-                  </div>
-                </label>
+              <div class="p-3.5 rounded-xl theme-surface-alt border space-y-1.5 text-xs theme-text-secondary">
+                <p class="font-bold text-sm" style="color: var(--text-primary);">Compatibilidad automática</p>
+                <p>Reconoce archivos exportados por esta app (<em>Historial_Inasistencias</em>, <em>Listas_Alumnos</em>), hojas <em>Historial</em> / <em>Alumnos</em>, pestañas mensuales (<em>2026-10</em>) y cuadros por grupo (<em>Miembros 1</em>, <em>Miembros 2</em>, <em>Miembros 3</em>).</p>
+                <p class="font-semibold" style="color: var(--accent);">Los alumnos y faltas nuevas se fusionarán sin duplicar tus registros existentes.</p>
               </div>
 
-              <!-- Opciones específicas para modo Respaldo -->
-              <div id="backupOptionsBox" class="p-3 rounded-xl border theme-border space-y-2">
-                <p class="text-xs font-semibold theme-text-secondary">Al restaurar respaldo:</p>
-                <div class="flex gap-3 text-xs">
-                  <label class="flex items-center gap-1.5 cursor-pointer">
-                    <input type="radio" name="backupStrategy" value="merge" checked style="accent-color: var(--accent);" />
-                    <span>Combinar con actuales</span>
-                  </label>
-                  <label class="flex items-center gap-1.5 cursor-pointer">
-                    <input type="radio" name="backupStrategy" value="replace" style="accent-color: var(--accent);" />
-                    <span>Reemplazar todo</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Opciones específicas para modo Lista de Nombres -->
-              <div id="namesOptionsBox" class="hidden p-3 rounded-xl border theme-border space-y-2">
-                <label for="importTargetGroup" class="block text-xs font-semibold theme-text-secondary">
-                  Grupo destino (si el Excel tiene una sola columna):
+              <div class="space-y-1.5">
+                <label for="fallbackGroupSelect" class="block text-xs font-semibold theme-text-secondary">
+                  Grupo destino (solo si subes un listado de una sola columna sin grupo):
                 </label>
-                <select id="importTargetGroup" class="w-full rounded-xl px-3 py-2 text-sm font-medium theme-input">
+                <select id="fallbackGroupSelect" class="w-full rounded-xl px-3 py-2 text-sm font-medium theme-input">
                   <option value="Miembros 1">Miembros 1 (Viernes)</option>
                   <option value="Miembros 2">Miembros 2 (Viernes)</option>
                   <option value="Miembros 3">Miembros 3 (Miércoles)</option>
                 </select>
               </div>
 
-              <!-- Selector de Archivo -->
               <div class="space-y-1.5">
-                <label class="block text-xs font-bold uppercase tracking-wider theme-text-muted">2. Selecciona archivo (.xlsx, .xls, .csv)</label>
+                <label class="block text-xs font-bold uppercase tracking-wider theme-text-muted">Selecciona archivo (.xlsx, .xls, .csv)</label>
                 <input
                   id="excelFileInput"
                   type="file"
@@ -1834,17 +2014,6 @@
             </div>
           `,
           (el) => {
-            const backupBox = el.querySelector('#backupOptionsBox');
-            const namesBox = el.querySelector('#namesOptionsBox');
-
-            el.querySelectorAll('input[name="importMode"]').forEach(radio => {
-              radio.addEventListener('change', (e) => {
-                const isBackup = e.target.value === 'backup';
-                backupBox.classList.toggle('hidden', !isBackup);
-                namesBox.classList.toggle('hidden', isBackup);
-              });
-            });
-
             el.querySelector('#cancelImportBtn').addEventListener('click', closeModal);
 
             el.querySelector('#processImportBtn').addEventListener('click', () => {
@@ -1855,29 +2024,23 @@
                 return;
               }
 
-              const mode = el.querySelector('input[name="importMode"]:checked').value;
-              const strategy = el.querySelector('input[name="backupStrategy"]:checked').value;
-              const targetGroup = el.querySelector('#importTargetGroup').value;
+              const fallbackGroup = el.querySelector('#fallbackGroupSelect').value;
 
               const reader = new FileReader();
               reader.onload = function (evt) {
                 try {
                   const data = new Uint8Array(evt.target.result);
                   const workbook = XLSX.read(data, { type: 'array' });
-
-                  if (mode === 'backup') {
-                    processBackupWorkbook(workbook, strategy);
-                  } else {
-                    processNamesWorkbook(workbook, targetGroup);
-                  }
+                  const stats = importWorkbookSmart(workbook, fallbackGroup);
 
                   saveStateToStorage();
                   GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
                   closeModal();
+                  showToast(`Importación lista: +${stats.newStudents} alumnos y +${stats.newAbsences} faltas nuevas.`);
                   switchTab(uiState.activeTab);
                 } catch (err) {
                   console.error(err);
-                  showToast('No se pudo procesar el archivo Excel. Verifica su formato.', 'error');
+                  showToast('No se pudo leer el archivo Excel. Verifica su formato.', 'error');
                 }
               };
               reader.readAsArrayBuffer(file);
@@ -1886,112 +2049,185 @@
         );
       }
 
-      function normalizeGroupName(raw) {
-        if (!raw) return null;
-        const clean = String(raw).trim().toLowerCase();
-        if (clean === 'miembros 1' || clean === 'miembros1' || clean === 'grupo 1') return 'Miembros 1';
-        if (clean === 'miembros 2' || clean === 'miembros2' || clean === 'grupo 2') return 'Miembros 2';
-        if (clean === 'miembros 3' || clean === 'miembros3' || clean === 'grupo 3') return 'Miembros 3';
-        return null;
-      }
+      function importWorkbookSmart(workbook, fallbackGroup) {
+        let newStudents = 0;
+        let newAbsences = 0;
 
-      function processBackupWorkbook(workbook, strategy) {
-        if (strategy === 'replace') {
-          appState.groups = { 'Miembros 1': [], 'Miembros 2': [], 'Miembros 3': [] };
-          appState.records = {};
+        const existingAbsenceIds = new Set(appState.absences.map(a => a.id));
+        const existingSessionKeys = new Set(appState.sessions.map(s => `${s.group}__${s.date}`));
+
+        function addStudentIfMissing(groupId, rawName) {
+          const name = String(rawName || '').trim();
+          if (!groupId || !name) return;
+          if (!appState.students[groupId].some(s => s.toLowerCase() === name.toLowerCase())) {
+            appState.students[groupId].push(name);
+            newStudents++;
+          }
         }
 
-        // Leer hoja Listas_Alumnos si existe
-        if (workbook.Sheets['Listas_Alumnos']) {
-          const rows = XLSX.utils.sheet_to_json(workbook.Sheets['Listas_Alumnos']);
-          rows.forEach(r => {
-            const grp = normalizeGroupName(r.Grupo);
-            const st = r.Alumno ? String(r.Alumno).trim() : '';
-            if (grp && st && !appState.groups[grp].some(x => x.toLowerCase() === st.toLowerCase())) {
-              appState.groups[grp].push(st);
-            }
-          });
+        function addSessionIfMissing(groupId, isoDate) {
+          if (!groupId || !isoDate) return;
+          const sKey = `${groupId}__${isoDate}`;
+          if (!existingSessionKeys.has(sKey)) {
+            existingSessionKeys.add(sKey);
+            appState.sessions.push({ group: groupId, date: isoDate });
+          }
         }
 
-        // Leer hoja Historial_Inasistencias
-        const histSheetName = workbook.Sheets['Historial_Inasistencias'] ? 'Historial_Inasistencias' : workbook.SheetNames[0];
-        const histRows = XLSX.utils.sheet_to_json(workbook.Sheets[histSheetName]);
-        let importedCount = 0;
+        function addAbsenceIfMissing(groupId, rawStudent, rawDate) {
+          const student = String(rawStudent || '').trim();
+          const isoDate = normalizeExcelDate(rawDate);
+          if (!groupId || !student || !isoDate) return;
 
-        histRows.forEach(r => {
-          const grp = normalizeGroupName(r.Grupo);
-          const st = r.Alumno ? String(r.Alumno).trim() : '';
-          const dt = r.Fecha ? String(r.Fecha).trim() : '';
-          if (grp && dt && /^\d{4}-\d{2}-\d{2}$/.test(dt)) {
-            const key = `${grp}__${dt}`;
-            if (!appState.records[key]) {
-              appState.records[key] = { group: grp, date: dt, absentees: [] };
-            }
-            if (st) {
-              if (!appState.groups[grp].some(x => x.toLowerCase() === st.toLowerCase())) {
-                appState.groups[grp].push(st);
-              }
-              if (!appState.records[key].absentees.includes(st)) {
-                appState.records[key].absentees.push(st);
-                importedCount++;
-              }
+          addStudentIfMissing(groupId, student);
+          addSessionIfMissing(groupId, isoDate);
+
+          const id = generateAbsenceId(groupId, student, isoDate);
+          if (!existingAbsenceIds.has(id)) {
+            existingAbsenceIds.add(id);
+            appState.absences.push({ id, group: groupId, student, date: isoDate });
+            newAbsences++;
+          }
+        }
+
+        // Helper para extraer columna insensible a mayúsculas
+        function getRowField(rowObj, candidateKeys) {
+          const keys = Object.keys(rowObj || {});
+          for (const cand of candidateKeys) {
+            const found = keys.find(k => k.trim().toLowerCase() === cand.toLowerCase());
+            if (found !== undefined && rowObj[found] !== undefined && rowObj[found] !== '') {
+              return rowObj[found];
             }
           }
-        });
-
-        showToast(`Respaldo importado (${importedCount} registros de falta procesados).`);
-      }
-
-      function processNamesWorkbook(workbook, fallbackGroup) {
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const matrix = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-        if (!matrix || matrix.length === 0) {
-          showToast('El archivo está vacío.', 'warning');
-          return;
+          return null;
         }
 
-        // Detectar si la fila 0 tiene encabezados con nombres de grupos ("Miembros 1", etc.)
-        const headerRow = matrix[0] || [];
-        const colGroupMap = {};
-        let hasGroupHeaders = false;
+        let recognizedStructuredSheet = false;
 
-        headerRow.forEach((cell, idx) => {
-          const grp = normalizeGroupName(cell);
-          if (grp) {
-            colGroupMap[idx] = grp;
-            hasGroupHeaders = true;
+        workbook.SheetNames.forEach(sheetName => {
+          const sheet = workbook.Sheets[sheetName];
+          if (!sheet) return;
+          const lowerSheet = sheetName.trim().toLowerCase();
+
+          // A) Hojas de nóminas: Listas_Alumnos, Alumnos, Resumen_Alumnos, Resumen_General
+          if (['listas_alumnos', 'alumnos', 'resumen_alumnos', 'resumen_general'].includes(lowerSheet)) {
+            recognizedStructuredSheet = true;
+            const rows = XLSX.utils.sheet_to_json(sheet);
+            rows.forEach(r => {
+              const grp = normalizeGroupName(getRowField(r, ['Grupo', 'Clase', 'Group']));
+              const st = getRowField(r, ['Alumno', 'Nombre', 'Estudiante', 'Student']);
+              if (grp && st) addStudentIfMissing(grp, st);
+            });
+            return;
           }
-        });
 
-        let added = 0;
-        if (hasGroupHeaders) {
-          for (let r = 1; r < matrix.length; r++) {
-            const row = matrix[r] || [];
-            Object.entries(colGroupMap).forEach(([colIdx, grp]) => {
-              const val = row[colIdx] ? String(row[colIdx]).trim() : '';
-              if (val && !appState.groups[grp].some(x => x.toLowerCase() === val.toLowerCase())) {
-                appState.groups[grp].push(val);
-                added++;
+          // B) Hojas de historial plano: Historial_Inasistencias, Historial, o pestañas mensuales YYYY-MM
+          if (['historial_inasistencias', 'historial'].includes(lowerSheet) || /^\d{4}-\d{2}$/.test(lowerSheet)) {
+            recognizedStructuredSheet = true;
+            const rows = XLSX.utils.sheet_to_json(sheet);
+            rows.forEach(r => {
+              const grp = normalizeGroupName(getRowField(r, ['Grupo', 'Clase', 'Group']));
+              const st = getRowField(r, ['Alumno', 'Nombre', 'Estudiante', 'Student']);
+              const dt = getRowField(r, ['Fecha', 'Date', 'Dia']);
+              if (grp && st && dt) {
+                addAbsenceIfMissing(grp, st, dt);
               }
             });
+            return;
           }
-        } else {
-          // Una sola columna de nombres al grupo elegido
-          matrix.forEach((row, rIdx) => {
-            const rawVal = row && row[0] ? String(row[0]).trim() : '';
-            if (!rawVal) return;
-            // Omitir encabezado genérico si existe
-            if (rIdx === 0 && ['nombre', 'nombres', 'alumno', 'alumnos', 'estudiante'].includes(rawVal.toLowerCase())) {
-              return;
+
+          // C) Pestañas nombradas exactamente como grupo: "Miembros 1", "Miembros 2", "Miembros 3"
+          const groupFromTab = normalizeGroupName(sheetName);
+          if (groupFromTab) {
+            recognizedStructuredSheet = true;
+            const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            if (!matrix || matrix.length === 0) return;
+
+            // Buscar fila de encabezado con fechas (para cuadros matriciales con marcas 'x')
+            let headerRowIdx = -1;
+            const dateColMap = {};
+            let nameColIdx = 0;
+
+            for (let r = 0; r < Math.min(matrix.length, 6); r++) {
+              const row = matrix[r] || [];
+              let foundDatesInRow = 0;
+              row.forEach((cell, cIdx) => {
+                const cellStr = String(cell || '').trim().toLowerCase();
+                if (['alumno', 'alumnos', 'nombre', 'nombres', 'estudiante'].includes(cellStr)) {
+                  nameColIdx = cIdx;
+                }
+                const parsedDt = normalizeExcelDate(cell);
+                if (parsedDt) {
+                  dateColMap[cIdx] = parsedDt;
+                  foundDatesInRow++;
+                }
+              });
+              if (foundDatesInRow > 0) {
+                headerRowIdx = r;
+                break;
+              }
             }
-            if (!appState.groups[fallbackGroup].some(x => x.toLowerCase() === rawVal.toLowerCase())) {
-              appState.groups[fallbackGroup].push(rawVal);
-              added++;
+
+            if (headerRowIdx >= 0) {
+              // Registrar sesiones de las fechas detectadas
+              Object.values(dateColMap).forEach(dt => addSessionIfMissing(groupFromTab, dt));
+
+              for (let r = headerRowIdx + 1; r < matrix.length; r++) {
+                const row = matrix[r] || [];
+                const studentVal = String(row[nameColIdx] || '').trim();
+                if (!studentVal) continue;
+                const lowerSt = studentVal.toLowerCase();
+                if (lowerSt.startsWith('total') || lowerSt.startsWith('porcentaje') || lowerSt.startsWith('resumen')) continue;
+
+                addStudentIfMissing(groupFromTab, studentVal);
+
+                Object.entries(dateColMap).forEach(([cIdx, dt]) => {
+                  const mark = String(row[cIdx] || '').trim().toLowerCase();
+                  if (['x', '1', 'f', 'falto', 'faltó', 'si', 'sí'].includes(mark)) {
+                    addAbsenceIfMissing(groupFromTab, studentVal, dt);
+                  }
+                });
+              }
+            } else {
+              // Listado simple de nombres dentro de la pestaña del grupo
+              matrix.forEach((row, rIdx) => {
+                const val = String((row && row[0]) || '').trim();
+                if (!val) return;
+                if (rIdx === 0 && ['alumno', 'alumnos', 'nombre', 'nombres'].includes(val.toLowerCase())) return;
+                addStudentIfMissing(groupFromTab, val);
+              });
             }
-          });
+          }
+        });
+
+        // D) Fallback: Si ninguna hoja coincidió por nombre, analizar la primera hoja genérica
+        if (!recognizedStructuredSheet && workbook.SheetNames.length > 0) {
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const objRows = XLSX.utils.sheet_to_json(firstSheet);
+
+          if (objRows.length > 0 && getRowField(objRows[0], ['Grupo', 'Clase']) && getRowField(objRows[0], ['Alumno', 'Nombre'])) {
+            objRows.forEach(r => {
+              const grp = normalizeGroupName(getRowField(r, ['Grupo', 'Clase']));
+              const st = getRowField(r, ['Alumno', 'Nombre']);
+              const dt = getRowField(r, ['Fecha', 'Date']);
+              if (grp && st && dt) {
+                addAbsenceIfMissing(grp, st, dt);
+              } else if (grp && st) {
+                addStudentIfMissing(grp, st);
+              }
+            });
+          } else {
+            const matrix = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+            matrix.forEach((row, rIdx) => {
+              const val = String((row && row[0]) || '').trim();
+              if (!val) return;
+              if (rIdx === 0 && ['alumno', 'alumnos', 'nombre', 'nombres', 'estudiante'].includes(val.toLowerCase())) return;
+              addStudentIfMissing(fallbackGroup, val);
+            });
+          }
         }
 
-        showToast(`Se agregaron ${added} alumnos nuevos.`);
+        return { newStudents, newAbsences };
       }
 
       /* --- OPCIÓN 3: OPCIONES DE TEMAS --- */
@@ -2004,7 +2240,7 @@
                 <p class="text-xs font-bold uppercase tracking-wider theme-text-muted mb-2">1. Color de fondo</p>
                 <div class="grid grid-cols-2 gap-2.5">
                   <button type="button" data-set-bg="white" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.bg === 'white' ? 'ring-2' : 'theme-border'}" style="${appState.theme.bg === 'white' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
-                    <span class="w-6 h-6 rounded-full bg-white border border-gray-300 shrink-0 shadow-xs"></span>
+                    <span class="w-6 h-6 rounded-full bg-white border border-gray-300 shrink-0 shadow-2xs"></span>
                     <div>
                       <p class="font-bold text-sm">Blanco</p>
                       <p class="text-[11px] theme-text-muted">Modo claro</p>
@@ -2012,7 +2248,7 @@
                   </button>
 
                   <button type="button" data-set-bg="black" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.bg === 'black' ? 'ring-2' : 'theme-border'}" style="${appState.theme.bg === 'black' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
-                    <span class="w-6 h-6 rounded-full bg-neutral-900 border border-neutral-600 shrink-0 shadow-xs"></span>
+                    <span class="w-6 h-6 rounded-full bg-neutral-900 border border-neutral-600 shrink-0 shadow-2xs"></span>
                     <div>
                       <p class="font-bold text-sm">Negro</p>
                       <p class="text-[11px] theme-text-muted">Modo oscuro</p>
@@ -2024,19 +2260,19 @@
               <div>
                 <p class="text-xs font-bold uppercase tracking-wider theme-text-muted mb-2">2. Estilo de color</p>
                 <div class="grid grid-cols-2 gap-2.5">
-                  <button type="button" data-set-style="leaf" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.style === 'leaf' ? 'ring-2' : 'theme-border'}" style="${appState.theme.style === 'leaf' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
+                  <button type="button" data-set-accent="leaf" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.accent === 'leaf' ? 'ring-2' : 'theme-border'}" style="${appState.theme.accent === 'leaf' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
                     <span class="w-6 h-6 rounded-full shrink-0" style="background: linear-gradient(135deg, #16a34a, #65a30d);"></span>
                     <div>
                       <p class="font-bold text-sm">Verde hoja</p>
-                      <p class="text-[11px] theme-text-muted">Natural y fresco</p>
+                      <p class="text-[11px] theme-text-muted">Bosque natural</p>
                     </div>
                   </button>
 
-                  <button type="button" data-set-style="autumn" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.style === 'autumn' ? 'ring-2' : 'theme-border'}" style="${appState.theme.style === 'autumn' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
+                  <button type="button" data-set-accent="autumn" class="p-3.5 rounded-xl border text-left flex items-center gap-3 transition ${appState.theme.accent === 'autumn' ? 'ring-2' : 'theme-border'}" style="${appState.theme.accent === 'autumn' ? 'border-color: var(--accent); --tw-ring-color: var(--accent);' : ''}">
                     <span class="w-6 h-6 rounded-full shrink-0" style="background: linear-gradient(135deg, #c2410c, #d97706);"></span>
                     <div>
                       <p class="font-bold text-sm">Otoño</p>
-                      <p class="text-[11px] theme-text-muted">Terracota y ámbar</p>
+                      <p class="text-[11px] theme-text-muted">Ámbar y terracota</p>
                     </div>
                   </button>
                 </div>
@@ -2057,9 +2293,9 @@
               });
             });
 
-            el.querySelectorAll('[data-set-style]').forEach(btn => {
+            el.querySelectorAll('[data-set-accent]').forEach(btn => {
               btn.addEventListener('click', () => {
-                appState.theme.style = btn.getAttribute('data-set-style');
+                appState.theme.accent = btn.getAttribute('data-set-accent');
                 applyTheme();
                 saveStateToStorage();
                 openThemesModal();
@@ -2073,51 +2309,43 @@
 
       /* --- OPCIÓN 4: ELIMINAR REGISTROS --- */
       function openDeleteModal() {
-        const recordedMonths = Array.from(
-          new Set(Object.values(appState.records).map(r => r.date.slice(0, 7)))
-        ).sort((a, b) => b.localeCompare(a));
+        const months = getRegisteredMonths();
 
         openModal(
           'Eliminar registros',
           `
             <div class="space-y-4">
-              <!-- Opción A: Limpiar un mes específico sin borrar alumnos -->
+              <!-- A) Eliminar solo los registros de un mes específico -->
               <div class="p-3.5 rounded-xl theme-surface-alt border space-y-2.5">
-                <h4 class="font-bold text-sm">Limpiar registros de un mes específico</h4>
-                <p class="text-xs theme-text-secondary">Borra las faltas de ese mes manteniendo intactas las listas de alumnos.</p>
-                ${recordedMonths.length === 0
+                <h4 class="font-bold text-sm">Eliminar registros de un mes específico</h4>
+                <p class="text-xs theme-text-secondary">Borra las faltas y sesiones de ese mes conservando los demás meses y las listas de alumnos.</p>
+                ${months.length === 0
                   ? '<p class="text-xs theme-text-muted italic">No hay meses con registros guardados actualmente.</p>'
                   : `<div class="flex gap-2">
                       <select id="clearMonthSelect" class="flex-1 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium theme-input">
-                        ${recordedMonths.map(ym => `<option value="${ym}">${escapeHTML(formatMonthYearLabel(ym))}</option>`).join('')}
+                        ${months.map(ym => `<option value="${ym}">${escapeHTML(formatMonthYearLabel(ym))}</option>`).join('')}
                       </select>
                       <button type="button" id="clearMonthBtn" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-white shrink-0" style="background-color: var(--danger);">
-                        Limpiar mes
+                        Borrar mes
                       </button>
                     </div>`
                 }
               </div>
 
-              <!-- Opción B: Borrar toda la base de datos -->
+              <!-- B) Reiniciar toda la base de datos con doble confirmación -->
               <div class="p-3.5 rounded-xl border space-y-2.5" style="border-color: var(--danger); background-color: var(--danger-soft);">
-                <h4 class="font-bold text-sm" style="color: var(--danger-text);">Borrar toda la base de datos</h4>
-                <p class="text-xs" style="color: var(--danger-text);">Elimina permanentemente todos los alumnos y todo el historial de inasistencias.</p>
+                <h4 class="font-bold text-sm" style="color: var(--danger-text);">Reiniciar toda la base de datos</h4>
+                <p class="text-xs" style="color: var(--danger-text);">Elimina permanentemente todos los alumnos inscritos, sesiones y el historial completo.</p>
                 <button type="button" id="wipeAllStep1Btn" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition" style="background-color: var(--danger);">
-                  Borrar todo el sistema
+                  Borrar toda la base de datos
                 </button>
                 <div id="wipeAllConfirmBox" class="hidden space-y-2 pt-1">
-                  <p class="text-xs font-bold" style="color: var(--danger-text);">¿Estás completamente seguro? Esta acción no se puede deshacer.</p>
+                  <p class="text-xs font-bold" style="color: var(--danger-text);">Confirmación final: ¿seguro que deseas borrar todo?</p>
                   <div class="flex gap-2">
                     <button type="button" id="cancelWipeBtn" class="flex-1 py-2 rounded-xl text-xs font-semibold theme-surface border theme-border">Cancelar</button>
-                    <button type="button" id="confirmWipeBtn" class="flex-1 py-2 rounded-xl text-xs font-bold text-white" style="background-color: var(--danger);">Sí, borrar todo</button>
+                    <button type="button" id="confirmWipeBtn" class="flex-1 py-2 rounded-xl text-xs font-bold text-white" style="background-color: var(--danger);">Sí, eliminar todo</button>
                   </div>
                 </div>
-              </div>
-
-              <!-- Botón auxiliar para cargar datos de ejemplo -->
-              <div class="pt-1 flex items-center justify-between text-xs theme-text-muted">
-                <span>¿Deseas restaurar datos de ejemplo?</span>
-                <button type="button" id="loadDemoDataBtn" class="font-semibold underline" style="color: var(--accent);">Cargar datos de prueba</button>
               </div>
             </div>
           `,
@@ -2126,15 +2354,12 @@
             if (clearMonthBtn) {
               clearMonthBtn.addEventListener('click', () => {
                 const targetYm = el.querySelector('#clearMonthSelect').value;
-                Object.keys(appState.records).forEach(k => {
-                  if (appState.records[k].date.startsWith(targetYm)) {
-                    delete appState.records[k];
-                  }
-                });
+                appState.absences = appState.absences.filter(a => !a.date.startsWith(targetYm));
+                appState.sessions = appState.sessions.filter(s => !s.date.startsWith(targetYm));
                 saveStateToStorage();
                 GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
                 closeModal();
-                showToast(`Registros de ${formatMonthYearLabel(targetYm)} limpiados.`);
+                showToast(`Registros de ${formatMonthYearLabel(targetYm)} eliminados.`);
                 switchTab(uiState.activeTab);
               });
             }
@@ -2152,30 +2377,20 @@
             });
 
             el.querySelector('#confirmWipeBtn').addEventListener('click', () => {
-              appState.groups = { 'Miembros 1': [], 'Miembros 2': [], 'Miembros 3': [] };
-              appState.records = {};
+              appState.students = { 'Miembros 1': [], 'Miembros 2': [], 'Miembros 3': [] };
+              appState.absences = [];
+              appState.sessions = [];
               saveStateToStorage();
               GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
               closeModal();
-              showToast('Base de datos borrada por completo.');
-              switchTab(uiState.activeTab);
-            });
-
-            el.querySelector('#loadDemoDataBtn').addEventListener('click', () => {
-              const sample = buildSampleData();
-              appState.groups = sample.groups;
-              appState.records = sample.records;
-              saveStateToStorage();
-              GROUPS_CONFIG.forEach(g => syncDraftFromSavedRecord(g.id));
-              closeModal();
-              showToast('Datos de prueba cargados.');
+              showToast('Base de datos reiniciada por completo.');
               switchTab(uiState.activeTab);
             });
           }
         );
       }
 
-      /* --- OPCIÓN 5: ACERCA DE --- */
+      /* --- OPCIÓN 5: ACERCA DE (VERSIÓN 1.1) --- */
       function openAboutModal() {
         openModal(
           'Acerca de',
@@ -2189,10 +2404,15 @@
 
               <div>
                 <h4 class="text-lg font-extrabold">Sistema de Inasistencias</h4>
-                <p class="text-xs theme-text-muted mt-0.5">Gestión inteligente de asistencia por grupo de clase</p>
+                <p class="text-xs theme-text-muted mt-0.5">Control de asistencia por grupo, historial y exportación mensual</p>
               </div>
 
-              <div class="rounded-2xl theme-surface-alt border p-4 space-y-2 text-sm">
+              <div class="rounded-2xl theme-surface-alt border p-4 space-y-2.5 text-sm">
+                <div class="flex items-center justify-between">
+                  <span class="theme-text-secondary">Aplicación:</span>
+                  <span class="font-bold">Sistema de Inasistencias</span>
+                </div>
+                <div class="border-t theme-border"></div>
                 <div class="flex items-center justify-between">
                   <span class="theme-text-secondary">Desarrollador:</span>
                   <span class="font-bold">Orion</span>
@@ -2200,11 +2420,11 @@
                 <div class="border-t theme-border"></div>
                 <div class="flex items-center justify-between">
                   <span class="theme-text-secondary">Versión:</span>
-                  <span class="font-bold">1.0</span>
+                  <span class="font-bold">1.1</span>
                 </div>
               </div>
 
-              <div class="pt-1 flex flex-col gap-2">
+              <div class="pt-1">
                 <button type="button" id="closeAboutBtn" class="w-full py-2.5 rounded-xl font-bold theme-accent-bg">Cerrar</button>
               </div>
             </div>
@@ -2216,7 +2436,7 @@
       }
 
       /* ----------------------------------------------------------------------
-         13. INICIALIZACIÓN AL CARGAR LA PÁGINA
+         12. INICIALIZACIÓN DE LA APLICACIÓN
          ---------------------------------------------------------------------- */
       switchTab('registro');
     })();
