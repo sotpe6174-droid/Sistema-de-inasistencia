@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Inasistencias — v1.3</title>
+  <title>Sistema de Inasistencias — v1.2</title>
 
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -193,6 +193,10 @@
     .animate-fade-in {
       animation: fadeIn 0.2s ease-out forwards;
     }
+
+    .vertical-bar-fill {
+      transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -212,9 +216,9 @@
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <h1 class="text-base sm:text-xl font-extrabold tracking-tight truncate">Sistema de Inasistencias</h1>
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-accent-soft shrink-0">v1.3</span>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-accent-soft shrink-0">v1.2</span>
           </div>
-          <p class="text-xs theme-text-muted truncate">Control académico por grupo, ranking e historial</p>
+          <p class="text-xs theme-text-muted truncate">Control académico por grupo, historial y estadísticas</p>
         </div>
       </div>
 
@@ -264,7 +268,7 @@
               <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              <span>Importar desde Excel</span>
+              <span>Importar de Excel</span>
             </button>
 
             <div class="my-1 border-t theme-border"></div>
@@ -273,8 +277,17 @@
               <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
               </svg>
-              <span>Apariencia</span>
+              <span>Opciones de temas</span>
             </button>
+
+            <button type="button" id="menuDeleteData" class="w-full px-4 py-2.5 text-left text-sm font-medium theme-hover flex items-center gap-3" style="color: var(--danger-text);">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>Eliminar</span>
+            </button>
+
+            <div class="my-1 border-t theme-border"></div>
 
             <button type="button" id="menuAbout" class="w-full px-4 py-2.5 text-left text-sm font-medium theme-hover flex items-center gap-3">
               <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -320,7 +333,7 @@
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <span>Gráfico</span>
+          <span>Gráfica</span>
         </button>
       </div>
     </nav>
@@ -335,178 +348,25 @@
   <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-5 space-y-5">
 
     <!-- ======================================================================
-         VISTA 1: REGISTRO DE INASISTENCIAS
+         VISTA 1: REGISTRO DE INASISTENCIAS (3 ACORDEONES DESPLEGABLES)
          ====================================================================== -->
     <section id="view-registro" class="space-y-4 animate-fade-in">
-      <!-- Controles de Grupo y Fecha -->
-      <div class="rounded-2xl border theme-surface p-4 sm:p-5 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h2 class="text-base sm:text-lg font-extrabold">Registro de Inasistencias</h2>
-            <p class="text-xs theme-text-muted">Selecciona el grupo y la fecha correspondiente de clase para marcar inasistencias.</p>
-          </div>
-          <div id="registroSessionStatusBadge" class="self-start sm:self-center"></div>
+      <div class="rounded-2xl border theme-surface p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base sm:text-lg font-extrabold">Registro de Inasistencias</h2>
+          <p class="text-xs theme-text-muted">Despliega un grupo, selecciona la fecha permitida (Viernes o Miércoles), marca quiénes faltaron y guarda.</p>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <!-- Selector de Grupo -->
-          <div>
-            <label for="registroGroupSelect" class="block text-xs font-bold theme-text-secondary mb-1.5">
-              Grupo de clase
-            </label>
-            <select id="registroGroupSelect" class="w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold theme-input cursor-pointer">
-              <option value="Miembros 1">Miembros 1 (Viernes)</option>
-              <option value="Miembros 2">Miembros 2 (Viernes)</option>
-              <option value="Miembros 3">Miembros 3 (Miércoles)</option>
-            </select>
-          </div>
-
-          <!-- Selector de Fecha -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label for="registroDateInput" class="block text-xs font-bold theme-text-secondary">
-                Fecha de la sesión
-              </label>
-              <span id="registroSelectedDayLabel" class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-accent-soft">
-                Viernes
-              </span>
-            </div>
-            <input
-              type="date"
-              id="registroDateInput"
-              class="w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold theme-input"
-            />
-          </div>
-        </div>
-
-        <!-- Alerta de día inválido con botón de ajuste automático -->
-        <div id="invalidDayAlert" class="hidden rounded-2xl border p-3.5 sm:p-4 space-y-2.5" style="background-color: var(--warning-soft); border-color: var(--warning-border); color: var(--warning-text);">
-          <div class="flex items-start gap-2.5">
-            <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <div class="text-xs sm:text-sm space-y-1 flex-1">
-              <p class="font-extrabold" id="invalidDayTitle">Día de la semana no permitido</p>
-              <p id="invalidDayMessage" class="opacity-90"></p>
-            </div>
-          </div>
-          <div class="flex flex-wrap items-center gap-2 pt-0.5">
-            <button
-              type="button"
-              id="snapNearestValidDateBtn"
-              class="px-3.5 py-2 rounded-xl text-xs font-bold theme-accent-bg shadow-sm transition-transform active:scale-95"
-            >
-              Ajustar al día válido más cercano
-            </button>
-          </div>
-        </div>
+        <span class="text-xs font-bold px-3 py-1 rounded-full theme-accent-soft self-start sm:self-center">
+          Orden alfabético A–Z
+        </span>
       </div>
 
-      <!-- Lista de Alumnos y Buscador -->
-      <div class="rounded-2xl border theme-surface p-4 sm:p-5 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div class="relative flex-1">
-            <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 theme-text-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              id="registroSearchInput"
-              placeholder="Buscar alumno por nombre..."
-              class="w-full rounded-xl pl-10 pr-3.5 py-2.5 text-sm theme-input"
-            />
-          </div>
-
-          <div class="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              id="btnOpenAddStudent"
-              class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold theme-accent-soft hover:opacity-90 transition-opacity flex items-center gap-1.5"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Agregar alumno</span>
-            </button>
-
-            <button
-              type="button"
-              id="btnToggleManageStudents"
-              title="Activar o desactivar botones para eliminar alumnos de la lista"
-              class="px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border theme-border theme-surface-alt theme-hover transition-colors"
-            >
-              Gestionar
-            </button>
-          </div>
-        </div>
-
-        <!-- Barra rápida para agregar alumno inline -->
-        <form id="inlineAddStudentForm" class="hidden rounded-xl border theme-border theme-surface-alt p-3 flex flex-col sm:flex-row gap-2 animate-fade-in">
-          <input
-            type="text"
-            id="inlineNewStudentName"
-            placeholder="Nombre completo del nuevo alumno..."
-            class="flex-1 rounded-xl px-3.5 py-2 text-sm theme-input"
-            autocomplete="off"
-          />
-          <div class="flex items-center gap-2">
-            <button type="submit" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold theme-accent-bg">
-              Añadir al grupo
-            </button>
-            <button type="button" id="btnCancelAddStudent" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold border theme-border theme-hover">
-              Cancelar
-            </button>
-          </div>
-        </form>
-
-        <!-- Sub-barra de conteo rápido -->
-        <div class="flex items-center justify-between text-xs theme-text-secondary border-b theme-border pb-2.5">
-          <span id="registroRosterSummary">0 alumnos en lista</span>
-          <button type="button" id="btnClearChecks" class="font-semibold hover:underline" style="color: var(--accent);">
-            Desmarcar todos
-          </button>
-        </div>
-
-        <!-- Contenedor de checklist -->
-        <div id="registroStudentList" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[52vh] overflow-y-auto pr-0.5"></div>
-
-        <!-- Barra de acción inferior (Contador + Guardar asistencia) -->
-        <div class="pt-3 border-t theme-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="flex items-center gap-2.5">
-            <span id="registroAbsentCounterBadge" class="text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-xl" style="background-color: var(--danger-soft); color: var(--danger-text);">
-              0 faltas marcadas
-            </span>
-            <span id="registroSessionPctPreview" class="text-xs font-semibold theme-text-muted">
-              (0.0% de inasistencia)
-            </span>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              id="btnDeleteCurrentSession"
-              class="hidden px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-colors"
-              style="border-color: var(--danger-border); color: var(--danger-text); background-color: var(--danger-soft);"
-            >
-              Eliminar sesión
-            </button>
-            <button
-              type="button"
-              id="btnSaveAttendance"
-              class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl text-sm font-extrabold theme-accent-bg shadow-sm transition-all disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Guardar asistencia</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- Contenedor de los 3 acordeones desplegables (Miembros 1, 2 y 3) -->
+      <div id="registroAccordionsContainer" class="space-y-3.5"></div>
     </section>
 
     <!-- ======================================================================
-         VISTA 2: DATOS DE INASISTENCIA (RANKING Y EDICIÓN)
+         VISTA 2: DATOS DE INASISTENCIA (ACORDEONES POR GRUPO Y EDICIÓN)
          ====================================================================== -->
     <section id="view-datos" class="hidden space-y-4 animate-fade-in">
       <!-- Filtros -->
@@ -560,14 +420,14 @@
     </section>
 
     <!-- ======================================================================
-         VISTA 3: GRÁFICO DE PORCENTAJES Y RANKING VISUAL
+         VISTA 3: GRÁFICA DE BARRAS VERTICAL (0% A 100%)
          ====================================================================== -->
     <section id="view-grafico" class="hidden space-y-4 animate-fade-in">
       <!-- Controles superiores -->
       <div class="rounded-2xl border theme-surface p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-base sm:text-lg font-extrabold">Análisis Gráfico de Inasistencias</h2>
-          <p class="text-xs theme-text-muted">Comparativa porcentual por grupo y ranking de alumnos con mayor inasistencia.</p>
+          <h2 class="text-base sm:text-lg font-extrabold">Gráfica de Inasistencia por Grupo</h2>
+          <p class="text-xs theme-text-muted">Comparativa porcentual (0 % a 100 %) de los tres grupos de clase.</p>
         </div>
 
         <div class="w-full sm:w-64">
@@ -576,42 +436,18 @@
         </div>
       </div>
 
-      <!-- Gráfico 1: Porcentaje por Grupo (SVG + Barras limpias) -->
-      <div class="rounded-2xl border theme-surface p-4 sm:p-5 space-y-4">
+      <!-- Gráfico de Barras Vertical (0% a 100%) -->
+      <div class="rounded-2xl border theme-surface p-4 sm:p-6 space-y-4">
         <div class="flex items-center justify-between gap-2">
-          <h3 class="text-sm sm:text-base font-extrabold">1. Porcentaje de Inasistencia por Grupo</h3>
+          <h3 class="text-sm sm:text-base font-extrabold">Porcentaje de Inasistencia por Grupo (0 % – 100 %)</h3>
           <span id="graficoGroupTotalTag" class="text-xs font-bold px-2.5 py-1 rounded-full theme-accent-soft"></span>
         </div>
 
-        <div id="graficoGroupsChartContainer" class="space-y-4"></div>
+        <div id="graficoVerticalChartContainer" class="pt-2"></div>
       </div>
 
-      <!-- Gráfico 2: Ranking Visual de Alumnos con Mayor % de Faltas -->
-      <div class="rounded-2xl border theme-surface p-4 sm:p-5 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h3 class="text-sm sm:text-base font-extrabold">2. Ranking de Alumnos con Mayor Porcentaje de Faltas</h3>
-            <p class="text-xs theme-text-muted">Calculado sobre las sesiones registradas de su respectivo grupo.</p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <select id="graficoRankGroupFilter" class="rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold theme-input cursor-pointer">
-              <option value="ALL">Todos los grupos</option>
-              <option value="Miembros 1">Miembros 1</option>
-              <option value="Miembros 2">Miembros 2</option>
-              <option value="Miembros 3">Miembros 3</option>
-            </select>
-
-            <select id="graficoTopLimitFilter" class="rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold theme-input cursor-pointer">
-              <option value="10">Top 10</option>
-              <option value="20">Top 20</option>
-              <option value="ALL">Todos con faltas</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="graficoStudentsRankingContainer" class="space-y-2.5"></div>
-      </div>
+      <!-- Tarjetas resumen por grupo -->
+      <div id="graficoSummaryCardsContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5"></div>
     </section>
 
   </main>
@@ -639,7 +475,7 @@
   <div id="toastContainer" class="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <!-- ========================================================================
-       LÓGICA COMPLETA DE LA APLICACIÓN (VERSIÓN 1.3 — ORION)
+       LÓGICA COMPLETA DE LA APLICACIÓN (VERSIÓN 1.2 — ORION)
        ======================================================================== -->
   <script>
     (() => {
@@ -778,6 +614,25 @@
         return null;
       }
 
+      // Normalización de espacios y ordenamiento alfabético en español (A-Z)
+      function cleanStudentName(raw) {
+        return String(raw ?? '').trim().replace(/\s+/g, ' ');
+      }
+
+      function compareSpanishNames(a, b) {
+        return String(a).localeCompare(String(b), 'es', { sensitivity: 'base' });
+      }
+
+      function sortGroupRoster(groupId, targetState = appState) {
+        if (Array.isArray(targetState.students[groupId])) {
+          targetState.students[groupId].sort(compareSpanishNames);
+        }
+      }
+
+      function sortAllRosters(targetState = appState) {
+        GROUPS_CONFIG.forEach(cfg => sortGroupRoster(cfg.id, targetState));
+      }
+
       /* ----------------------------------------------------------------------
          3. ESTADO GLOBAL Y PERSISTENCIA COMPATIBLE HACIA ATRÁS
          ---------------------------------------------------------------------- */
@@ -797,24 +652,45 @@
         };
       }
 
+      function saveStateToStorage(targetState = appState) {
+        try {
+          localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(targetState));
+          localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(targetState.theme));
+        } catch (err) {
+          console.warn('No se pudo guardar en localStorage:', err);
+        }
+      }
+
       let appState = loadAndMigrateState();
 
+      const todayIso = toISODateLocal(new Date());
       const uiState = {
         activeTab: 'registro',
-        registroGroup: 'Miembros 1',
-        registroDate: getNearestValidDateForGroup('Miembros 1', toISODateLocal(new Date())),
-        registroChecked: new Set(),
-        registroSearch: '',
-        registroManageMode: false,
+        expandedRegistroGroups: new Set(['Miembros 1']),
+        registroDates: {
+          'Miembros 1': getNearestValidDateForGroup('Miembros 1', todayIso),
+          'Miembros 2': getNearestValidDateForGroup('Miembros 2', todayIso),
+          'Miembros 3': getNearestValidDateForGroup('Miembros 3', todayIso)
+        },
+        registroChecked: {
+          'Miembros 1': new Set(),
+          'Miembros 2': new Set(),
+          'Miembros 3': new Set()
+        },
+        registroSearch: {
+          'Miembros 1': '',
+          'Miembros 2': '',
+          'Miembros 3': ''
+        },
+        editingStudent: null, // { group: 'Miembros 1', oldName: '...' }
 
+        expandedDatosGroups: new Set(['Miembros 1', 'Miembros 2', 'Miembros 3']),
         datosFilterGroup: 'ALL',
         datosFilterMonth: 'ALL',
         datosSearch: '',
         datosShowZero: true,
 
-        graficoFilterMonth: 'ALL',
-        graficoRankGroup: 'ALL',
-        graficoTopLimit: '10'
+        graficoFilterMonth: 'ALL'
       };
 
       function loadAndMigrateState() {
@@ -866,9 +742,9 @@
         // Helper interno de deduplicación durante carga
         const addStudent = (grp, name) => {
           const g = normalizeGroupName(grp);
-          const clean = String(name || '').trim();
+          const clean = cleanStudentName(name);
           if (!g || !clean) return;
-          if (!state.students[g].some(s => s.toLowerCase() === clean.toLowerCase())) {
+          if (!state.students[g].some(s => compareSpanishNames(s, clean) === 0)) {
             state.students[g].push(clean);
           }
         };
@@ -884,13 +760,14 @@
 
         const addAbsence = (grp, name, dateIso) => {
           const g = normalizeGroupName(grp);
-          const clean = String(name || '').trim();
+          const clean = cleanStudentName(name);
           const dt = normalizeExcelDate(dateIso);
           if (!g || !clean || !dt) return;
           addStudent(g, clean);
           addSession(g, dt);
-          if (!state.absences.some(a => a.group === g && a.student.toLowerCase() === clean.toLowerCase() && a.date === dt)) {
-            state.absences.push({ group: g, student: clean, date: dt });
+          const canonicalName = state.students[g].find(s => compareSpanishNames(s, clean) === 0) || clean;
+          if (!state.absences.some(a => a.group === g && compareSpanishNames(a.student, canonicalName) === 0 && a.date === dt)) {
+            state.absences.push({ group: g, student: canonicalName, date: dt });
           }
         };
 
@@ -930,44 +807,74 @@
           });
         }
 
-        // Ordenar nóminas alfabéticamente
-        GROUPS_CONFIG.forEach(cfg => {
-          state.students[cfg.id].sort((a, b) => a.localeCompare(b, 'es'));
-        });
+        // Ordenar nóminas alfabéticamente en español (A-Z)
+        sortAllRosters(state);
 
         // Guardar inmediatamente en la clave estándar v1 para consolidar migración
         saveStateToStorage(state);
         return state;
       }
 
-      function saveStateToStorage(target = appState) {
-        try {
-          const payload = {
-            students: target.students,
-            absences: target.absences,
-            records: target.absences, // Alias compatible con versiones previas
-            sessions: target.sessions,
-            theme: target.theme
-          };
-          localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(payload));
-          localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(target.theme));
-        } catch (err) {
-          showToast('No se pudo guardar en el navegador (almacenamiento bloqueado o lleno).', 'error');
-        }
-      }
-
-      // Helpers mutadores deduplicados en tiempo de ejecución
+      // Helpers mutadores deduplicados y ordenados en tiempo de ejecución
       function addStudentIfMissing(groupId, studentName) {
         const g = normalizeGroupName(groupId);
-        const clean = String(studentName || '').trim();
+        const clean = cleanStudentName(studentName);
         if (!g || !clean) return false;
-        const exists = appState.students[g].some(s => s.toLowerCase() === clean.toLowerCase());
+        const exists = appState.students[g].some(s => compareSpanishNames(s, clean) === 0);
         if (!exists) {
           appState.students[g].push(clean);
-          appState.students[g].sort((a, b) => a.localeCompare(b, 'es'));
+          sortGroupRoster(g);
           return true;
         }
         return false;
+      }
+
+      function renameStudentInGroup(groupId, oldName, rawNewName) {
+        const g = normalizeGroupName(groupId);
+        const cleanNew = cleanStudentName(rawNewName);
+        if (!g) return { ok: false, reason: 'invalid_group' };
+        if (!cleanNew) return { ok: false, reason: 'empty' };
+
+        const roster = appState.students[g] || [];
+        const targetIdx = roster.findIndex(s => s === oldName);
+        if (targetIdx === -1) return { ok: false, reason: 'not_found' };
+
+        // Si no cambió ni en texto ni en mayúsculas/acentos, cerrar sin error
+        if (oldName === cleanNew) {
+          return { ok: true, unchanged: true, newName: cleanNew };
+        }
+
+        // Evitar duplicados en el mismo grupo (ignorando mayúsculas y acentos)
+        const duplicateExists = roster.some(
+          (s, idx) => idx !== targetIdx && compareSpanishNames(s, cleanNew) === 0
+        );
+        if (duplicateExists) {
+          return { ok: false, reason: 'duplicate', name: cleanNew };
+        }
+
+        // a) Actualizar nombre en la lista del grupo
+        roster[targetIdx] = cleanNew;
+
+        // b) Actualizar registros históricos de inasistencia del grupo
+        appState.absences.forEach(abs => {
+          if (abs.group === g && compareSpanishNames(abs.student, oldName) === 0) {
+            abs.student = cleanNew;
+          }
+        });
+
+        // Actualizar marca en sesión actual si estaba seleccionada
+        if (uiState.registroChecked[g] && uiState.registroChecked[g].has(oldName)) {
+          uiState.registroChecked[g].delete(oldName);
+          uiState.registroChecked[g].add(cleanNew);
+        }
+
+        // c) Reordenar alfabéticamente la lista del grupo de inmediato
+        sortGroupRoster(g);
+
+        // d) Guardar en localStorage
+        saveStateToStorage();
+
+        return { ok: true, oldName, newName: cleanNew };
       }
 
       function addSessionUnique(groupId, dateIso) {
@@ -984,16 +891,17 @@
 
       function addAbsenceUnique(groupId, studentName, dateIso) {
         const g = normalizeGroupName(groupId);
-        const clean = String(studentName || '').trim();
+        const clean = cleanStudentName(studentName);
         const dt = normalizeExcelDate(dateIso);
         if (!g || !clean || !dt) return false;
         addStudentIfMissing(g, clean);
         addSessionUnique(g, dt);
+        const canonicalName = appState.students[g].find(s => compareSpanishNames(s, clean) === 0) || clean;
         const exists = appState.absences.some(
-          a => a.group === g && a.student.toLowerCase() === clean.toLowerCase() && a.date === dt
+          a => a.group === g && compareSpanishNames(a.student, canonicalName) === 0 && a.date === dt
         );
         if (!exists) {
-          appState.absences.push({ group: g, student: clean, date: dt });
+          appState.absences.push({ group: g, student: canonicalName, date: dt });
           return true;
         }
         return false;
@@ -1014,7 +922,7 @@
       }
 
       function getGroupPeriodStats(groupId, ymFilter) {
-        const students = (appState.students[groupId] || []).slice().sort((a, b) => a.localeCompare(b, 'es'));
+        const students = (appState.students[groupId] || []).slice().sort(compareSpanishNames);
         const distinctDatesSet = new Set();
 
         appState.sessions.forEach(s => {
@@ -1085,7 +993,7 @@
               dateSet
             };
           })
-          .sort((a, b) => b.count - a.count || a.student.localeCompare(b.student, 'es'))
+          .sort((a, b) => b.count - a.count || compareSpanishNames(a.student, b.student))
           .map((item, idx) => ({ ...item, rank: idx + 1 }));
 
         const studentsWithAbsencesCount = rankedStudents.filter(s => s.count > 0).length;
@@ -1194,7 +1102,7 @@
         });
 
         if (tabId === 'registro') {
-          syncRegistroChecksFromState();
+          syncAllRegistroChecksFromState();
           renderRegistroView();
         } else if (tabId === 'datos') {
           populateMonthDropdowns();
@@ -1206,177 +1114,477 @@
       }
 
       /* ----------------------------------------------------------------------
-         7. VISTA 1: REGISTRO DE INASISTENCIAS
+         7. VISTA 1: REGISTRO DE INASISTENCIAS (3 ACORDEONES DESPLEGABLES)
          ---------------------------------------------------------------------- */
-      function syncRegistroChecksFromState() {
-        uiState.registroChecked.clear();
-        const grp = uiState.registroGroup;
-        const dt = uiState.registroDate;
+      function syncGroupRegistroChecksFromState(groupId) {
+        uiState.registroChecked[groupId].clear();
+        const dt = uiState.registroDates[groupId];
         appState.absences.forEach(a => {
-          if (a.group === grp && a.date === dt) {
-            uiState.registroChecked.add(a.student);
+          if (a.group === groupId && a.date === dt) {
+            uiState.registroChecked[groupId].add(a.student);
           }
         });
       }
 
-      function isRegistroDateValid() {
-        const cfg = getGroupConfig(uiState.registroGroup);
-        const d = parseLocalDate(uiState.registroDate);
+      function syncAllRegistroChecksFromState() {
+        GROUPS_CONFIG.forEach(cfg => syncGroupRegistroChecksFromState(cfg.id));
+      }
+
+      function isGroupDateValid(groupId, dateIso) {
+        const cfg = getGroupConfig(groupId);
+        const d = parseLocalDate(dateIso);
         if (!d) return false;
         return d.getDay() === cfg.allowedDay;
       }
 
       function renderRegistroView() {
-        const groupSelect = document.getElementById('registroGroupSelect');
-        const dateInput = document.getElementById('registroDateInput');
-        const dayBadge = document.getElementById('registroSelectedDayLabel');
-        const invalidAlert = document.getElementById('invalidDayAlert');
-        const invalidTitle = document.getElementById('invalidDayTitle');
-        const invalidMsg = document.getElementById('invalidDayMessage');
-        const snapBtn = document.getElementById('snapNearestValidDateBtn');
-        const statusBadge = document.getElementById('registroSessionStatusBadge');
-        const saveBtn = document.getElementById('btnSaveAttendance');
-        const deleteSessionBtn = document.getElementById('btnDeleteCurrentSession');
+        const container = document.getElementById('registroAccordionsContainer');
+        container.innerHTML = '';
 
-        groupSelect.value = uiState.registroGroup;
-        dateInput.value = uiState.registroDate;
+        GROUPS_CONFIG.forEach(cfg => {
+          const groupId = cfg.id;
+          const isExpanded = uiState.expandedRegistroGroups.has(groupId);
+          const dateIso = uiState.registroDates[groupId];
+          const parsedDate = parseLocalDate(dateIso);
+          const isValidDate = isGroupDateValid(groupId, dateIso);
+          const allStudents = (appState.students[groupId] || []).slice().sort(compareSpanishNames);
+          const checkedSet = uiState.registroChecked[groupId];
+          const searchTerm = (uiState.registroSearch[groupId] || '').trim().toLowerCase();
 
-        const cfg = getGroupConfig(uiState.registroGroup);
-        const parsedDate = parseLocalDate(uiState.registroDate);
-        const valid = isRegistroDateValid();
+          const sessionExists = isValidDate && (
+            appState.sessions.some(s => s.group === groupId && s.date === dateIso) ||
+            appState.absences.some(a => a.group === groupId && a.date === dateIso)
+          );
 
-        if (parsedDate) {
-          dayBadge.textContent = SPANISH_DAYS[parsedDate.getDay()];
-        } else {
-          dayBadge.textContent = 'Sin fecha';
-        }
+          const accordion = document.createElement('div');
+          accordion.className = 'rounded-2xl border theme-surface overflow-hidden transition-all';
 
-        // Validación estricta de día de la semana
-        if (!valid) {
-          invalidAlert.classList.remove('hidden');
-          const chosenDayName = parsedDate ? SPANISH_DAYS[parsedDate.getDay()] : 'una fecha inválida';
-          const nearestIso = getNearestValidDateForGroup(uiState.registroGroup, uiState.registroDate);
-          invalidTitle.textContent = `Día no permitido para ${cfg.id}`;
-          invalidMsg.textContent = `Este grupo solo registra asistencia los días ${cfg.dayNameCap}. Seleccionaste ${chosenDayName} (${formatShortDate(uiState.registroDate)}).`;
-          snapBtn.textContent = `Ajustar al ${cfg.dayNameCap} más cercano (${formatShortDate(nearestIso)})`;
-          snapBtn.dataset.targetIso = nearestIso;
-          saveBtn.disabled = true;
-        } else {
-          invalidAlert.classList.add('hidden');
-          saveBtn.disabled = false;
-        }
-
-        // Verificar si ya existe sesión registrada en esa fecha
-        const sessionExists = valid && (
-          appState.sessions.some(s => s.group === uiState.registroGroup && s.date === uiState.registroDate) ||
-          appState.absences.some(a => a.group === uiState.registroGroup && a.date === uiState.registroDate)
-        );
-
-        if (sessionExists) {
-          statusBadge.innerHTML = `
-            <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full theme-accent-soft">
-              <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--accent);"></span>
-              Editando sesión (${formatShortDate(uiState.registroDate)})
-            </span>
-          `;
-          deleteSessionBtn.classList.remove('hidden');
-        } else {
-          statusBadge.innerHTML = `
-            <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full theme-surface-alt border theme-border theme-text-muted">
-              Nueva sesión
-            </span>
-          `;
-          deleteSessionBtn.classList.add('hidden');
-        }
-
-        // Renderizar lista de alumnos
-        const allStudents = (appState.students[uiState.registroGroup] || []).slice().sort((a, b) => a.localeCompare(b, 'es'));
-        const term = uiState.registroSearch.trim().toLowerCase();
-        const filteredStudents = term
-          ? allStudents.filter(st => st.toLowerCase().includes(term))
-          : allStudents;
-
-        const rosterSummary = document.getElementById('registroRosterSummary');
-        rosterSummary.textContent = `${allStudents.length} ${allStudents.length === 1 ? 'alumno' : 'alumnos'} en ${cfg.id}`;
-
-        const listContainer = document.getElementById('registroStudentList');
-        listContainer.innerHTML = '';
-
-        if (filteredStudents.length === 0) {
-          listContainer.innerHTML = `
-            <div class="col-span-full text-center py-8 px-4 rounded-xl border border-dashed theme-border theme-text-muted text-xs sm:text-sm">
-              ${allStudents.length === 0
-                ? 'Aún no hay alumnos registrados en este grupo. Usa "+ Agregar alumno" para añadir estudiantes.'
-                : 'Ningún alumno coincide con tu búsqueda.'}
+          // Cabecera desplegable del acordeón
+          const headerBtn = document.createElement('button');
+          headerBtn.type = 'button';
+          headerBtn.className = 'w-full px-4 sm:px-5 py-4 flex items-center justify-between gap-3 text-left theme-hover transition-colors';
+          headerBtn.setAttribute('aria-expanded', String(isExpanded));
+          headerBtn.innerHTML = `
+            <div class="flex items-center gap-2.5 flex-wrap min-w-0">
+              <span class="text-base sm:text-lg font-extrabold">${escapeHTML(groupId)}</span>
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-accent-soft">${cfg.dayNameCap}</span>
+              <span class="text-xs font-semibold theme-text-muted">
+                · ${allStudents.length} ${allStudents.length === 1 ? 'alumno' : 'alumnos'}
+              </span>
+              ${sessionExists
+                ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-surface-alt border theme-border" style="color: var(--accent);">Sesión guardada</span>`
+                : ''
+              }
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg" style="background-color: var(--danger-soft); color: var(--danger-text);">
+                ${checkedSet.size} ${checkedSet.size === 1 ? 'falta' : 'faltas'}
+              </span>
+              <svg class="w-5 h-5 theme-text-secondary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
           `;
-        } else {
-          filteredStudents.forEach(studentName => {
-            const isChecked = uiState.registroChecked.has(studentName);
-            const card = document.createElement('div');
-            card.className = `rounded-xl border p-3 flex items-center justify-between gap-2.5 transition-all cursor-pointer select-none ${
-              isChecked ? 'student-row-absent' : 'theme-surface-alt theme-border theme-hover'
-            }`;
 
+          headerBtn.addEventListener('click', () => {
+            if (uiState.expandedRegistroGroups.has(groupId)) {
+              uiState.expandedRegistroGroups.delete(groupId);
+            } else {
+              uiState.expandedRegistroGroups.add(groupId);
+            }
+            renderRegistroView();
+          });
+
+          accordion.appendChild(headerBtn);
+
+          if (!isExpanded) {
+            container.appendChild(accordion);
+            return;
+          }
+
+          // Cuerpo desplegado del acordeón
+          const body = document.createElement('div');
+          body.className = 'px-4 sm:px-5 pb-5 pt-3 border-t theme-border space-y-4 animate-fade-in';
+
+          const dayLabel = parsedDate ? SPANISH_DAYS[parsedDate.getDay()] : 'Sin fecha';
+          const nearestIso = getNearestValidDateForGroup(groupId, dateIso);
+
+          body.innerHTML = `
+            <!-- Fila 1: Selector de fecha y estado de sesión -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="text-xs font-bold theme-text-secondary">Fecha de clase (${cfg.dayNameCap})</label>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-accent-soft">${dayLabel}</span>
+                </div>
+                <input
+                  type="date"
+                  value="${escapeHTML(dateIso)}"
+                  class="group-date-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold theme-input"
+                />
+              </div>
+
+              <div class="flex items-center sm:justify-end">
+                ${sessionExists
+                  ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl theme-accent-soft">
+                      <span class="w-2 h-2 rounded-full" style="background-color: var(--accent);"></span>
+                      Editando sesión del ${formatShortDate(dateIso)}
+                    </span>`
+                  : `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl theme-surface-alt border theme-border theme-text-muted">
+                      Nueva sesión (${formatShortDate(dateIso)})
+                    </span>`
+                }
+              </div>
+            </div>
+
+            <!-- Alerta si el día de la semana no corresponde al grupo -->
+            ${!isValidDate ? `
+              <div class="rounded-2xl border p-3.5 space-y-2.5" style="background-color: var(--warning-soft); border-color: var(--warning-border); color: var(--warning-text);">
+                <div class="flex items-start gap-2.5">
+                  <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div class="text-xs sm:text-sm space-y-0.5">
+                    <p class="font-extrabold">Día no permitido para ${escapeHTML(groupId)}</p>
+                    <p class="opacity-90">Este grupo solo tiene clases los días <strong>${cfg.dayNameCap}</strong>. Seleccionaste ${dayLabel} (${formatShortDate(dateIso)}).</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="btn-snap-date px-3.5 py-2 rounded-xl text-xs font-bold theme-accent-bg shadow-sm"
+                >
+                  Ajustar al ${cfg.dayNameCap} más cercano (${formatShortDate(nearestIso)})
+                </button>
+              </div>
+            ` : ''}
+
+            <!-- Fila 2: Agregar nuevo alumno + Buscador rápido -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <form class="add-student-form flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Agregar nombre de alumno..."
+                  class="new-student-input flex-1 rounded-xl px-3.5 py-2.5 text-sm theme-input"
+                  autocomplete="off"
+                />
+                <button type="submit" class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold theme-accent-bg shrink-0 flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Agregar</span>
+                </button>
+              </form>
+
+              <div class="relative">
+                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 theme-text-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value="${escapeHTML(uiState.registroSearch[groupId] || '')}"
+                  placeholder="Filtrar alumnos en ${escapeHTML(groupId)}..."
+                  class="group-search-input w-full rounded-xl pl-10 pr-3.5 py-2.5 text-sm theme-input"
+                />
+              </div>
+            </div>
+
+            <!-- Sub-barra de conteo y desmarcar -->
+            <div class="flex items-center justify-between text-xs theme-text-secondary border-b theme-border pb-2">
+              <span>${allStudents.length} ${allStudents.length === 1 ? 'alumno ordenado' : 'alumnos ordenados'} alfabéticamente</span>
+              <button type="button" class="btn-clear-group-checks font-semibold hover:underline" style="color: var(--accent);">
+                Desmarcar todos
+              </button>
+            </div>
+
+            <!-- Listado alfabético de alumnos con casilla, editar nombre y eliminar -->
+            <div class="group-students-grid grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[48vh] overflow-y-auto pr-0.5"></div>
+
+            <!-- Pie del acordeón: Resumen de faltas y botón Guardar -->
+            <div class="pt-3 border-t theme-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-xl" style="background-color: var(--danger-soft); color: var(--danger-text);">
+                  ${checkedSet.size} ${checkedSet.size === 1 ? 'falta marcada' : 'faltas marcadas'}
+                </span>
+                <span class="text-xs font-semibold theme-text-muted">
+                  (${allStudents.length > 0 ? ((checkedSet.size / allStudents.length) * 100).toFixed(1) : '0.0'}%)
+                </span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                ${sessionExists ? `
+                  <button
+                    type="button"
+                    class="btn-delete-group-session px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-colors"
+                    style="border-color: var(--danger-border); color: var(--danger-text); background-color: var(--danger-soft);"
+                  >
+                    Eliminar sesión
+                  </button>
+                ` : ''}
+                <button
+                  type="button"
+                  class="btn-save-group-attendance flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-sm font-extrabold theme-accent-bg shadow-sm transition-all disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  ${!isValidDate ? 'disabled' : ''}
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Guardar</span>
+                </button>
+              </div>
+            </div>
+          `;
+
+          // Enlazar eventos del acordeón
+          body.querySelector('.group-date-input').addEventListener('change', (e) => {
+            if (e.target.value) {
+              uiState.registroDates[groupId] = e.target.value;
+              syncGroupRegistroChecksFromState(groupId);
+              renderRegistroView();
+            }
+          });
+
+          const snapBtn = body.querySelector('.btn-snap-date');
+          if (snapBtn) {
+            snapBtn.addEventListener('click', () => {
+              uiState.registroDates[groupId] = nearestIso;
+              syncGroupRegistroChecksFromState(groupId);
+              renderRegistroView();
+              showToast(`Fecha de ${groupId} ajustada al ${formatShortDate(nearestIso)}.`);
+            });
+          }
+
+          body.querySelector('.add-student-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = body.querySelector('.new-student-input');
+            const clean = cleanStudentName(input.value);
+            if (!clean) {
+              showToast('Escribe el nombre del alumno antes de agregar.', 'warning');
+              return;
+            }
+            const added = addStudentIfMissing(groupId, clean);
+            if (added) {
+              saveStateToStorage();
+              renderRegistroView();
+              showToast(`"${clean}" agregado y ordenado alfabéticamente en ${groupId}.`);
+            } else {
+              showToast(`El alumno "${clean}" ya existe en ${groupId}.`, 'warning');
+            }
+          });
+
+          body.querySelector('.group-search-input').addEventListener('input', (e) => {
+            uiState.registroSearch[groupId] = e.target.value;
+            renderGroupStudentsChecklist(body.querySelector('.group-students-grid'), groupId);
+          });
+
+          body.querySelector('.btn-clear-group-checks').addEventListener('click', () => {
+            uiState.registroChecked[groupId].clear();
+            renderRegistroView();
+          });
+
+          const delSessBtn = body.querySelector('.btn-delete-group-session');
+          if (delSessBtn) {
+            delSessBtn.addEventListener('click', () => handleDeleteGroupSession(groupId, dateIso));
+          }
+
+          body.querySelector('.btn-save-group-attendance').addEventListener('click', () => {
+            handleSaveGroupAttendance(groupId);
+          });
+
+          // Renderizar las tarjetas de alumnos dentro del acordeón
+          renderGroupStudentsChecklist(body.querySelector('.group-students-grid'), groupId);
+
+          accordion.appendChild(body);
+          container.appendChild(accordion);
+        });
+      }
+
+      function renderGroupStudentsChecklist(gridEl, groupId) {
+        const allStudents = (appState.students[groupId] || []).slice().sort(compareSpanishNames);
+        const searchTerm = (uiState.registroSearch[groupId] || '').trim().toLowerCase();
+        const filtered = searchTerm
+          ? allStudents.filter(st => st.toLowerCase().includes(searchTerm))
+          : allStudents;
+
+        const checkedSet = uiState.registroChecked[groupId];
+        gridEl.innerHTML = '';
+
+        if (filtered.length === 0) {
+          gridEl.innerHTML = `
+            <div class="col-span-full text-center py-7 px-4 rounded-xl border border-dashed theme-border theme-text-muted text-xs sm:text-sm">
+              ${allStudents.length === 0
+                ? `Aún no hay alumnos registrados en ${escapeHTML(groupId)}. Agrega el primero arriba.`
+                : 'Ningún alumno coincide con el filtro.'}
+            </div>
+          `;
+          return;
+        }
+
+        filtered.forEach(studentName => {
+          const isChecked = checkedSet.has(studentName);
+          const isEditingThis =
+            uiState.editingStudent &&
+            uiState.editingStudent.group === groupId &&
+            uiState.editingStudent.oldName === studentName;
+
+          const card = document.createElement('div');
+          card.className = `rounded-xl border p-3 flex items-center justify-between gap-2 transition-all ${
+            isChecked ? 'student-row-absent' : 'theme-surface-alt theme-border theme-hover'
+          } ${isEditingThis ? '' : 'cursor-pointer select-none'}`;
+
+          if (isEditingThis) {
+            // MODO EDICIÓN EN LÍNEA LIMPIA (Enter = Guardar, Escape = Cancelar)
             card.innerHTML = `
-              <label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                <input
+                  type="text"
+                  class="inline-edit-name-input flex-1 min-w-0 rounded-lg px-2.5 py-1.5 text-sm font-semibold theme-input"
+                  value="${escapeHTML(studentName)}"
+                  aria-label="Editar nombre de ${escapeHTML(studentName)}"
+                />
+                <button
+                  type="button"
+                  class="btn-confirm-rename p-1.5 rounded-lg theme-accent-bg shrink-0"
+                  title="Guardar nombre (Enter)"
+                  aria-label="Guardar nombre"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="btn-cancel-rename p-1.5 rounded-lg border theme-border theme-surface theme-hover shrink-0"
+                  title="Cancelar edición (Escape)"
+                  aria-label="Cancelar edición"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            `;
+
+            const editInput = card.querySelector('.inline-edit-name-input');
+            const saveEdit = () => {
+              const res = renameStudentInGroup(groupId, studentName, editInput.value);
+              if (!res.ok) {
+                if (res.reason === 'empty') {
+                  showToast('El nombre del alumno no puede quedar vacío.', 'warning');
+                } else if (res.reason === 'duplicate') {
+                  showToast(`Ya existe "${res.name}" en ${groupId}.`, 'warning');
+                }
+                editInput.focus();
+                return;
+              }
+              uiState.editingStudent = null;
+              renderRegistroView();
+              if (!res.unchanged) {
+                showToast(`Nombre actualizado a "${res.newName}" y ordenado alfabéticamente.`);
+              }
+            };
+
+            const cancelEdit = () => {
+              uiState.editingStudent = null;
+              renderRegistroView();
+            };
+
+            card.querySelector('.btn-confirm-rename').addEventListener('click', (e) => {
+              e.stopPropagation();
+              saveEdit();
+            });
+
+            card.querySelector('.btn-cancel-rename').addEventListener('click', (e) => {
+              e.stopPropagation();
+              cancelEdit();
+            });
+
+            editInput.addEventListener('click', (e) => e.stopPropagation());
+            editInput.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                saveEdit();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEdit();
+              }
+            });
+
+            requestAnimationFrame(() => {
+              editInput.focus();
+              editInput.select();
+            });
+          } else {
+            // MODO NORMAL CON CASILLA + BOTÓN EDITAR (LÁPIZ) + BOTÓN ELIMINAR
+            card.innerHTML = `
+              <div class="flex items-center gap-2.5 flex-1 min-w-0">
                 <input
                   type="checkbox"
-                  class="w-5 h-5 rounded cursor-pointer shrink-0"
+                  class="student-absent-checkbox w-5 h-5 rounded cursor-pointer shrink-0"
                   style="accent-color: var(--danger-text);"
                   ${isChecked ? 'checked' : ''}
                 />
                 <span class="text-sm font-semibold truncate">${escapeHTML(studentName)}</span>
-              </label>
-              <div class="flex items-center gap-1.5 shrink-0">
+              </div>
+
+              <div class="flex items-center gap-1 shrink-0">
                 ${isChecked
-                  ? `<span class="text-[11px] font-extrabold px-2 py-0.5 rounded-full" style="background-color: var(--danger-text); color: #fff;">Falta</span>`
-                  : `<span class="text-[11px] font-medium theme-text-muted">Presente</span>`
-                }
-                ${uiState.registroManageMode
-                  ? `<button type="button" class="btn-remove-student p-1.5 rounded-lg hover:bg-red-500/15 text-red-500" title="Eliminar alumno del grupo">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>`
+                  ? `<span class="text-[11px] font-extrabold px-2 py-0.5 rounded-full mr-0.5" style="background-color: var(--danger-text); color: #fff;">Falta</span>`
                   : ''
                 }
+                <button
+                  type="button"
+                  class="btn-edit-student p-1.5 rounded-lg theme-hover theme-text-secondary transition-colors"
+                  title="Editar nombre del alumno"
+                  aria-label="Editar nombre de ${escapeHTML(studentName)}"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="btn-remove-student p-1.5 rounded-lg hover:bg-red-500/15 transition-colors"
+                  style="color: var(--danger-text);"
+                  title="Eliminar alumno del grupo"
+                  aria-label="Eliminar a ${escapeHTML(studentName)}"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </div>
             `;
 
-            const checkbox = card.querySelector('input[type="checkbox"]');
+            const checkbox = card.querySelector('.student-absent-checkbox');
             card.addEventListener('click', (e) => {
-              if (e.target.closest('.btn-remove-student')) return;
+              if (e.target.closest('.btn-edit-student') || e.target.closest('.btn-remove-student')) {
+                return;
+              }
               if (e.target !== checkbox) {
                 checkbox.checked = !checkbox.checked;
               }
               if (checkbox.checked) {
-                uiState.registroChecked.add(studentName);
+                checkedSet.add(studentName);
               } else {
-                uiState.registroChecked.delete(studentName);
+                checkedSet.delete(studentName);
               }
               renderRegistroView();
             });
 
-            const removeBtn = card.querySelector('.btn-remove-student');
-            if (removeBtn) {
-              removeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                confirmRemoveStudentFromGroup(uiState.registroGroup, studentName);
-              });
-            }
+            card.querySelector('.btn-edit-student').addEventListener('click', (e) => {
+              e.stopPropagation();
+              uiState.editingStudent = { group: groupId, oldName: studentName };
+              renderRegistroView();
+            });
 
-            listContainer.appendChild(card);
-          });
-        }
+            card.querySelector('.btn-remove-student').addEventListener('click', (e) => {
+              e.stopPropagation();
+              confirmRemoveStudentFromGroup(groupId, studentName);
+            });
+          }
 
-        // Actualizar contador inferior
-        const checkedCount = uiState.registroChecked.size;
-        const pct = allStudents.length > 0 ? ((checkedCount / allStudents.length) * 100).toFixed(1) : '0.0';
-        document.getElementById('registroAbsentCounterBadge').textContent =
-          `${checkedCount} ${checkedCount === 1 ? 'falta marcada' : 'faltas marcadas'}`;
-        document.getElementById('registroSessionPctPreview').textContent =
-          `(${pct}% de inasistencia)`;
+          gridEl.appendChild(card);
+        });
       }
 
       function confirmRemoveStudentFromGroup(groupId, studentName) {
@@ -1397,12 +1605,12 @@
             el.querySelector('#cancelRemoveStBtn').addEventListener('click', closeModal);
             el.querySelector('#confirmRemoveStBtn').addEventListener('click', () => {
               appState.students[groupId] = appState.students[groupId].filter(
-                s => s.toLowerCase() !== studentName.toLowerCase()
+                s => compareSpanishNames(s, studentName) !== 0
               );
               appState.absences = appState.absences.filter(
-                a => !(a.group === groupId && a.student.toLowerCase() === studentName.toLowerCase())
+                a => !(a.group === groupId && compareSpanishNames(a.student, studentName) === 0)
               );
-              uiState.registroChecked.delete(studentName);
+              uiState.registroChecked[groupId].delete(studentName);
               saveStateToStorage();
               closeModal();
               renderRegistroView();
@@ -1412,40 +1620,37 @@
         );
       }
 
-      function handleSaveAttendance() {
-        if (!isRegistroDateValid()) {
+      function handleSaveGroupAttendance(groupId) {
+        const dt = uiState.registroDates[groupId];
+        if (!isGroupDateValid(groupId, dt)) {
           showToast('Selecciona una fecha válida para este grupo antes de guardar.', 'warning');
           return;
         }
 
-        const grp = uiState.registroGroup;
-        const dt = uiState.registroDate;
+        const checkedSet = uiState.registroChecked[groupId];
 
-        // Registrar la sesión oficialmente (incluso si tuvo 0 faltas)
-        addSessionUnique(grp, dt);
+        // Registrar la sesión oficialmente (incluso con 0 faltas)
+        addSessionUnique(groupId, dt);
 
         // Reemplazar faltas previas de esta fecha y grupo
-        appState.absences = appState.absences.filter(a => !(a.group === grp && a.date === dt));
+        appState.absences = appState.absences.filter(a => !(a.group === groupId && a.date === dt));
 
-        uiState.registroChecked.forEach(studentName => {
-          addAbsenceUnique(grp, studentName, dt);
+        checkedSet.forEach(studentName => {
+          addAbsenceUnique(groupId, studentName, dt);
         });
 
         saveStateToStorage();
         renderRegistroView();
-        showToast(`Asistencia guardada para ${grp} (${formatShortDate(dt)}): ${uiState.registroChecked.size} faltas.`);
+        showToast(`Asistencia guardada para ${groupId} (${formatShortDate(dt)}): ${checkedSet.size} faltas.`);
       }
 
-      function handleDeleteCurrentSession() {
-        const grp = uiState.registroGroup;
-        const dt = uiState.registroDate;
-
+      function handleDeleteGroupSession(groupId, dt) {
         openModal(
           'Eliminar sesión registrada',
           `
             <div class="space-y-4">
               <p class="text-sm theme-text-secondary">
-                ¿Seguro que deseas eliminar la sesión del <strong>${formatShortDate(dt)}</strong> en <strong>${escapeHTML(grp)}</strong>? Se borrarán todas las faltas registradas en esa fecha.
+                ¿Seguro que deseas eliminar la sesión del <strong>${formatShortDate(dt)}</strong> en <strong>${escapeHTML(groupId)}</strong>? Se borrarán todas las faltas registradas en esa fecha.
               </p>
               <div class="flex justify-end gap-2">
                 <button type="button" id="cancelDelSessBtn" class="px-4 py-2 rounded-xl border theme-border text-sm font-semibold theme-hover">Cancelar</button>
@@ -1456,20 +1661,20 @@
           (el) => {
             el.querySelector('#cancelDelSessBtn').addEventListener('click', closeModal);
             el.querySelector('#confirmDelSessBtn').addEventListener('click', () => {
-              appState.sessions = appState.sessions.filter(s => !(s.group === grp && s.date === dt));
-              appState.absences = appState.absences.filter(a => !(a.group === grp && a.date === dt));
-              uiState.registroChecked.clear();
+              appState.sessions = appState.sessions.filter(s => !(s.group === groupId && s.date === dt));
+              appState.absences = appState.absences.filter(a => !(a.group === groupId && a.date === dt));
+              uiState.registroChecked[groupId].clear();
               saveStateToStorage();
               closeModal();
               renderRegistroView();
-              showToast(`Sesión del ${formatShortDate(dt)} eliminada.`);
+              showToast(`Sesión del ${formatShortDate(dt)} eliminada en ${groupId}.`);
             });
           }
         );
       }
 
       /* ----------------------------------------------------------------------
-         8. VISTA 2: DATOS DE INASISTENCIA (RANKING Y EDICIÓN PUNTUAL)
+         8. VISTA 2: DATOS DE INASISTENCIA (ACORDEONES, EDICIÓN DE NOMBRE Y FALTAS)
          ---------------------------------------------------------------------- */
       function populateMonthDropdowns() {
         const months = getRegisteredMonths();
@@ -1530,6 +1735,7 @@
         container.innerHTML = '';
 
         targetGroups.forEach(cfg => {
+          const isExpanded = uiState.expandedDatosGroups.has(cfg.id);
           const matrix = getRankedGroupMatrix(cfg.id, ymFilter);
           let entries = matrix.rankedStudents;
 
@@ -1545,18 +1751,23 @@
 
           card.innerHTML = `
             <div class="p-4 sm:p-5 border-b theme-border theme-surface-alt flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="space-y-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h3 class="text-base sm:text-lg font-extrabold">${escapeHTML(cfg.id)}</h3>
-                  <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-accent-soft">${cfg.dayNameCap}</span>
+              <button type="button" class="btn-toggle-datos-accordion flex items-center gap-2.5 text-left flex-1 min-w-0">
+                <svg class="w-5 h-5 theme-text-secondary shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+                <div class="space-y-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="text-base sm:text-lg font-extrabold">${escapeHTML(cfg.id)}</h3>
+                    <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-accent-soft">${cfg.dayNameCap}</span>
+                  </div>
+                  <p class="text-xs theme-text-secondary">
+                    <strong>${matrix.stats.studentsCount}</strong> alumnos ·
+                    <strong>${matrix.stats.sessionsCount}</strong> ${matrix.stats.sessionsCount === 1 ? 'sesión' : 'sesiones'} ·
+                    <strong>${matrix.stats.totalAbsences}</strong> ${matrix.stats.totalAbsences === 1 ? 'falta' : 'faltas'}
+                    (<strong>${matrix.stats.pct.toFixed(1)}%</strong>)
+                  </p>
                 </div>
-                <p class="text-xs theme-text-secondary">
-                  <strong>${matrix.stats.studentsCount}</strong> alumnos ·
-                  <strong>${matrix.stats.sessionsCount}</strong> ${matrix.stats.sessionsCount === 1 ? 'sesión' : 'sesiones'} ·
-                  <strong>${matrix.stats.totalAbsences}</strong> ${matrix.stats.totalAbsences === 1 ? 'falta' : 'faltas'}
-                  (<strong>${matrix.stats.pct.toFixed(1)}%</strong>)
-                </p>
-              </div>
+              </button>
 
               <button
                 type="button"
@@ -1570,8 +1781,17 @@
               </button>
             </div>
 
-            <div class="p-4 sm:p-5 space-y-2.5 group-students-list"></div>
+            <div class="p-4 sm:p-5 space-y-2.5 group-students-list ${isExpanded ? '' : 'hidden'}"></div>
           `;
+
+          card.querySelector('.btn-toggle-datos-accordion').addEventListener('click', () => {
+            if (uiState.expandedDatosGroups.has(cfg.id)) {
+              uiState.expandedDatosGroups.delete(cfg.id);
+            } else {
+              uiState.expandedDatosGroups.add(cfg.id);
+            }
+            renderDatosView();
+          });
 
           card.querySelector('.btn-edit-group-session').addEventListener('click', () => {
             openEditGroupSessionModal(cfg.id, ymFilter);
@@ -1608,11 +1828,21 @@
 
               row.innerHTML = `
                 <div class="space-y-1 min-w-0">
-                  <div class="flex items-center gap-2 min-w-0">
+                  <div class="flex items-center gap-1.5 min-w-0">
                     <span class="text-xs font-extrabold px-2 py-0.5 rounded-md shrink-0 ${entry.count > 0 ? 'theme-accent-soft' : 'theme-surface border theme-border theme-text-muted'}">
                       #${entry.rank}
                     </span>
                     <p class="font-bold text-sm truncate">${escapeHTML(entry.student)}</p>
+                    <button
+                      type="button"
+                      class="btn-rename-from-datos p-1 rounded-lg theme-hover theme-text-secondary shrink-0"
+                      title="Editar nombre del alumno"
+                      aria-label="Editar nombre de ${escapeHTML(entry.student)}"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
                   </div>
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full" style="${entry.count > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
@@ -1629,13 +1859,17 @@
                 </div>
               `;
 
+              row.querySelector('.btn-rename-from-datos').addEventListener('click', () => {
+                openRenameStudentModal(cfg.id, entry.student);
+              });
+
               row.querySelectorAll('.btn-delete-single-absence').forEach(delBtn => {
                 delBtn.addEventListener('click', () => {
                   const g = delBtn.getAttribute('data-group');
                   const st = delBtn.getAttribute('data-student');
                   const dt = delBtn.getAttribute('data-date');
                   appState.absences = appState.absences.filter(
-                    a => !(a.group === g && a.student.toLowerCase() === st.toLowerCase() && a.date === dt)
+                    a => !(a.group === g && compareSpanishNames(a.student, st) === 0 && a.date === dt)
                   );
                   saveStateToStorage();
                   renderDatosView();
@@ -1649,6 +1883,61 @@
 
           container.appendChild(card);
         });
+      }
+
+      function openRenameStudentModal(groupId, currentName) {
+        openModal(
+          `Editar nombre — ${groupId}`,
+          `
+            <form id="renameStudentModalForm" class="space-y-4">
+              <div>
+                <label for="modalRenameStudentInput" class="block text-xs font-bold theme-text-secondary mb-1.5">
+                  Nuevo nombre del alumno
+                </label>
+                <input
+                  type="text"
+                  id="modalRenameStudentInput"
+                  value="${escapeHTML(currentName)}"
+                  class="w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold theme-input"
+                  autocomplete="off"
+                />
+                <p class="text-[11px] theme-text-muted mt-1.5">
+                  Se actualizarán todas sus faltas históricas y la lista se ordenará alfabéticamente.
+                </p>
+              </div>
+              <div class="flex justify-end gap-2">
+                <button type="button" id="cancelRenameModalBtn" class="px-4 py-2 rounded-xl border theme-border text-sm font-semibold theme-hover">Cancelar</button>
+                <button type="submit" class="px-4 py-2 rounded-xl text-sm font-bold theme-accent-bg">Guardar cambio</button>
+              </div>
+            </form>
+          `,
+          (el) => {
+            const input = el.querySelector('#modalRenameStudentInput');
+            el.querySelector('#cancelRenameModalBtn').addEventListener('click', closeModal);
+            el.querySelector('#renameStudentModalForm').addEventListener('submit', (e) => {
+              e.preventDefault();
+              const res = renameStudentInGroup(groupId, currentName, input.value);
+              if (!res.ok) {
+                if (res.reason === 'empty') {
+                  showToast('El nombre del alumno no puede estar vacío.', 'warning');
+                } else if (res.reason === 'duplicate') {
+                  showToast(`Ya existe "${res.name}" en ${groupId}.`, 'warning');
+                }
+                input.focus();
+                return;
+              }
+              closeModal();
+              renderDatosView();
+              if (!res.unchanged) {
+                showToast(`Alumno renombrado a "${res.newName}" y ordenado alfabéticamente.`);
+              }
+            });
+            requestAnimationFrame(() => {
+              input.focus();
+              input.select();
+            });
+          }
+        );
       }
 
       function openEditGroupSessionModal(groupId, ymFilter) {
@@ -1693,8 +1982,8 @@
             el.querySelector('#closeEditSessModalBtn').addEventListener('click', closeModal);
             el.querySelectorAll('.pick-session-btn').forEach(btn => {
               btn.addEventListener('click', () => {
-                uiState.registroGroup = groupId;
-                uiState.registroDate = btn.getAttribute('data-date');
+                uiState.expandedRegistroGroups.add(groupId);
+                uiState.registroDates[groupId] = btn.getAttribute('data-date');
                 closeModal();
                 switchTab('registro');
               });
@@ -1704,14 +1993,11 @@
       }
 
       /* ----------------------------------------------------------------------
-         9. VISTA 3: GRÁFICO DE BARRAS PORCENTUAL (SVG + HTML RESPONSIVO)
+         9. VISTA 3: GRÁFICA DE BARRAS VERTICAL (0% A 100%)
          ---------------------------------------------------------------------- */
       function renderGraficoView() {
         const ymFilter = uiState.graficoFilterMonth;
-        const rankGroup = uiState.graficoRankGroup;
-        const topLimit = uiState.graficoTopLimit;
 
-        // 1) Gráfico por Grupo
         const groupsData = GROUPS_CONFIG.map(cfg => {
           const stats = getGroupPeriodStats(cfg.id, ymFilter);
           return {
@@ -1728,196 +2014,158 @@
         document.getElementById('graficoGroupTotalTag').textContent =
           `${totalAbsAll} ${totalAbsAll === 1 ? 'falta total' : 'faltas totales'}`;
 
-        const groupChartContainer = document.getElementById('graficoGroupsChartContainer');
-        groupChartContainer.innerHTML = groupsData.map(g => {
-          const widthPct = Math.min(100, Math.max(0, g.pct));
-          return `
-            <div class="rounded-xl border theme-border theme-surface-alt p-3.5 space-y-2">
-              <div class="flex items-center justify-between gap-2 text-xs sm:text-sm">
-                <div class="flex items-center gap-2">
-                  <span class="font-extrabold">${escapeHTML(g.id)}</span>
-                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full theme-surface border theme-border theme-text-muted">
-                    ${g.dayName}
-                  </span>
-                </div>
-                <div class="text-right">
-                  <span class="font-extrabold text-sm sm:text-base" style="color: var(--accent);">${g.pct.toFixed(1)}%</span>
-                  <span class="text-xs theme-text-muted ml-1.5">(${g.absences} faltas / ${g.sessions} ses.)</span>
-                </div>
+        // Renderizar gráfico de barras vertical (0% a 100%)
+        const chartContainer = document.getElementById('graficoVerticalChartContainer');
+        const yTicks = [100, 75, 50, 25, 0];
+
+        chartContainer.innerHTML = `
+          <div class="relative pt-4 pb-2">
+            <!-- Área del gráfico con líneas guía horizontales -->
+            <div class="relative h-64 sm:h-72 flex items-end pl-10 sm:pl-12 pr-2 sm:pr-6">
+              <!-- Líneas de referencia 0% - 100% -->
+              <div class="absolute inset-0 left-10 sm:left-12 right-2 sm:right-6 flex flex-col justify-between pointer-events-none">
+                ${yTicks.map(tick => `
+                  <div class="relative w-full border-b theme-border ${tick === 0 ? 'border-solid' : 'border-dashed'}">
+                    <span class="absolute -left-10 sm:-left-12 -top-2.5 text-[11px] font-bold theme-text-muted w-8 text-right">
+                      ${tick}%
+                    </span>
+                  </div>
+                `).join('')}
               </div>
 
-              <svg class="w-full h-4 rounded-full overflow-hidden block" role="img" aria-label="${escapeHTML(g.id)}: ${g.pct.toFixed(1)}%">
-                <rect x="0" y="0" width="100%" height="100%" rx="8" fill="var(--border-color)" opacity="0.55"></rect>
-                <rect x="0" y="0" width="${widthPct}%" height="100%" rx="8" fill="var(--accent)"></rect>
-              </svg>
-            </div>
-          `;
-        }).join('');
-
-        // 2) Ranking Visual de Alumnos con Mayor % de Faltas
-        const targetGroups = rankGroup === 'ALL'
-          ? GROUPS_CONFIG
-          : GROUPS_CONFIG.filter(g => g.id === rankGroup);
-
-        let allRanked = [];
-        targetGroups.forEach(cfg => {
-          const matrix = getRankedGroupMatrix(cfg.id, ymFilter);
-          matrix.rankedStudents.forEach(st => {
-            if (st.count > 0) {
-              allRanked.push({
-                ...st,
-                groupId: cfg.id,
-                sessionsCount: matrix.stats.sessionsCount
-              });
-            }
-          });
-        });
-
-        allRanked.sort((a, b) => b.pctNum - a.pctNum || b.count - a.count || a.student.localeCompare(b.student, 'es'));
-
-        if (topLimit !== 'ALL') {
-          allRanked = allRanked.slice(0, Number(topLimit));
-        }
-
-        const rankContainer = document.getElementById('graficoStudentsRankingContainer');
-        if (allRanked.length === 0) {
-          rankContainer.innerHTML = `
-            <div class="text-center py-8 rounded-xl border border-dashed theme-border theme-text-muted text-xs sm:text-sm">
-              No hay inasistencias registradas en este período para graficar.
-            </div>
-          `;
-          return;
-        }
-
-        rankContainer.innerHTML = allRanked.map((st, idx) => {
-          const barWidth = Math.min(100, Math.max(2, st.pctNum));
-          const isHigh = st.pctNum >= 50;
-          const barColor = isHigh ? 'var(--danger-text)' : 'var(--accent)';
-
-          return `
-            <div class="rounded-xl border theme-border theme-surface-alt p-3 space-y-1.5">
-              <div class="flex items-center justify-between gap-2 text-xs sm:text-sm">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-[11px] font-extrabold px-2 py-0.5 rounded-md theme-accent-soft shrink-0">#${idx + 1}</span>
-                  <span class="font-bold truncate">${escapeHTML(st.student)}</span>
-                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full theme-surface border theme-border theme-text-muted shrink-0">
-                    ${escapeHTML(st.groupId)}
-                  </span>
-                </div>
-                <div class="shrink-0 text-right">
-                  <span class="font-extrabold" style="color: ${barColor};">${st.pctStr}</span>
-                  <span class="text-xs theme-text-muted ml-1">(${st.count}/${st.sessionsCount})</span>
-                </div>
+              <!-- Columnas verticales de los 3 grupos -->
+              <div class="relative z-10 w-full h-full grid grid-cols-3 gap-4 sm:gap-10 items-end pt-2">
+                ${groupsData.map(g => {
+                  const clampedPct = Math.min(100, Math.max(0, g.pct));
+                  const barHeightPct = clampedPct > 0 ? Math.max(3, clampedPct) : 0;
+                  return `
+                    <div class="h-full flex flex-col items-center justify-end group">
+                      <span class="text-xs sm:text-sm font-extrabold mb-1.5 px-2 py-0.5 rounded-lg theme-surface-alt border theme-border" style="color: var(--accent);">
+                        ${g.pct.toFixed(1)}%
+                      </span>
+                      <div class="w-12 sm:w-20 md:w-24 h-full flex items-end justify-center">
+                        <div
+                          class="vertical-bar-fill w-full rounded-t-xl shadow-sm"
+                          style="height: ${barHeightPct}%; background-color: var(--accent);"
+                          title="${escapeHTML(g.id)}: ${g.pct.toFixed(1)}% (${g.absences} faltas en ${g.sessions} sesiones)"
+                        ></div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
               </div>
-
-              <svg class="w-full h-3 rounded-full overflow-hidden block" role="img" aria-label="${escapeHTML(st.student)}: ${st.pctStr}">
-                <rect x="0" y="0" width="100%" height="100%" rx="6" fill="var(--border-color)" opacity="0.5"></rect>
-                <rect x="0" y="0" width="${barWidth}%" height="100%" rx="6" fill="${barColor}"></rect>
-              </svg>
             </div>
-          `;
-        }).join('');
+
+            <!-- Etiquetas del eje X -->
+            <div class="grid grid-cols-3 gap-4 sm:gap-10 pl-10 sm:pl-12 pr-2 sm:pr-6 pt-3 text-center">
+              ${groupsData.map(g => `
+                <div class="min-w-0">
+                  <p class="text-xs sm:text-sm font-extrabold truncate">${escapeHTML(g.id)}</p>
+                  <p class="text-[11px] theme-text-muted">${g.dayName}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        // Tarjetas resumen por grupo
+        const cardsContainer = document.getElementById('graficoSummaryCardsContainer');
+        cardsContainer.innerHTML = groupsData.map(g => `
+          <div class="rounded-2xl border theme-surface p-4 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-extrabold">${escapeHTML(g.id)}</span>
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-accent-soft">${g.dayName}</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <span class="text-2xl font-extrabold" style="color: var(--accent);">${g.pct.toFixed(1)}%</span>
+              <span class="text-xs theme-text-muted">de inasistencia</span>
+            </div>
+            <div class="pt-2 border-t theme-border grid grid-cols-3 gap-1 text-center text-xs">
+              <div>
+                <p class="font-extrabold">${g.students}</p>
+                <p class="text-[11px] theme-text-muted">Alumnos</p>
+              </div>
+              <div>
+                <p class="font-extrabold">${g.sessions}</p>
+                <p class="text-[11px] theme-text-muted">Sesiones</p>
+              </div>
+              <div>
+                <p class="font-extrabold" style="color: var(--danger-text);">${g.absences}</p>
+                <p class="text-[11px] theme-text-muted">Faltas</p>
+              </div>
+            </div>
+          </div>
+        `).join('');
       }
 
       /* ----------------------------------------------------------------------
-         10. EXPORTACIÓN A EXCEL DE UNA SOLA PESTAÑA (`Ranking_Por_Grupo`)
+         10. EXPORTACIÓN A EXCEL (3 OPCIONES: TODO / MES ESPECÍFICO / HOJAS MENSUALES)
          ---------------------------------------------------------------------- */
-      function buildSingleSheetRankingPorGrupo(ymFilter) {
-        const periodLabel = formatMonthYearLabel(ymFilter);
-        const generatedDate = formatShortDate(toISODateLocal(new Date()));
+      function buildStandardWorkbookSheets(ymFilter) {
+        // 1) Hoja Historial_Inasistencias
+        const filteredAbsences = appState.absences
+          .filter(a => ymFilter === 'ALL' || a.date.startsWith(ymFilter))
+          .slice()
+          .sort((a, b) => a.group.localeCompare(b.group, 'es') || a.date.localeCompare(b.date) || compareSpanishNames(a.student, b.student));
 
-        const aoa = [
-          ['SISTEMA DE INASISTENCIAS — REPORTE AGRUPADO POR GRUPO Y RANKING DE FALTAS'],
-          [`Período: ${periodLabel} | Generado: ${generatedDate}`],
-          [],
-          ['RESUMEN EJECUTIVO POR GRUPO'],
-          ['Grupo', 'Día de Clase', 'Total Alumnos', 'Alumnos con Faltas', 'Total Faltas', '% Inasistencia']
-        ];
-
-        let grandStudents = 0;
-        let grandWithAbs = 0;
-        let grandAbsences = 0;
-        let grandDenominator = 0;
-
-        GROUPS_CONFIG.forEach(cfg => {
-          const data = getRankedGroupMatrix(cfg.id, ymFilter);
-          aoa.push([
-            cfg.id,
-            cfg.dayNameCap,
-            data.stats.studentsCount,
-            data.studentsWithAbsencesCount,
-            data.stats.totalAbsences,
-            `${data.stats.pct.toFixed(1)}%`
-          ]);
-          grandStudents += data.stats.studentsCount;
-          grandWithAbs += data.studentsWithAbsencesCount;
-          grandAbsences += data.stats.totalAbsences;
-          grandDenominator += data.stats.studentsCount * data.stats.sessionsCount;
+        const historialRows = filteredAbsences.map(a => {
+          const d = parseLocalDate(a.date);
+          const dayName = d ? SPANISH_DAYS[d.getDay()] : '';
+          const monthLabel = formatMonthYearLabel(a.date.slice(0, 7));
+          return {
+            Grupo: a.group,
+            Alumno: a.student,
+            Fecha: a.date,
+            Dia: dayName,
+            Mes: monthLabel
+          };
         });
 
-        const grandPct = grandDenominator > 0
-          ? `${((grandAbsences / grandDenominator) * 100).toFixed(1)}%`
-          : '0.0%';
+        const wsHistorial = historialRows.length > 0
+          ? XLSX.utils.json_to_sheet(historialRows)
+          : XLSX.utils.aoa_to_sheet([['Grupo', 'Alumno', 'Fecha', 'Dia', 'Mes']]);
+        wsHistorial['!cols'] = [{ wch: 15 }, { wch: 28 }, { wch: 14 }, { wch: 14 }, { wch: 18 }];
 
-        aoa.push(['Total General', '-', grandStudents, grandWithAbs, grandAbsences, grandPct]);
-        aoa.push([]);
-
-        let maxCols = 6;
-
-        // 3 Bloques separados: MIEMBROS 1, MIEMBROS 2 y MIEMBROS 3
+        // 2) Hoja Resumen_Alumnos
+        const resumenRows = [];
         GROUPS_CONFIG.forEach(cfg => {
-          const data = getRankedGroupMatrix(cfg.id, ymFilter);
-          const dateHeaders = data.sessionDates.map(dt => formatShortDate(dt));
-          const headerRow = ['Puesto', 'Alumno', 'Cantidad Faltas', '% Inasistencia', 'Fechas de Inasistencia', ...dateHeaders];
-          if (headerRow.length > maxCols) maxCols = headerRow.length;
-
-          aoa.push([`${cfg.id.toUpperCase()} (${cfg.dayNameCap.toUpperCase()}) — SESIONES REGISTRADAS: ${data.stats.sessionsCount}`]);
-          aoa.push(headerRow);
-
-          if (data.rankedStudents.length === 0) {
-            aoa.push(['-', 'Sin alumnos inscritos en este grupo', 0, '0.0%', 'Sin faltas']);
-          } else {
-            data.rankedStudents.forEach(st => {
-              const marks = data.sessionDates.map(dt => (st.dateSet.has(dt) ? 'X' : ''));
-              aoa.push([
-                st.rank,
-                st.student,
-                st.count,
-                st.pctStr,
-                st.datesText,
-                ...marks
-              ]);
+          const matrix = getRankedGroupMatrix(cfg.id, ymFilter);
+          matrix.rankedStudents.forEach(st => {
+            resumenRows.push({
+              Grupo: cfg.id,
+              Alumno: st.student,
+              Total_Faltas: st.count,
+              Sesiones_Grupo: matrix.stats.sessionsCount,
+              Porcentaje_Inasistencia: st.pctStr,
+              Fechas_Falta: st.datesText
             });
-          }
-
-          const perDateTotals = data.sessionDates.map(dt =>
-            data.rankedStudents.reduce((acc, st) => acc + (st.dateSet.has(dt) ? 1 : 0), 0)
-          );
-
-          aoa.push([
-            '',
-            `Total ${cfg.id}`,
-            data.stats.totalAbsences,
-            `${data.stats.pct.toFixed(1)}%`,
-            `${data.stats.sessionsCount} sesiones`,
-            ...perDateTotals
-          ]);
-          aoa.push([]);
+          });
         });
 
-        const ws = XLSX.utils.aoa_to_sheet(aoa);
-        const colWidths = [
-          { wch: 10 }, // Puesto / Grupo
-          { wch: 28 }, // Alumno / Día de Clase
-          { wch: 16 }, // Cantidad Faltas
-          { wch: 16 }, // % Inasistencia
-          { wch: 38 }  // Fechas de Inasistencia
-        ];
-        for (let i = 5; i < maxCols; i++) {
-          colWidths.push({ wch: 13 });
-        }
-        ws['!cols'] = colWidths;
-        return ws;
+        const wsResumen = resumenRows.length > 0
+          ? XLSX.utils.json_to_sheet(resumenRows)
+          : XLSX.utils.aoa_to_sheet([['Grupo', 'Alumno', 'Total_Faltas', 'Sesiones_Grupo', 'Porcentaje_Inasistencia', 'Fechas_Falta']]);
+        wsResumen['!cols'] = [{ wch: 15 }, { wch: 28 }, { wch: 14 }, { wch: 16 }, { wch: 22 }, { wch: 36 }];
+
+        // 3) Hoja Listas_Alumnos (ordenada alfabéticamente)
+        const listasRows = [];
+        GROUPS_CONFIG.forEach(cfg => {
+          const roster = (appState.students[cfg.id] || []).slice().sort(compareSpanishNames);
+          roster.forEach(st => {
+            listasRows.push({
+              Grupo: cfg.id,
+              Dia_Clase: cfg.dayNameCap,
+              Alumno: st
+            });
+          });
+        });
+
+        const wsListas = listasRows.length > 0
+          ? XLSX.utils.json_to_sheet(listasRows)
+          : XLSX.utils.aoa_to_sheet([['Grupo', 'Dia_Clase', 'Alumno']]);
+        wsListas['!cols'] = [{ wch: 15 }, { wch: 14 }, { wch: 28 }];
+
+        return { wsHistorial, wsResumen, wsListas };
       }
 
       function openExportExcelModal() {
@@ -1934,18 +2182,27 @@
           `
             <div class="space-y-3.5">
               <p class="text-xs theme-text-secondary">
-                Genera el reporte agrupado por <strong>Miembros 1, 2 y 3</strong> ordenado de <strong>mayor a menor cantidad de faltas</strong>, con fechas exactas y compatibilidad completa de reimportación:
+                Elige cómo deseas descargar tus registros en formato <strong>.xlsx</strong> (incluye <em>Historial_Inasistencias</em>, <em>Resumen_Alumnos</em> y <em>Listas_Alumnos</em>):
               </p>
 
-              <!-- Opción A: Solo un mes específico (1 sola pestaña Ranking_Por_Grupo) -->
+              <!-- Opción 1: Todo el historial -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
-                <input type="radio" name="exportMode" value="single_month" ${hasMonths ? 'checked' : 'disabled'} class="mt-1" style="accent-color: var(--accent);" />
+                <input type="radio" name="exportMode" value="all" checked class="mt-1" style="accent-color: var(--accent);" />
+                <div>
+                  <p class="font-bold text-sm">1. Todo el historial</p>
+                  <p class="text-xs theme-text-secondary">Exporta todos los meses acumulados en <code>Inasistencias_Completo.xlsx</code>.</p>
+                </div>
+              </label>
+
+              <!-- Opción 2: Solo un mes específico -->
+              <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
+                <input type="radio" name="exportMode" value="single_month" ${!hasMonths ? 'disabled' : ''} class="mt-1" style="accent-color: var(--accent);" />
                 <div class="flex-1 min-w-0 space-y-2">
                   <div>
-                    <p class="font-bold text-sm">1. Solo un mes específico</p>
-                    <p class="text-xs theme-text-secondary">Descarga <code>Inasistencias_YYYY-MM_Agrupado.xlsx</code> con <strong>una única pestaña</strong> (<em>Ranking_Por_Grupo</em>).</p>
+                    <p class="font-bold text-sm">2. Solo un mes específico</p>
+                    <p class="text-xs theme-text-secondary">Filtra el historial y recalcula los porcentajes únicamente para las sesiones del mes elegido.</p>
                   </div>
-                  <div id="exportSingleMonthBox" class="${hasMonths ? '' : 'hidden'} pt-1">
+                  <div id="exportSingleMonthBox" class="hidden pt-1">
                     ${hasMonths
                       ? `<select id="exportMonthSelect" class="w-full rounded-xl px-3 py-2 text-xs sm:text-sm font-medium theme-input">
                           ${months.map(ym => `<option value="${ym}">${escapeHTML(formatMonthYearLabel(ym))}</option>`).join('')}
@@ -1956,21 +2213,12 @@
                 </div>
               </label>
 
-              <!-- Opción B: Todo el historial acumulado (1 sola pestaña Ranking_Por_Grupo) -->
-              <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
-                <input type="radio" name="exportMode" value="all" ${!hasMonths ? 'checked' : ''} class="mt-1" style="accent-color: var(--accent);" />
-                <div>
-                  <p class="font-bold text-sm">2. Todo el historial acumulado</p>
-                  <p class="text-xs theme-text-secondary">Descarga <code>Inasistencias_Completo_Agrupado.xlsx</code> con <strong>una única pestaña</strong> (<em>Ranking_Por_Grupo</em>).</p>
-                </div>
-              </label>
-
-              <!-- Opción C: Separado por hojas mensuales -->
+              <!-- Opción 3: Separado por hojas mensuales -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
                 <input type="radio" name="exportMode" value="split_months" ${!hasMonths ? 'disabled' : ''} class="mt-1" style="accent-color: var(--accent);" />
                 <div>
                   <p class="font-bold text-sm">3. Separado por hojas mensuales</p>
-                  <p class="text-xs theme-text-secondary">Descarga <code>Inasistencias_Por_Mes_Agrupado.xlsx</code> con una pestaña agrupada por cada mes registrado.</p>
+                  <p class="text-xs theme-text-secondary">Genera <code>Inasistencias_Por_Mes.xlsx</code> con <em>Listas_Alumnos</em>, <em>Resumen_General</em> y una hoja independiente por cada mes registrado.</p>
                 </div>
               </label>
 
@@ -2000,22 +2248,34 @@
                 const mode = el.querySelector('input[name="exportMode"]:checked').value;
                 const wb = XLSX.utils.book_new();
 
-                if (mode === 'single_month') {
+                if (mode === 'all') {
+                  const { wsHistorial, wsResumen, wsListas } = buildStandardWorkbookSheets('ALL');
+                  XLSX.utils.book_append_sheet(wb, wsHistorial, 'Historial_Inasistencias');
+                  XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen_Alumnos');
+                  XLSX.utils.book_append_sheet(wb, wsListas, 'Listas_Alumnos');
+                  XLSX.writeFile(wb, 'Inasistencias_Completo.xlsx');
+                  showToast('Archivo Inasistencias_Completo.xlsx descargado.');
+                } else if (mode === 'single_month') {
                   const ym = el.querySelector('#exportMonthSelect').value;
-                  XLSX.utils.book_append_sheet(wb, buildSingleSheetRankingPorGrupo(ym), 'Ranking_Por_Grupo');
-                  XLSX.writeFile(wb, `Inasistencias_${ym}_Agrupado.xlsx`);
-                  showToast(`Archivo Inasistencias_${ym}_Agrupado.xlsx descargado.`);
-                } else if (mode === 'all') {
-                  XLSX.utils.book_append_sheet(wb, buildSingleSheetRankingPorGrupo('ALL'), 'Ranking_Por_Grupo');
-                  XLSX.writeFile(wb, 'Inasistencias_Completo_Agrupado.xlsx');
-                  showToast('Archivo Inasistencias_Completo_Agrupado.xlsx descargado.');
+                  const { wsHistorial, wsResumen, wsListas } = buildStandardWorkbookSheets(ym);
+                  XLSX.utils.book_append_sheet(wb, wsHistorial, 'Historial_Inasistencias');
+                  XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen_Alumnos');
+                  XLSX.utils.book_append_sheet(wb, wsListas, 'Listas_Alumnos');
+                  XLSX.writeFile(wb, `Inasistencias_${ym}.xlsx`);
+                  showToast(`Archivo Inasistencias_${ym}.xlsx descargado.`);
                 } else if (mode === 'split_months') {
+                  const { wsResumen: wsResumenGeneral, wsListas } = buildStandardWorkbookSheets('ALL');
+                  XLSX.utils.book_append_sheet(wb, wsListas, 'Listas_Alumnos');
+                  XLSX.utils.book_append_sheet(wb, wsResumenGeneral, 'Resumen_General');
+
                   const chronologicalMonths = months.slice().sort((a, b) => a.localeCompare(b));
                   chronologicalMonths.forEach(ym => {
-                    XLSX.utils.book_append_sheet(wb, buildSingleSheetRankingPorGrupo(ym), ym);
+                    const { wsHistorial } = buildStandardWorkbookSheets(ym);
+                    XLSX.utils.book_append_sheet(wb, wsHistorial, ym);
                   });
-                  XLSX.writeFile(wb, 'Inasistencias_Por_Mes_Agrupado.xlsx');
-                  showToast(`Archivo con ${chronologicalMonths.length} hojas mensuales descargado.`);
+
+                  XLSX.writeFile(wb, 'Inasistencias_Por_Mes.xlsx');
+                  showToast(`Archivo Inasistencias_Por_Mes.xlsx descargado.`);
                 }
 
                 closeModal();
@@ -2029,7 +2289,7 @@
       }
 
       /* ----------------------------------------------------------------------
-         11. IMPORTACIÓN UNIVERSAL DESDE EXCEL (HOJA ÚNICA + LEGACY MULTI-HOJA)
+         11. IMPORTACIÓN UNIVERSAL DESDE EXCEL (CON ORDEN ALFABÉTICO AUTOMÁTICO)
          ---------------------------------------------------------------------- */
       function parseSingleSheetRankedFormat(sheet, statsCounter) {
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
@@ -2151,129 +2411,91 @@
               absencesAdded: 0
             };
 
-            let handledStructured = false;
-
             workbook.SheetNames.forEach(sheetName => {
               const sheet = workbook.Sheets[sheetName];
               if (!sheet) return;
               const lowerSheet = sheetName.trim().toLowerCase();
 
-              // 1. Intentar leer formato de hoja única `Ranking_Por_Grupo` o pestañas mensuales `YYYY-MM`
-              if (
-                lowerSheet === 'ranking_por_grupo' ||
-                /^\d{4}-\d{2}$/.test(lowerSheet) ||
-                parseSingleSheetRankedFormat(sheet, counter)
-              ) {
-                if (lowerSheet === 'ranking_por_grupo' || /^\d{4}-\d{2}$/.test(lowerSheet)) {
-                  parseSingleSheetRankedFormat(sheet, counter);
-                }
-                handledStructured = true;
+              // 1. Intentar leer formato de hoja única `Ranking_Por_Grupo` o bloques con encabezados MIEMBROS 1/2/3
+              if (parseSingleSheetRankedFormat(sheet, counter)) {
                 return;
               }
 
-              // 2. Compatibilidad con hojas legadas: Listas_Alumnos / Resumen_Alumnos
+              // 2. Compatibilidad con hojas estándar: Listas_Alumnos / Resumen_Alumnos
               if (['listas_alumnos', 'alumnos', 'resumen_alumnos', 'resumen_general'].includes(lowerSheet)) {
                 const jsonRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
                 jsonRows.forEach(r => {
                   const grp = normalizeGroupName(r.Grupo || r.grupo || r.Clase);
-                  const st = String(r.Alumno || r.alumno || r.Estudiante || r.Nombre || '').trim();
+                  const st = cleanStudentName(r.Alumno || r.alumno || r.Estudiante || r.Nombre);
                   if (grp && st && !st.toLowerCase().startsWith('total')) {
                     if (addStudentIfMissing(grp, st)) counter.studentsAdded++;
                   }
                 });
-                handledStructured = true;
                 return;
               }
 
-              // 3. Compatibilidad con hojas legadas: Historial_Inasistencias
-              if (['historial_inasistencias', 'historial', 'inasistencias'].includes(lowerSheet)) {
+              // 3. Compatibilidad con hojas estándar: Historial_Inasistencias o pestañas mensuales YYYY-MM
+              if (
+                ['historial_inasistencias', 'historial', 'inasistencias'].includes(lowerSheet) ||
+                /^\d{4}-\d{2}$/.test(lowerSheet)
+              ) {
                 const jsonRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
                 jsonRows.forEach(r => {
                   const grp = normalizeGroupName(r.Grupo || r.grupo || r.Clase);
-                  const st = String(r.Alumno || r.alumno || r.Estudiante || r.Nombre || '').trim();
+                  const st = cleanStudentName(r.Alumno || r.alumno || r.Estudiante || r.Nombre);
                   const dt = normalizeExcelDate(r.Fecha || r.fecha || r.Date);
                   if (grp && st && dt) {
                     if (addAbsenceUnique(grp, st, dt)) counter.absencesAdded++;
                   }
                 });
-                handledStructured = true;
                 return;
               }
 
               // 4. Compatibilidad con hojas individuales por grupo (Miembros 1, Miembros 2, Miembros 3)
-              const tabGroup = normalizeGroupName(sheetName);
-              if (tabGroup) {
-                const aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+              const sheetGroup = normalizeGroupName(sheetName);
+              if (sheetGroup) {
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
                 let headerIdx = -1;
-                let nameCol = 1;
-                let datesTextCol = -1;
-                const dCols = [];
+                let alumnoCol = 0;
+                const dateCols = [];
 
-                for (let i = 0; i < aoa.length; i++) {
-                  const lower = aoa[i].map(c => String(c ?? '').trim().toLowerCase());
-                  const aIdx = lower.findIndex(c => c === 'alumno' || c === 'estudiante' || c === 'nombre');
+                for (let r = 0; r < rows.length; r++) {
+                  const lowerRow = rows[r].map(c => String(c ?? '').trim().toLowerCase());
+                  const aIdx = lowerRow.findIndex(c => c === 'alumno' || c === 'estudiante' || c === 'nombre');
                   if (aIdx !== -1) {
-                    headerIdx = i;
-                    nameCol = aIdx;
-                    datesTextCol = lower.findIndex(c => c.includes('fechas'));
-                    aoa[i].forEach((cell, cIdx) => {
-                      const iso = normalizeExcelDate(cell);
+                    headerIdx = r;
+                    alumnoCol = aIdx;
+                    for (let c = 0; c < rows[r].length; c++) {
+                      const iso = normalizeExcelDate(rows[r][c]);
                       if (iso) {
-                        dCols.push({ cIdx, iso });
-                        if (addSessionUnique(tabGroup, iso)) counter.sessionsAdded++;
+                        dateCols.push({ colIdx: c, isoDate: iso });
+                        if (addSessionUnique(sheetGroup, iso)) counter.sessionsAdded++;
                       }
-                    });
+                    }
                     break;
                   }
                 }
 
                 if (headerIdx !== -1) {
-                  for (let i = headerIdx + 1; i < aoa.length; i++) {
-                    const row = aoa[i];
-                    const st = String(row[nameCol] ?? '').trim();
-                    if (!st || st.toLowerCase().startsWith('total') || st.toLowerCase().startsWith('sin alumnos')) continue;
-                    if (addStudentIfMissing(tabGroup, st)) counter.studentsAdded++;
-
-                    if (datesTextCol !== -1) {
-                      const txt = String(row[datesTextCol] ?? '').trim();
-                      if (txt && txt.toLowerCase() !== 'sin faltas') {
-                        txt.split(/[,;]+/).forEach(p => {
-                          const iso = normalizeExcelDate(p.trim());
-                          if (iso && addAbsenceUnique(tabGroup, st, iso)) counter.absencesAdded++;
-                        });
-                      }
-                    }
-
-                    dCols.forEach(({ cIdx, iso }) => {
-                      const mk = String(row[cIdx] ?? '').trim().toUpperCase();
-                      if (mk === 'X' || mk === '1') {
-                        if (addAbsenceUnique(tabGroup, st, iso)) counter.absencesAdded++;
+                  for (let r = headerIdx + 1; r < rows.length; r++) {
+                    const st = cleanStudentName(rows[r][alumnoCol]);
+                    if (!st || st.toLowerCase().startsWith('total')) continue;
+                    if (addStudentIfMissing(sheetGroup, st)) counter.studentsAdded++;
+                    dateCols.forEach(({ colIdx, isoDate }) => {
+                      const mark = String(rows[r][colIdx] ?? '').trim().toUpperCase();
+                      if (mark === 'X' || mark === '1' || mark === 'SI' || mark === 'SÍ') {
+                        if (addAbsenceUnique(sheetGroup, st, isoDate)) counter.absencesAdded++;
                       }
                     });
                   }
-                  handledStructured = true;
                 }
               }
             });
 
-            // Respaldo genérico si la hoja tenía columnas planas sin nombre estándar
-            if (!handledStructured && workbook.SheetNames.length > 0) {
-              const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-              const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
-              rows.forEach(r => {
-                const grp = normalizeGroupName(r.Grupo || r.grupo || r.Clase);
-                const st = String(r.Alumno || r.alumno || r.Estudiante || r.Nombre || '').trim();
-                const dt = normalizeExcelDate(r.Fecha || r.fecha);
-                if (grp && st) {
-                  if (addStudentIfMissing(grp, st)) counter.studentsAdded++;
-                  if (dt && addAbsenceUnique(grp, st, dt)) counter.absencesAdded++;
-                }
-              });
-            }
-
+            sortAllRosters();
             saveStateToStorage();
             populateMonthDropdowns();
-            syncRegistroChecksFromState();
+            syncAllRegistroChecksFromState();
             switchTab(uiState.activeTab);
 
             showToast(
@@ -2289,8 +2511,82 @@
       }
 
       /* ----------------------------------------------------------------------
-         12. MODALES DE APARIENCIA Y ACERCA DE (VERSIÓN 1.3 — ORION)
+         12. MODALES DE APARIENCIA, ELIMINAR DATOS Y ACERCA DE (VERSIÓN 1.2)
          ---------------------------------------------------------------------- */
+      function openDeleteDataModal() {
+        const months = getRegisteredMonths();
+        const hasMonths = months.length > 0;
+
+        openModal(
+          'Eliminar registros',
+          `
+            <div class="space-y-4">
+              <p class="text-xs theme-text-secondary">
+                Selecciona si deseas borrar las inasistencias de un mes específico o reiniciar toda la base de datos:
+              </p>
+
+              <!-- Opción 1: Eliminar solo un mes -->
+              <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
+                <input type="radio" name="deleteMode" value="month" ${hasMonths ? 'checked' : 'disabled'} class="mt-1" style="accent-color: var(--danger-text);" />
+                <div class="flex-1 min-w-0 space-y-2">
+                  <div>
+                    <p class="font-bold text-sm">Eliminar solo un mes específico</p>
+                    <p class="text-xs theme-text-secondary">Borra las sesiones y faltas del mes seleccionado conservando las listas de alumnos y los demás meses.</p>
+                  </div>
+                  ${hasMonths
+                    ? `<select id="deleteMonthSelect" class="w-full rounded-xl px-3 py-2 text-xs sm:text-sm font-medium theme-input">
+                        ${months.map(ym => `<option value="${ym}">${escapeHTML(formatMonthYearLabel(ym))}</option>`).join('')}
+                      </select>`
+                    : '<p class="text-xs theme-text-muted italic">No hay meses con sesiones registradas.</p>'
+                  }
+                </div>
+              </label>
+
+              <!-- Opción 2: Reiniciar toda la base de datos -->
+              <label class="flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer" style="border-color: var(--danger-border); background-color: var(--danger-soft);">
+                <input type="radio" name="deleteMode" value="all" ${!hasMonths ? 'checked' : ''} class="mt-1" style="accent-color: var(--danger-text);" />
+                <div>
+                  <p class="font-bold text-sm" style="color: var(--danger-text);">Reiniciar toda la base de datos</p>
+                  <p class="text-xs theme-text-secondary">Elimina permanentemente todos los alumnos, sesiones y faltas de los tres grupos.</p>
+                </div>
+              </label>
+
+              <div class="flex justify-end gap-2 pt-2">
+                <button type="button" id="cancelDeleteDataBtn" class="px-4 py-2 rounded-xl border theme-border text-sm font-semibold theme-hover">Cancelar</button>
+                <button type="button" id="confirmDeleteDataBtn" class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700">Confirmar eliminación</button>
+              </div>
+            </div>
+          `,
+          (el) => {
+            el.querySelector('#cancelDeleteDataBtn').addEventListener('click', closeModal);
+            el.querySelector('#confirmDeleteDataBtn').addEventListener('click', () => {
+              const mode = el.querySelector('input[name="deleteMode"]:checked').value;
+              if (mode === 'month') {
+                const ym = el.querySelector('#deleteMonthSelect').value;
+                appState.sessions = appState.sessions.filter(s => !s.date.startsWith(ym));
+                appState.absences = appState.absences.filter(a => !a.date.startsWith(ym));
+                saveStateToStorage();
+                populateMonthDropdowns();
+                syncAllRegistroChecksFromState();
+                closeModal();
+                switchTab(uiState.activeTab);
+                showToast(`Registros de ${formatMonthYearLabel(ym)} eliminados.`);
+              } else {
+                appState.students = { 'Miembros 1': [], 'Miembros 2': [], 'Miembros 3': [] };
+                appState.sessions = [];
+                appState.absences = [];
+                GROUPS_CONFIG.forEach(cfg => uiState.registroChecked[cfg.id].clear());
+                saveStateToStorage();
+                populateMonthDropdowns();
+                closeModal();
+                switchTab(uiState.activeTab);
+                showToast('Base de datos reiniciada por completo.');
+              }
+            });
+          }
+        );
+      }
+
       function openAppearanceModal() {
         openModal(
           'Apariencia y Tema',
@@ -2408,7 +2704,7 @@
                 <div class="border-t theme-border"></div>
                 <div class="flex items-center justify-between">
                   <span class="theme-text-secondary">Versión:</span>
-                  <span class="font-bold">1.3</span>
+                  <span class="font-bold">1.2</span>
                 </div>
               </div>
 
@@ -2480,6 +2776,11 @@
           openAppearanceModal();
         });
 
+        document.getElementById('menuDeleteData').addEventListener('click', () => {
+          kebabDropdown.classList.add('hidden');
+          openDeleteDataModal();
+        });
+
         document.getElementById('menuAbout').addEventListener('click', () => {
           kebabDropdown.classList.add('hidden');
           openAboutModal();
@@ -2490,86 +2791,6 @@
         document.getElementById('appModalOverlay').addEventListener('click', (e) => {
           if (e.target.id === 'appModalOverlay') closeModal();
         });
-
-        // --- Eventos Vista 1: Registro ---
-        document.getElementById('registroGroupSelect').addEventListener('change', (e) => {
-          uiState.registroGroup = e.target.value;
-          // Si la fecha actual no coincide con el nuevo grupo, ajustar automáticamente al válido más cercano
-          if (!isRegistroDateValid()) {
-            uiState.registroDate = getNearestValidDateForGroup(uiState.registroGroup, uiState.registroDate);
-          }
-          syncRegistroChecksFromState();
-          renderRegistroView();
-        });
-
-        document.getElementById('registroDateInput').addEventListener('change', (e) => {
-          if (e.target.value) {
-            uiState.registroDate = e.target.value;
-            syncRegistroChecksFromState();
-            renderRegistroView();
-          }
-        });
-
-        document.getElementById('snapNearestValidDateBtn').addEventListener('click', (e) => {
-          const targetIso = e.currentTarget.dataset.targetIso;
-          if (targetIso) {
-            uiState.registroDate = targetIso;
-            syncRegistroChecksFromState();
-            renderRegistroView();
-            showToast(`Fecha ajustada al ${formatShortDate(targetIso)}.`);
-          }
-        });
-
-        document.getElementById('registroSearchInput').addEventListener('input', (e) => {
-          uiState.registroSearch = e.target.value;
-          renderRegistroView();
-        });
-
-        // Agregar alumno inline
-        const addForm = document.getElementById('inlineAddStudentForm');
-        const addInput = document.getElementById('inlineNewStudentName');
-
-        document.getElementById('btnOpenAddStudent').addEventListener('click', () => {
-          addForm.classList.toggle('hidden');
-          if (!addForm.classList.contains('hidden')) {
-            addInput.focus();
-          }
-        });
-
-        document.getElementById('btnCancelAddStudent').addEventListener('click', () => {
-          addForm.classList.add('hidden');
-          addInput.value = '';
-        });
-
-        addForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          const name = addInput.value.trim();
-          if (!name) return;
-          const added = addStudentIfMissing(uiState.registroGroup, name);
-          if (added) {
-            saveStateToStorage();
-            addInput.value = '';
-            addForm.classList.add('hidden');
-            renderRegistroView();
-            showToast(`Alumno "${name}" agregado a ${uiState.registroGroup}.`);
-          } else {
-            showToast(`"${name}" ya existe en ${uiState.registroGroup}.`, 'warning');
-          }
-        });
-
-        document.getElementById('btnToggleManageStudents').addEventListener('click', (e) => {
-          uiState.registroManageMode = !uiState.registroManageMode;
-          e.currentTarget.classList.toggle('theme-accent-soft', uiState.registroManageMode);
-          renderRegistroView();
-        });
-
-        document.getElementById('btnClearChecks').addEventListener('click', () => {
-          uiState.registroChecked.clear();
-          renderRegistroView();
-        });
-
-        document.getElementById('btnSaveAttendance').addEventListener('click', handleSaveAttendance);
-        document.getElementById('btnDeleteCurrentSession').addEventListener('click', handleDeleteCurrentSession);
 
         // --- Eventos Vista 2: Datos de inasistencia ---
         document.getElementById('datosGroupFilter').addEventListener('change', (e) => {
@@ -2592,19 +2813,9 @@
           renderDatosView();
         });
 
-        // --- Eventos Vista 3: Gráfico ---
+        // --- Eventos Vista 3: Gráfica ---
         document.getElementById('graficoMonthFilter').addEventListener('change', (e) => {
           uiState.graficoFilterMonth = e.target.value;
-          renderGraficoView();
-        });
-
-        document.getElementById('graficoRankGroupFilter').addEventListener('change', (e) => {
-          uiState.graficoRankGroup = e.target.value;
-          renderGraficoView();
-        });
-
-        document.getElementById('graficoTopLimitFilter').addEventListener('change', (e) => {
-          uiState.graficoTopLimit = e.target.value;
           renderGraficoView();
         });
       }
