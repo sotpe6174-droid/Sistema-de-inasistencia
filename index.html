@@ -273,6 +273,13 @@
 
             <div class="my-1 border-t theme-border"></div>
 
+            <button type="button" id="menuEditNames" class="w-full px-4 py-2.5 text-left text-sm font-medium theme-hover flex items-center gap-3">
+              <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <span>Editar o eliminar alumnos</span>
+            </button>
+
             <button type="button" id="menuAppearance" class="w-full px-4 py-2.5 text-left text-sm font-medium theme-hover flex items-center gap-3">
               <svg class="w-4 h-4 shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
@@ -350,17 +357,7 @@
     <!-- ======================================================================
          VISTA 1: REGISTRO DE INASISTENCIAS (3 ACORDEONES DESPLEGABLES)
          ====================================================================== -->
-    <section id="view-registro" class="space-y-4 animate-fade-in">
-      <div class="rounded-2xl border theme-surface p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div>
-          <h2 class="text-base sm:text-lg font-extrabold">Registro de Inasistencias</h2>
-          <p class="text-xs theme-text-muted">Despliega un grupo, selecciona la fecha permitida (Viernes o Miércoles), marca quiénes faltaron y guarda.</p>
-        </div>
-        <span class="text-xs font-bold px-3 py-1 rounded-full theme-accent-soft self-start sm:self-center">
-          Orden alfabético A–Z
-        </span>
-      </div>
-
+    <section id="view-registro" class="space-y-3.5 animate-fade-in">
       <!-- Contenedor de los 3 acordeones desplegables (Miembros 1, 2 y 3) -->
       <div id="registroAccordionsContainer" class="space-y-3.5"></div>
     </section>
@@ -453,7 +450,7 @@
   </main>
 
   <!-- ========================================================================
-       MODAL GENÉRICO REUTILIZABLE (EXPORTAR, APARIENCIA, EDITAR SESIÓN, ACERCA DE)
+       MODAL GENÉRICO REUTILIZABLE (EXPORTAR, EDITAR NOMBRES, APARIENCIA, ETC.)
        ======================================================================== -->
   <div id="appModalOverlay" class="hidden fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4">
     <div id="appModalDialog" class="w-full max-w-lg rounded-2xl border theme-surface shadow-2xl overflow-hidden animate-fade-in">
@@ -523,7 +520,6 @@
           .replace(/'/g, '&#39;');
       }
 
-      // Parsea YYYY-MM-DD en hora local exacta
       function parseLocalDate(isoStr) {
         if (!isoStr || typeof isoStr !== 'string') return null;
         const m = isoStr.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
@@ -562,7 +558,6 @@
         return `${SPANISH_MONTHS[mIdx]} ${year}`;
       }
 
-      // Normaliza fechas desde Excel o texto (YYYY-MM-DD, DD/MM/YYYY, serial numérico de Excel)
       function normalizeExcelDate(raw) {
         if (raw === null || raw === undefined || raw === '') return null;
         if (typeof raw === 'number' && isFinite(raw) && raw > 20000 && raw < 90000) {
@@ -574,13 +569,11 @@
           return `${y}-${m}-${day}`;
         }
         const str = String(raw).trim();
-        // YYYY-MM-DD o YYYY/MM/DD
         let m = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
         if (m) {
           const iso = `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
           return parseLocalDate(iso) ? iso : null;
         }
-        // DD/MM/YYYY o DD-MM-YYYY
         m = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
         if (m) {
           const iso = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
@@ -589,17 +582,14 @@
         return null;
       }
 
-      // Encuentra el día de la semana válido más cercano (anterior o igual, o el más próximo)
       function getNearestValidDateForGroup(groupId, baseIsoStr) {
         const cfg = getGroupConfig(groupId);
         const base = parseLocalDate(baseIsoStr) || new Date();
         const currentDay = base.getDay();
         if (currentDay === cfg.allowedDay) return toISODateLocal(base);
 
-        // Calcular distancia hacia atrás y hacia adelante en la semana (0..6)
         const diffBack = (currentDay - cfg.allowedDay + 7) % 7;
         const diffForward = (cfg.allowedDay - currentDay + 7) % 7;
-
         const chosenOffset = diffBack <= diffForward ? -diffBack : diffForward;
         const target = new Date(base.getFullYear(), base.getMonth(), base.getDate() + chosenOffset);
         return toISODateLocal(target);
@@ -614,7 +604,6 @@
         return null;
       }
 
-      // Normalización de espacios y ordenamiento alfabético en español (A-Z)
       function cleanStudentName(raw) {
         return String(raw ?? '').trim().replace(/\s+/g, ' ');
       }
@@ -661,7 +650,164 @@
         }
       }
 
+      function loadAndMigrateState() {
+        const state = createEmptyState();
+        let loadedRaw = null;
+
+        try {
+          loadedRaw = localStorage.getItem(PRIMARY_STORAGE_KEY);
+          if (!loadedRaw) {
+            for (const legacyKey of LEGACY_STORAGE_KEYS) {
+              const candidate = localStorage.getItem(legacyKey);
+              if (candidate) {
+                loadedRaw = candidate;
+                break;
+              }
+            }
+          }
+
+          if (loadedRaw) {
+            const parsed = JSON.parse(loadedRaw);
+            if (parsed && typeof parsed === 'object') {
+              // Cargar listas de alumnos
+              if (parsed.students && typeof parsed.students === 'object') {
+                GROUPS_CONFIG.forEach(cfg => {
+                  const arr = parsed.students[cfg.id];
+                  if (Array.isArray(arr)) {
+                    arr.forEach(rawSt => {
+                      const clean = cleanStudentName(rawSt);
+                      if (clean && !state.students[cfg.id].some(s => compareSpanishNames(s, clean) === 0)) {
+                        state.students[cfg.id].push(clean);
+                      }
+                    });
+                  }
+                });
+              }
+
+              // Cargar sesiones registradas
+              if (Array.isArray(parsed.sessions)) {
+                parsed.sessions.forEach(s => {
+                  const grp = normalizeGroupName(s.group || s.grupo);
+                  const dt = normalizeExcelDate(s.date || s.fecha);
+                  if (grp && dt && !state.sessions.some(x => x.group === grp && x.date === dt)) {
+                    state.sessions.push({ group: grp, date: dt });
+                  }
+                });
+              }
+
+              // Cargar inasistencias
+              if (Array.isArray(parsed.absences)) {
+                parsed.absences.forEach(a => {
+                  const grp = normalizeGroupName(a.group || a.grupo);
+                  const st = cleanStudentName(a.student || a.alumno);
+                  const dt = normalizeExcelDate(a.date || a.fecha);
+                  if (grp && st && dt) {
+                    if (!state.students[grp].some(s => compareSpanishNames(s, st) === 0)) {
+                      state.students[grp].push(st);
+                    }
+                    if (!state.sessions.some(x => x.group === grp && x.date === dt)) {
+                      state.sessions.push({ group: grp, date: dt });
+                    }
+                    if (!state.absences.some(x => x.group === grp && compareSpanishNames(x.student, st) === 0 && x.date === dt)) {
+                      state.absences.push({ group: grp, student: st, date: dt });
+                    }
+                  }
+                });
+              }
+
+              // Cargar tema guardado
+              if (parsed.theme && typeof parsed.theme === 'object') {
+                if (parsed.theme.bg === 'white' || parsed.theme.bg === 'black') state.theme.bg = parsed.theme.bg;
+                if (parsed.theme.accent === 'leaf' || parsed.theme.accent === 'autumn') state.theme.accent = parsed.theme.accent;
+              }
+            }
+          }
+
+          // Revisar también clave independiente de tema si existía
+          const standaloneTheme = localStorage.getItem(THEME_STORAGE_KEY);
+          if (standaloneTheme) {
+            const t = JSON.parse(standaloneTheme);
+            if (t && (t.bg === 'white' || t.bg === 'black')) state.theme.bg = t.bg;
+            if (t && (t.accent === 'leaf' || t.accent === 'autumn')) state.theme.accent = t.accent;
+          }
+        } catch (err) {
+          console.warn('Error leyendo almacenamiento local:', err);
+        }
+
+        sortAllRosters(state);
+        saveStateToStorage(state);
+        return state;
+      }
+
       let appState = loadAndMigrateState();
+
+      function addStudentIfMissing(groupId, rawName) {
+        const clean = cleanStudentName(rawName);
+        if (!clean || !appState.students[groupId]) return false;
+        const exists = appState.students[groupId].some(s => compareSpanishNames(s, clean) === 0);
+        if (exists) return false;
+        appState.students[groupId].push(clean);
+        sortGroupRoster(groupId);
+        return true;
+      }
+
+      function addSessionUnique(groupId, isoDate) {
+        if (!groupId || !isoDate) return false;
+        const exists = appState.sessions.some(s => s.group === groupId && s.date === isoDate);
+        if (exists) return false;
+        appState.sessions.push({ group: groupId, date: isoDate });
+        return true;
+      }
+
+      function addAbsenceUnique(groupId, rawStudent, isoDate) {
+        const clean = cleanStudentName(rawStudent);
+        if (!groupId || !clean || !isoDate) return false;
+        addStudentIfMissing(groupId, clean);
+        addSessionUnique(groupId, isoDate);
+
+        // Conservar la capitalización exacta ya existente en la nómina del grupo
+        const canonical = appState.students[groupId].find(s => compareSpanishNames(s, clean) === 0) || clean;
+        const exists = appState.absences.some(
+          a => a.group === groupId && compareSpanishNames(a.student, canonical) === 0 && a.date === isoDate
+        );
+        if (exists) return false;
+        appState.absences.push({ group: groupId, student: canonical, date: isoDate });
+        return true;
+      }
+
+      function renameStudentInGroup(groupId, oldName, rawNewName) {
+        const newName = cleanStudentName(rawNewName);
+        if (!newName) return { ok: false, reason: 'empty' };
+        if (oldName === newName) return { ok: true, unchanged: true, newName };
+
+        const roster = appState.students[groupId] || [];
+        const isDuplicate = roster.some(
+          st => st !== oldName && compareSpanishNames(st, newName) === 0
+        );
+        if (isDuplicate) {
+          return { ok: false, reason: 'duplicate', name: newName };
+        }
+
+        // 1. Actualizar en la nómina del grupo y ordenar alfabéticamente
+        appState.students[groupId] = roster.map(st => (st === oldName ? newName : st));
+        sortGroupRoster(groupId);
+
+        // 2. Actualizar globalmente todo el historial de faltas de este grupo
+        appState.absences.forEach(a => {
+          if (a.group === groupId && a.student === oldName) {
+            a.student = newName;
+          }
+        });
+
+        // 3. Actualizar selección activa en Registro si estaba marcado
+        if (uiState.registroChecked[groupId] && uiState.registroChecked[groupId].has(oldName)) {
+          uiState.registroChecked[groupId].delete(oldName);
+          uiState.registroChecked[groupId].add(newName);
+        }
+
+        saveStateToStorage();
+        return { ok: true, unchanged: false, newName };
+      }
 
       const todayIso = toISODateLocal(new Date());
       const uiState = {
@@ -682,7 +828,6 @@
           'Miembros 2': '',
           'Miembros 3': ''
         },
-        editingStudent: null, // { group: 'Miembros 1', oldName: '...' }
 
         expandedDatosGroups: new Set(['Miembros 1', 'Miembros 2', 'Miembros 3']),
         datosFilterGroup: 'ALL',
@@ -693,368 +838,42 @@
         graficoFilterMonth: 'ALL'
       };
 
-      function loadAndMigrateState() {
-        const state = createEmptyState();
-        let rawPayload = null;
-
-        // 1. Buscar clave primaria o claves heredadas
-        try {
-          rawPayload = localStorage.getItem(PRIMARY_STORAGE_KEY);
-          if (!rawPayload) {
-            for (const legacyKey of LEGACY_STORAGE_KEYS) {
-              const found = localStorage.getItem(legacyKey);
-              if (found) {
-                rawPayload = found;
-                break;
-              }
-            }
-          }
-        } catch (err) {
-          console.warn('No se pudo leer localStorage:', err);
-        }
-
-        let parsed = {};
-        if (rawPayload) {
-          try {
-            parsed = JSON.parse(rawPayload) || {};
-          } catch (e) {
-            parsed = {};
-          }
-        }
-
-        // 2. Cargar tema desde clave dedicada o desde payload
-        try {
-          const savedThemeRaw = localStorage.getItem(THEME_STORAGE_KEY);
-          if (savedThemeRaw) {
-            const t = JSON.parse(savedThemeRaw);
-            state.theme.bg = (t.bg === 'black' || t.bg === 'dark') ? 'black' : 'white';
-            const acc = t.accent || t.style;
-            state.theme.accent = acc === 'autumn' ? 'autumn' : 'leaf';
-          } else if (parsed.theme && typeof parsed.theme === 'object') {
-            state.theme.bg = (parsed.theme.bg === 'black' || parsed.theme.bg === 'dark') ? 'black' : 'white';
-            const acc = parsed.theme.accent || parsed.theme.style;
-            state.theme.accent = acc === 'autumn' ? 'autumn' : 'leaf';
-          }
-        } catch (e) {
-          // Mantener defaults
-        }
-
-        // Helper interno de deduplicación durante carga
-        const addStudent = (grp, name) => {
-          const g = normalizeGroupName(grp);
-          const clean = cleanStudentName(name);
-          if (!g || !clean) return;
-          if (!state.students[g].some(s => compareSpanishNames(s, clean) === 0)) {
-            state.students[g].push(clean);
-          }
-        };
-
-        const addSession = (grp, dateIso) => {
-          const g = normalizeGroupName(grp);
-          const dt = normalizeExcelDate(dateIso);
-          if (!g || !dt) return;
-          if (!state.sessions.some(s => s.group === g && s.date === dt)) {
-            state.sessions.push({ group: g, date: dt });
-          }
-        };
-
-        const addAbsence = (grp, name, dateIso) => {
-          const g = normalizeGroupName(grp);
-          const clean = cleanStudentName(name);
-          const dt = normalizeExcelDate(dateIso);
-          if (!g || !clean || !dt) return;
-          addStudent(g, clean);
-          addSession(g, dt);
-          const canonicalName = state.students[g].find(s => compareSpanishNames(s, clean) === 0) || clean;
-          if (!state.absences.some(a => a.group === g && compareSpanishNames(a.student, canonicalName) === 0 && a.date === dt)) {
-            state.absences.push({ group: g, student: canonicalName, date: dt });
-          }
-        };
-
-        // 3. Migrar listas de alumnos
-        if (parsed.students && typeof parsed.students === 'object') {
-          Object.entries(parsed.students).forEach(([grpKey, arr]) => {
-            if (Array.isArray(arr)) {
-              arr.forEach(st => addStudent(grpKey, st));
-            }
-          });
-        }
-
-        // 4. Migrar sesiones
-        if (Array.isArray(parsed.sessions)) {
-          parsed.sessions.forEach(s => {
-            if (s && s.group && s.date) addSession(s.group, s.date);
-          });
-        }
-
-        // 5. Migrar inasistencias (`absences` o `records`)
-        if (Array.isArray(parsed.absences)) {
-          parsed.absences.forEach(a => {
-            if (a) addAbsence(a.group, a.student, a.date);
-          });
-        }
-        if (Array.isArray(parsed.records)) {
-          parsed.records.forEach(r => {
-            if (r) addAbsence(r.group, r.student, r.date);
-          });
-        } else if (parsed.records && typeof parsed.records === 'object') {
-          Object.values(parsed.records).forEach(rec => {
-            if (!rec) return;
-            addSession(rec.group, rec.date);
-            if (Array.isArray(rec.absentees)) {
-              rec.absentees.forEach(st => addAbsence(rec.group, st, rec.date));
-            }
-          });
-        }
-
-        // Ordenar nóminas alfabéticamente en español (A-Z)
-        sortAllRosters(state);
-
-        // Guardar inmediatamente en la clave estándar v1 para consolidar migración
-        saveStateToStorage(state);
-        return state;
-      }
-
-      // Helpers mutadores deduplicados y ordenados en tiempo de ejecución
-      function addStudentIfMissing(groupId, studentName) {
-        const g = normalizeGroupName(groupId);
-        const clean = cleanStudentName(studentName);
-        if (!g || !clean) return false;
-        const exists = appState.students[g].some(s => compareSpanishNames(s, clean) === 0);
-        if (!exists) {
-          appState.students[g].push(clean);
-          sortGroupRoster(g);
-          return true;
-        }
-        return false;
-      }
-
-      function renameStudentInGroup(groupId, oldName, rawNewName) {
-        const g = normalizeGroupName(groupId);
-        const cleanNew = cleanStudentName(rawNewName);
-        if (!g) return { ok: false, reason: 'invalid_group' };
-        if (!cleanNew) return { ok: false, reason: 'empty' };
-
-        const roster = appState.students[g] || [];
-        const targetIdx = roster.findIndex(s => s === oldName);
-        if (targetIdx === -1) return { ok: false, reason: 'not_found' };
-
-        // Si no cambió ni en texto ni en mayúsculas/acentos, cerrar sin error
-        if (oldName === cleanNew) {
-          return { ok: true, unchanged: true, newName: cleanNew };
-        }
-
-        // Evitar duplicados en el mismo grupo (ignorando mayúsculas y acentos)
-        const duplicateExists = roster.some(
-          (s, idx) => idx !== targetIdx && compareSpanishNames(s, cleanNew) === 0
-        );
-        if (duplicateExists) {
-          return { ok: false, reason: 'duplicate', name: cleanNew };
-        }
-
-        // a) Actualizar nombre en la lista del grupo
-        roster[targetIdx] = cleanNew;
-
-        // b) Actualizar registros históricos de inasistencia del grupo
-        appState.absences.forEach(abs => {
-          if (abs.group === g && compareSpanishNames(abs.student, oldName) === 0) {
-            abs.student = cleanNew;
-          }
-        });
-
-        // Actualizar marca en sesión actual si estaba seleccionada
-        if (uiState.registroChecked[g] && uiState.registroChecked[g].has(oldName)) {
-          uiState.registroChecked[g].delete(oldName);
-          uiState.registroChecked[g].add(cleanNew);
-        }
-
-        // c) Reordenar alfabéticamente la lista del grupo de inmediato
-        sortGroupRoster(g);
-
-        // d) Guardar en localStorage
-        saveStateToStorage();
-
-        return { ok: true, oldName, newName: cleanNew };
-      }
-
-      function addSessionUnique(groupId, dateIso) {
-        const g = normalizeGroupName(groupId);
-        const dt = normalizeExcelDate(dateIso);
-        if (!g || !dt) return false;
-        const exists = appState.sessions.some(s => s.group === g && s.date === dt);
-        if (!exists) {
-          appState.sessions.push({ group: g, date: dt });
-          return true;
-        }
-        return false;
-      }
-
-      function addAbsenceUnique(groupId, studentName, dateIso) {
-        const g = normalizeGroupName(groupId);
-        const clean = cleanStudentName(studentName);
-        const dt = normalizeExcelDate(dateIso);
-        if (!g || !clean || !dt) return false;
-        addStudentIfMissing(g, clean);
-        addSessionUnique(g, dt);
-        const canonicalName = appState.students[g].find(s => compareSpanishNames(s, clean) === 0) || clean;
-        const exists = appState.absences.some(
-          a => a.group === g && compareSpanishNames(a.student, canonicalName) === 0 && a.date === dt
-        );
-        if (!exists) {
-          appState.absences.push({ group: g, student: canonicalName, date: dt });
-          return true;
-        }
-        return false;
-      }
-
       /* ----------------------------------------------------------------------
-         4. CÁLCULOS ESTADÍSTICOS POR GRUPO Y PERÍODO
-         ---------------------------------------------------------------------- */
-      function getRegisteredMonths() {
-        const monthsSet = new Set();
-        appState.sessions.forEach(s => {
-          if (s.date && s.date.length >= 7) monthsSet.add(s.date.slice(0, 7));
-        });
-        appState.absences.forEach(a => {
-          if (a.date && a.date.length >= 7) monthsSet.add(a.date.slice(0, 7));
-        });
-        return Array.from(monthsSet).sort((a, b) => b.localeCompare(a)); // Más reciente primero
-      }
-
-      function getGroupPeriodStats(groupId, ymFilter) {
-        const students = (appState.students[groupId] || []).slice().sort(compareSpanishNames);
-        const distinctDatesSet = new Set();
-
-        appState.sessions.forEach(s => {
-          if (s.group === groupId && (ymFilter === 'ALL' || s.date.startsWith(ymFilter))) {
-            distinctDatesSet.add(s.date);
-          }
-        });
-
-        const periodAbsences = appState.absences.filter(
-          a => a.group === groupId && (ymFilter === 'ALL' || a.date.startsWith(ymFilter))
-        );
-
-        periodAbsences.forEach(a => distinctDatesSet.add(a.date));
-
-        const distinctDates = Array.from(distinctDatesSet).sort((a, b) => a.localeCompare(b));
-        const sessionsCount = distinctDates.length;
-        const studentsCount = students.length;
-        const totalAbsences = periodAbsences.length;
-        const denominator = studentsCount * sessionsCount;
-        const pct = denominator > 0 ? (totalAbsences / denominator) * 100 : 0;
-
-        return {
-          groupId,
-          students,
-          studentsCount,
-          distinctDates,
-          sessionsCount,
-          periodAbsences,
-          totalAbsences,
-          pct
-        };
-      }
-
-      // Matriz rankeada de alumnos de un grupo (de mayor a menor falta)
-      function getRankedGroupMatrix(groupId, ymFilter) {
-        const stats = getGroupPeriodStats(groupId, ymFilter);
-        const sessionDates = stats.distinctDates;
-
-        const absenceSetByStudent = new Map();
-        stats.students.forEach(st => absenceSetByStudent.set(st, new Set()));
-        stats.periodAbsences.forEach(a => {
-          const existingKey = Array.from(absenceSetByStudent.keys()).find(
-            k => k.toLowerCase() === a.student.toLowerCase()
-          ) || a.student;
-          if (!absenceSetByStudent.has(existingKey)) {
-            absenceSetByStudent.set(existingKey, new Set());
-          }
-          absenceSetByStudent.get(existingKey).add(a.date);
-        });
-
-        const rankedStudents = Array.from(absenceSetByStudent.entries())
-          .map(([student, dateSet]) => {
-            const datesAsc = Array.from(dateSet).sort((a, b) => a.localeCompare(b));
-            const count = datesAsc.length;
-            const pctNum = stats.sessionsCount > 0 ? (count / stats.sessionsCount) * 100 : 0;
-            const pctStr = `${pctNum.toFixed(1)}%`;
-            const datesText = count > 0
-              ? datesAsc.map(dt => formatShortDate(dt)).join(', ')
-              : 'Sin faltas';
-
-            return {
-              student,
-              count,
-              pctNum,
-              pctStr,
-              datesAsc,
-              datesText,
-              dateSet
-            };
-          })
-          .sort((a, b) => b.count - a.count || compareSpanishNames(a.student, b.student))
-          .map((item, idx) => ({ ...item, rank: idx + 1 }));
-
-        const studentsWithAbsencesCount = rankedStudents.filter(s => s.count > 0).length;
-
-        return {
-          stats,
-          sessionDates,
-          rankedStudents,
-          studentsWithAbsencesCount
-        };
-      }
-
-      /* ----------------------------------------------------------------------
-         5. APLICACIÓN DE TEMAS, TOASTS Y MODAL GENÉRICO
+         4. TEMAS, MODALES, NAVEGACIÓN Y NOTIFICACIONES TOAST
          ---------------------------------------------------------------------- */
       function applyTheme() {
         const htmlEl = document.documentElement;
         htmlEl.setAttribute('data-bg', appState.theme.bg);
         htmlEl.setAttribute('data-accent', appState.theme.accent);
 
-        const iconSun = document.getElementById('iconSun');
-        const iconMoon = document.getElementById('iconMoon');
-        if (appState.theme.bg === 'black') {
-          iconSun.classList.remove('hidden');
-          iconMoon.classList.add('hidden');
-        } else {
-          iconSun.classList.add('hidden');
-          iconMoon.classList.remove('hidden');
-        }
+        const isDark = appState.theme.bg === 'black';
+        document.getElementById('iconSun').classList.toggle('hidden', !isDark);
+        document.getElementById('iconMoon').classList.toggle('hidden', isDark);
       }
 
       function showToast(message, type = 'success') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
-        toast.className = 'pointer-events-auto rounded-2xl border px-4 py-3 shadow-lg text-xs sm:text-sm font-semibold flex items-center gap-2.5 animate-fade-in';
+        toast.className = 'pointer-events-auto rounded-xl border px-4 py-3 text-xs sm:text-sm font-semibold shadow-lg flex items-center gap-2.5 animate-fade-in theme-surface';
 
         if (type === 'error') {
-          toast.style.backgroundColor = 'var(--danger-soft)';
           toast.style.borderColor = 'var(--danger-border)';
           toast.style.color = 'var(--danger-text)';
         } else if (type === 'warning') {
-          toast.style.backgroundColor = 'var(--warning-soft)';
           toast.style.borderColor = 'var(--warning-border)';
           toast.style.color = 'var(--warning-text)';
         } else {
-          toast.style.backgroundColor = 'var(--bg-surface)';
           toast.style.borderColor = 'var(--accent)';
-          toast.style.color = 'var(--text-primary)';
         }
 
-        toast.innerHTML = `
-          <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${type === 'error' ? 'var(--danger-text)' : type === 'warning' ? 'var(--warning-text)' : 'var(--accent)'};"></span>
-          <span class="flex-1">${escapeHTML(message)}</span>
-        `;
-
+        toast.innerHTML = `<span class="flex-1">${escapeHTML(message)}</span>`;
         container.appendChild(toast);
+
         setTimeout(() => {
           toast.style.opacity = '0';
           toast.style.transition = 'opacity 0.25s ease';
           setTimeout(() => toast.remove(), 260);
-        }, 3600);
+        }, 3200);
       }
 
       function openModal(title, bodyHTML, onMount) {
@@ -1075,67 +894,138 @@
         document.getElementById('appModalOverlay').classList.add('hidden');
       }
 
-      /* ----------------------------------------------------------------------
-         6. NAVEGACIÓN ENTRE LAS 3 PESTAÑAS PRINCIPALES
-         ---------------------------------------------------------------------- */
       function switchTab(tabId) {
         uiState.activeTab = tabId;
 
         document.querySelectorAll('.nav-tab-btn').forEach(btn => {
           const isActive = btn.getAttribute('data-tab') === tabId;
-          if (isActive) {
-            btn.classList.add('theme-accent-bg', 'shadow-sm');
-            btn.classList.remove('theme-text-secondary', 'theme-hover');
-          } else {
-            btn.classList.remove('theme-accent-bg', 'shadow-sm');
-            btn.classList.add('theme-text-secondary', 'theme-hover');
-          }
+          btn.classList.toggle('theme-accent-bg', isActive);
+          btn.classList.toggle('shadow-xs', isActive);
+          btn.classList.toggle('theme-text-secondary', !isActive);
+          btn.classList.toggle('theme-hover', !isActive);
         });
 
-        ['registro', 'datos', 'grafico'].forEach(v => {
-          const el = document.getElementById(`view-${v}`);
-          if (v === tabId) {
-            el.classList.remove('hidden');
-          } else {
-            el.classList.add('hidden');
-          }
-        });
+        document.getElementById('view-registro').classList.toggle('hidden', tabId !== 'registro');
+        document.getElementById('view-datos').classList.toggle('hidden', tabId !== 'datos');
+        document.getElementById('view-grafico').classList.toggle('hidden', tabId !== 'grafico');
+
+        populateMonthDropdowns();
 
         if (tabId === 'registro') {
-          syncAllRegistroChecksFromState();
           renderRegistroView();
         } else if (tabId === 'datos') {
-          populateMonthDropdowns();
           renderDatosView();
         } else if (tabId === 'grafico') {
-          populateMonthDropdowns();
           renderGraficoView();
         }
       }
 
       /* ----------------------------------------------------------------------
-         7. VISTA 1: REGISTRO DE INASISTENCIAS (3 ACORDEONES DESPLEGABLES)
+         5. CÁLCULOS ESTADÍSTICOS Y MATRICES POR PERÍODO
          ---------------------------------------------------------------------- */
-      function syncGroupRegistroChecksFromState(groupId) {
-        uiState.registroChecked[groupId].clear();
-        const dt = uiState.registroDates[groupId];
+      function isGroupDateValid(groupId, isoStr) {
+        const d = parseLocalDate(isoStr);
+        if (!d) return false;
+        const cfg = getGroupConfig(groupId);
+        return d.getDay() === cfg.allowedDay;
+      }
+
+      function getRegisteredMonths() {
+        const set = new Set();
+        appState.sessions.forEach(s => {
+          if (s.date && s.date.length >= 7) set.add(s.date.slice(0, 7));
+        });
         appState.absences.forEach(a => {
-          if (a.group === groupId && a.date === dt) {
-            uiState.registroChecked[groupId].add(a.student);
+          if (a.date && a.date.length >= 7) set.add(a.date.slice(0, 7));
+        });
+        return Array.from(set).sort((a, b) => b.localeCompare(a));
+      }
+
+      function getGroupPeriodStats(groupId, ymFilter) {
+        const students = (appState.students[groupId] || []).slice().sort(compareSpanishNames);
+        const periodAbsences = appState.absences.filter(
+          a => a.group === groupId && (ymFilter === 'ALL' || a.date.startsWith(ymFilter))
+        );
+
+        const dateSet = new Set();
+        appState.sessions.forEach(s => {
+          if (s.group === groupId && (ymFilter === 'ALL' || s.date.startsWith(ymFilter))) {
+            dateSet.add(s.date);
           }
         });
+        periodAbsences.forEach(a => dateSet.add(a.date));
+
+        const distinctDates = Array.from(dateSet).sort((a, b) => a.localeCompare(b));
+        const sessionsCount = distinctDates.length;
+        const studentsCount = students.length;
+        const totalAbsences = periodAbsences.length;
+
+        const denominator = studentsCount * sessionsCount;
+        const pct = denominator > 0 ? (totalAbsences / denominator) * 100 : 0;
+
+        return {
+          students,
+          studentsCount,
+          periodAbsences,
+          distinctDates,
+          sessionsCount,
+          totalAbsences,
+          pct
+        };
+      }
+
+      function getRankedGroupMatrix(groupId, ymFilter) {
+        const stats = getGroupPeriodStats(groupId, ymFilter);
+        const rows = stats.students.map(st => {
+          const stAbs = stats.periodAbsences
+            .filter(a => compareSpanishNames(a.student, st) === 0)
+            .map(a => a.date)
+            .sort((a, b) => a.localeCompare(b));
+
+          const count = stAbs.length;
+          const pct = stats.sessionsCount > 0 ? (count / stats.sessionsCount) * 100 : 0;
+          const datesText = stAbs.length > 0
+            ? stAbs.map(d => formatShortDate(d)).join(', ')
+            : 'Sin faltas';
+
+          return {
+            student: st,
+            count,
+            pct,
+            pctStr: `${pct.toFixed(1)}%`,
+            datesAsc: stAbs,
+            datesText
+          };
+        });
+
+        // Ordenar de mayor a menor falta y alfabéticamente en caso de empate
+        rows.sort((a, b) => (b.count - a.count) || compareSpanishNames(a.student, b.student));
+        rows.forEach((r, idx) => {
+          r.rank = idx + 1;
+        });
+
+        return { stats, rankedStudents: rows };
+      }
+
+      /* ----------------------------------------------------------------------
+         6. VISTA 1: REGISTRO DE INASISTENCIAS (ACORDEONES LIMPIOS Y ALFABÉTICOS)
+         ---------------------------------------------------------------------- */
+      function syncRegistroCheckFromState(groupId) {
+        const dt = uiState.registroDates[groupId];
+        const set = new Set();
+        appState.absences.forEach(a => {
+          if (a.group === groupId && a.date === dt) {
+            set.add(a.student);
+          }
+        });
+        uiState.registroChecked[groupId] = set;
       }
 
       function syncAllRegistroChecksFromState() {
-        GROUPS_CONFIG.forEach(cfg => syncGroupRegistroChecksFromState(cfg.id));
+        GROUPS_CONFIG.forEach(cfg => syncRegistroCheckFromState(cfg.id));
       }
 
-      function isGroupDateValid(groupId, dateIso) {
-        const cfg = getGroupConfig(groupId);
-        const d = parseLocalDate(dateIso);
-        if (!d) return false;
-        return d.getDay() === cfg.allowedDay;
-      }
+      syncAllRegistroChecksFromState();
 
       function renderRegistroView() {
         const container = document.getElementById('registroAccordionsContainer');
@@ -1144,49 +1034,153 @@
         GROUPS_CONFIG.forEach(cfg => {
           const groupId = cfg.id;
           const isExpanded = uiState.expandedRegistroGroups.has(groupId);
-          const dateIso = uiState.registroDates[groupId];
-          const parsedDate = parseLocalDate(dateIso);
-          const isValidDate = isGroupDateValid(groupId, dateIso);
           const allStudents = (appState.students[groupId] || []).slice().sort(compareSpanishNames);
+          const currentDate = uiState.registroDates[groupId];
+          const validDate = isGroupDateValid(groupId, currentDate);
           const checkedSet = uiState.registroChecked[groupId];
-          const searchTerm = (uiState.registroSearch[groupId] || '').trim().toLowerCase();
+          const isExistingSession = appState.sessions.some(s => s.group === groupId && s.date === currentDate);
+          const parsedDate = parseLocalDate(currentDate);
+          const dayLabel = parsedDate ? SPANISH_DAYS[parsedDate.getDay()] : 'Fecha inválida';
 
-          const sessionExists = isValidDate && (
-            appState.sessions.some(s => s.group === groupId && s.date === dateIso) ||
-            appState.absences.some(a => a.group === groupId && a.date === dateIso)
-          );
+          const card = document.createElement('div');
+          card.className = 'rounded-2xl border theme-surface overflow-hidden';
 
-          const accordion = document.createElement('div');
-          accordion.className = 'rounded-2xl border theme-surface overflow-hidden transition-all';
+          card.innerHTML = `
+            <!-- Cabecera del acordeón -->
+            <button
+              type="button"
+              class="btn-toggle-registro-accordion w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left theme-surface-alt theme-hover transition-colors"
+              aria-expanded="${isExpanded}"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl theme-accent-soft flex items-center justify-center font-extrabold text-sm shrink-0">
+                  ${groupId.replace('Miembros ', 'M')}
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h2 class="text-base sm:text-lg font-extrabold">${escapeHTML(groupId)}</h2>
+                    <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-accent-soft">${cfg.dayNameCap}</span>
+                    ${isExistingSession
+                      ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full" style="background-color: var(--warning-soft); color: var(--warning-text);">Sesión guardada</span>`
+                      : ''
+                    }
+                  </div>
+                  <p class="text-xs theme-text-muted mt-0.5">
+                    ${allStudents.length} ${allStudents.length === 1 ? 'alumno' : 'alumnos'} · Fecha seleccionada: <strong>${formatShortDate(currentDate)}</strong> (${dayLabel})
+                  </p>
+                </div>
+              </div>
 
-          // Cabecera desplegable del acordeón
-          const headerBtn = document.createElement('button');
-          headerBtn.type = 'button';
-          headerBtn.className = 'w-full px-4 sm:px-5 py-4 flex items-center justify-between gap-3 text-left theme-hover transition-colors';
-          headerBtn.setAttribute('aria-expanded', String(isExpanded));
-          headerBtn.innerHTML = `
-            <div class="flex items-center gap-2.5 flex-wrap min-w-0">
-              <span class="text-base sm:text-lg font-extrabold">${escapeHTML(groupId)}</span>
-              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-accent-soft">${cfg.dayNameCap}</span>
-              <span class="text-xs font-semibold theme-text-muted">
-                · ${allStudents.length} ${allStudents.length === 1 ? 'alumno' : 'alumnos'}
-              </span>
-              ${sessionExists
-                ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-surface-alt border theme-border" style="color: var(--accent);">Sesión guardada</span>`
-                : ''
-              }
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg" style="background-color: var(--danger-soft); color: var(--danger-text);">
-                ${checkedSet.size} ${checkedSet.size === 1 ? 'falta' : 'faltas'}
-              </span>
-              <svg class="w-5 h-5 theme-text-secondary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 theme-text-secondary shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
+            </button>
+
+            <!-- Cuerpo desplegable -->
+            <div class="p-4 sm:p-5 border-t theme-border space-y-4 ${isExpanded ? '' : 'hidden'}">
+              <!-- Fila 1: Selector de fecha + Estado de sesión -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <label class="text-xs font-bold theme-text-secondary">Fecha (${cfg.dayNameCap}):</label>
+                  <input
+                    type="date"
+                    class="input-group-date rounded-xl px-3.5 py-2 text-sm font-semibold theme-input cursor-pointer"
+                    value="${escapeHTML(currentDate)}"
+                  />
+                </div>
+
+                <div class="flex items-center gap-2 flex-wrap">
+                  ${isExistingSession
+                    ? `<span class="text-xs font-bold px-3 py-1 rounded-full" style="background-color: var(--warning-soft); color: var(--warning-text);">● Editando sesión del ${formatShortDate(currentDate)}</span>`
+                    : `<span class="text-xs font-semibold px-3 py-1 rounded-full theme-surface-alt border theme-border theme-text-muted">Nueva sesión</span>`
+                  }
+                </div>
+              </div>
+
+              ${!validDate
+                ? `<div class="rounded-xl border p-3 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2" style="background-color: var(--warning-soft); border-color: var(--warning-border); color: var(--warning-text);">
+                    <span><strong>Día no permitido:</strong> ${escapeHTML(groupId)} solo tiene clases los <strong>${cfg.dayName}</strong> (elegiste ${dayLabel}).</span>
+                    <button type="button" class="btn-fix-group-date px-3 py-1.5 rounded-lg font-bold text-white shrink-0" style="background-color: var(--warning-text);">
+                      Ajustar al ${cfg.dayName} cercano
+                    </button>
+                  </div>`
+                : ''
+              }
+
+              <!-- Fila 2: Agregar alumno + Filtrar alumno -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <form class="form-add-student flex gap-2">
+                  <input
+                    type="text"
+                    class="input-new-student flex-1 min-w-0 rounded-xl px-3.5 py-2.5 text-sm theme-input"
+                    placeholder="Agregar nombre de alumno..."
+                    autocomplete="off"
+                  />
+                  <button type="submit" class="px-4 py-2.5 rounded-xl text-sm font-bold theme-accent-bg shrink-0 transition-colors">
+                    + Agregar
+                  </button>
+                </form>
+
+                <div class="relative">
+                  <svg class="w-4 h-4 theme-text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    class="input-search-student w-full rounded-xl pl-9 pr-3.5 py-2.5 text-sm theme-input"
+                    placeholder="Filtrar alumnos en ${escapeHTML(groupId)}..."
+                    value="${escapeHTML(uiState.registroSearch[groupId] || '')}"
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+
+              <!-- Sub-barra de conteo y desmarcar -->
+              <div class="flex items-center justify-between text-xs theme-text-secondary border-b theme-border pb-2">
+                <span>${allStudents.length} ${allStudents.length === 1 ? 'alumno' : 'alumnos'} (orden alfabético)</span>
+                <button type="button" class="btn-clear-group-checks font-semibold hover:underline" style="color: var(--accent);">
+                  Desmarcar todos
+                </button>
+              </div>
+
+              <!-- Listado alfabético de alumnos (1 sola columna) -->
+              <div class="group-students-grid grid grid-cols-1 gap-2 max-h-[48vh] overflow-y-auto pr-0.5"></div>
+
+              <!-- Barra inferior de acción -->
+              <div class="pt-3 border-t theme-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="font-extrabold px-2.5 py-1 rounded-lg" style="background-color: var(--danger-soft); color: var(--danger-text);">
+                    ${checkedSet.size} ${checkedSet.size === 1 ? 'falta marcada' : 'faltas marcadas'}
+                  </span>
+                  <span class="theme-text-muted">
+                    (${allStudents.length > 0 ? ((checkedSet.size / allStudents.length) * 100).toFixed(1) : '0.0'}%)
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-2 justify-end">
+                  ${isExistingSession
+                    ? `<button type="button" class="btn-delete-group-session px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-colors" style="border-color: var(--danger-border); color: var(--danger-text); background-color: var(--danger-soft);">
+                        Eliminar sesión
+                      </button>`
+                    : ''
+                  }
+                  <button
+                    type="button"
+                    class="btn-save-group-attendance px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold theme-accent-bg flex items-center gap-1.5 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    ${!validDate ? 'disabled' : ''}
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Guardar</span>
+                  </button>
+                </div>
+              </div>
             </div>
           `;
 
-          headerBtn.addEventListener('click', () => {
+          // Eventos del acordeón
+          card.querySelector('.btn-toggle-registro-accordion').addEventListener('click', () => {
             if (uiState.expandedRegistroGroups.has(groupId)) {
               uiState.expandedRegistroGroups.delete(groupId);
             } else {
@@ -1195,206 +1189,62 @@
             renderRegistroView();
           });
 
-          accordion.appendChild(headerBtn);
-
-          if (!isExpanded) {
-            container.appendChild(accordion);
-            return;
-          }
-
-          // Cuerpo desplegado del acordeón
-          const body = document.createElement('div');
-          body.className = 'px-4 sm:px-5 pb-5 pt-3 border-t theme-border space-y-4 animate-fade-in';
-
-          const dayLabel = parsedDate ? SPANISH_DAYS[parsedDate.getDay()] : 'Sin fecha';
-          const nearestIso = getNearestValidDateForGroup(groupId, dateIso);
-
-          body.innerHTML = `
-            <!-- Fila 1: Selector de fecha y estado de sesión -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
-              <div>
-                <div class="flex items-center justify-between mb-1.5">
-                  <label class="text-xs font-bold theme-text-secondary">Fecha de clase (${cfg.dayNameCap})</label>
-                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-accent-soft">${dayLabel}</span>
-                </div>
-                <input
-                  type="date"
-                  value="${escapeHTML(dateIso)}"
-                  class="group-date-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold theme-input"
-                />
-              </div>
-
-              <div class="flex items-center sm:justify-end">
-                ${sessionExists
-                  ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl theme-accent-soft">
-                      <span class="w-2 h-2 rounded-full" style="background-color: var(--accent);"></span>
-                      Editando sesión del ${formatShortDate(dateIso)}
-                    </span>`
-                  : `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl theme-surface-alt border theme-border theme-text-muted">
-                      Nueva sesión (${formatShortDate(dateIso)})
-                    </span>`
-                }
-              </div>
-            </div>
-
-            <!-- Alerta si el día de la semana no corresponde al grupo -->
-            ${!isValidDate ? `
-              <div class="rounded-2xl border p-3.5 space-y-2.5" style="background-color: var(--warning-soft); border-color: var(--warning-border); color: var(--warning-text);">
-                <div class="flex items-start gap-2.5">
-                  <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <div class="text-xs sm:text-sm space-y-0.5">
-                    <p class="font-extrabold">Día no permitido para ${escapeHTML(groupId)}</p>
-                    <p class="opacity-90">Este grupo solo tiene clases los días <strong>${cfg.dayNameCap}</strong>. Seleccionaste ${dayLabel} (${formatShortDate(dateIso)}).</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  class="btn-snap-date px-3.5 py-2 rounded-xl text-xs font-bold theme-accent-bg shadow-sm"
-                >
-                  Ajustar al ${cfg.dayNameCap} más cercano (${formatShortDate(nearestIso)})
-                </button>
-              </div>
-            ` : ''}
-
-            <!-- Fila 2: Agregar nuevo alumno + Buscador rápido -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <form class="add-student-form flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Agregar nombre de alumno..."
-                  class="new-student-input flex-1 rounded-xl px-3.5 py-2.5 text-sm theme-input"
-                  autocomplete="off"
-                />
-                <button type="submit" class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold theme-accent-bg shrink-0 flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span>Agregar</span>
-                </button>
-              </form>
-
-              <div class="relative">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 theme-text-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  value="${escapeHTML(uiState.registroSearch[groupId] || '')}"
-                  placeholder="Filtrar alumnos en ${escapeHTML(groupId)}..."
-                  class="group-search-input w-full rounded-xl pl-10 pr-3.5 py-2.5 text-sm theme-input"
-                />
-              </div>
-            </div>
-
-            <!-- Sub-barra de conteo y desmarcar -->
-            <div class="flex items-center justify-between text-xs theme-text-secondary border-b theme-border pb-2">
-              <span>${allStudents.length} ${allStudents.length === 1 ? 'alumno ordenado' : 'alumnos ordenados'} alfabéticamente</span>
-              <button type="button" class="btn-clear-group-checks font-semibold hover:underline" style="color: var(--accent);">
-                Desmarcar todos
-              </button>
-            </div>
-
-            <!-- Listado alfabético de alumnos con casilla, editar nombre y eliminar -->
-            <div class="group-students-grid grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[48vh] overflow-y-auto pr-0.5"></div>
-
-            <!-- Pie del acordeón: Resumen de faltas y botón Guardar -->
-            <div class="pt-3 border-t theme-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="flex items-center gap-2">
-                <span class="text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-xl" style="background-color: var(--danger-soft); color: var(--danger-text);">
-                  ${checkedSet.size} ${checkedSet.size === 1 ? 'falta marcada' : 'faltas marcadas'}
-                </span>
-                <span class="text-xs font-semibold theme-text-muted">
-                  (${allStudents.length > 0 ? ((checkedSet.size / allStudents.length) * 100).toFixed(1) : '0.0'}%)
-                </span>
-              </div>
-
-              <div class="flex items-center gap-2">
-                ${sessionExists ? `
-                  <button
-                    type="button"
-                    class="btn-delete-group-session px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-colors"
-                    style="border-color: var(--danger-border); color: var(--danger-text); background-color: var(--danger-soft);"
-                  >
-                    Eliminar sesión
-                  </button>
-                ` : ''}
-                <button
-                  type="button"
-                  class="btn-save-group-attendance flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-sm font-extrabold theme-accent-bg shadow-sm transition-all disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  ${!isValidDate ? 'disabled' : ''}
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Guardar</span>
-                </button>
-              </div>
-            </div>
-          `;
-
-          // Enlazar eventos del acordeón
-          body.querySelector('.group-date-input').addEventListener('change', (e) => {
-            if (e.target.value) {
-              uiState.registroDates[groupId] = e.target.value;
-              syncGroupRegistroChecksFromState(groupId);
-              renderRegistroView();
-            }
+          const dateInput = card.querySelector('.input-group-date');
+          dateInput.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (!val) return;
+            uiState.registroDates[groupId] = val;
+            syncRegistroCheckFromState(groupId);
+            renderRegistroView();
           });
 
-          const snapBtn = body.querySelector('.btn-snap-date');
-          if (snapBtn) {
-            snapBtn.addEventListener('click', () => {
-              uiState.registroDates[groupId] = nearestIso;
-              syncGroupRegistroChecksFromState(groupId);
+          const fixBtn = card.querySelector('.btn-fix-group-date');
+          if (fixBtn) {
+            fixBtn.addEventListener('click', () => {
+              uiState.registroDates[groupId] = getNearestValidDateForGroup(groupId, uiState.registroDates[groupId]);
+              syncRegistroCheckFromState(groupId);
               renderRegistroView();
-              showToast(`Fecha de ${groupId} ajustada al ${formatShortDate(nearestIso)}.`);
             });
           }
 
-          body.querySelector('.add-student-form').addEventListener('submit', (e) => {
+          card.querySelector('.form-add-student').addEventListener('submit', (e) => {
             e.preventDefault();
-            const input = body.querySelector('.new-student-input');
-            const clean = cleanStudentName(input.value);
-            if (!clean) {
-              showToast('Escribe el nombre del alumno antes de agregar.', 'warning');
+            const input = card.querySelector('.input-new-student');
+            const name = cleanStudentName(input.value);
+            if (!name) return;
+
+            const added = addStudentIfMissing(groupId, name);
+            if (!added) {
+              showToast(`"${name}" ya existe en ${groupId}.`, 'warning');
               return;
             }
-            const added = addStudentIfMissing(groupId, clean);
-            if (added) {
-              saveStateToStorage();
-              renderRegistroView();
-              showToast(`"${clean}" agregado y ordenado alfabéticamente en ${groupId}.`);
-            } else {
-              showToast(`El alumno "${clean}" ya existe en ${groupId}.`, 'warning');
-            }
+            saveStateToStorage();
+            renderRegistroView();
+            showToast(`Alumno "${name}" agregado a ${groupId}.`);
           });
 
-          body.querySelector('.group-search-input').addEventListener('input', (e) => {
+          const searchInput = card.querySelector('.input-search-student');
+          searchInput.addEventListener('input', (e) => {
             uiState.registroSearch[groupId] = e.target.value;
-            renderGroupStudentsChecklist(body.querySelector('.group-students-grid'), groupId);
+            renderGroupStudentsChecklist(card.querySelector('.group-students-grid'), groupId);
           });
 
-          body.querySelector('.btn-clear-group-checks').addEventListener('click', () => {
+          card.querySelector('.btn-clear-group-checks').addEventListener('click', () => {
             uiState.registroChecked[groupId].clear();
             renderRegistroView();
           });
 
-          const delSessBtn = body.querySelector('.btn-delete-group-session');
+          const delSessBtn = card.querySelector('.btn-delete-group-session');
           if (delSessBtn) {
-            delSessBtn.addEventListener('click', () => handleDeleteGroupSession(groupId, dateIso));
+            delSessBtn.addEventListener('click', () => handleDeleteGroupSession(groupId, currentDate));
           }
 
-          body.querySelector('.btn-save-group-attendance').addEventListener('click', () => {
+          card.querySelector('.btn-save-group-attendance').addEventListener('click', () => {
             handleSaveGroupAttendance(groupId);
           });
 
-          // Renderizar las tarjetas de alumnos dentro del acordeón
-          renderGroupStudentsChecklist(body.querySelector('.group-students-grid'), groupId);
-
-          accordion.appendChild(body);
-          container.appendChild(accordion);
+          renderGroupStudentsChecklist(card.querySelector('.group-students-grid'), groupId);
+          container.appendChild(card);
         });
       }
 
@@ -1421,203 +1271,46 @@
 
         filtered.forEach(studentName => {
           const isChecked = checkedSet.has(studentName);
-          const isEditingThis =
-            uiState.editingStudent &&
-            uiState.editingStudent.group === groupId &&
-            uiState.editingStudent.oldName === studentName;
 
           const card = document.createElement('div');
-          card.className = `rounded-xl border p-3 flex items-center justify-between gap-2 transition-all ${
+          card.className = `rounded-xl border p-3 flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
             isChecked ? 'student-row-absent' : 'theme-surface-alt theme-border theme-hover'
-          } ${isEditingThis ? '' : 'cursor-pointer select-none'}`;
+          }`;
 
-          if (isEditingThis) {
-            // MODO EDICIÓN EN LÍNEA LIMPIA (Enter = Guardar, Escape = Cancelar)
-            card.innerHTML = `
-              <div class="flex items-center gap-2 flex-1 min-w-0">
-                <input
-                  type="text"
-                  class="inline-edit-name-input flex-1 min-w-0 rounded-lg px-2.5 py-1.5 text-sm font-semibold theme-input"
-                  value="${escapeHTML(studentName)}"
-                  aria-label="Editar nombre de ${escapeHTML(studentName)}"
-                />
-                <button
-                  type="button"
-                  class="btn-confirm-rename p-1.5 rounded-lg theme-accent-bg shrink-0"
-                  title="Guardar nombre (Enter)"
-                  aria-label="Guardar nombre"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  class="btn-cancel-rename p-1.5 rounded-lg border theme-border theme-surface theme-hover shrink-0"
-                  title="Cancelar edición (Escape)"
-                  aria-label="Cancelar edición"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            `;
+          card.innerHTML = `
+            <div class="flex items-center gap-2.5 flex-1 min-w-0">
+              <input
+                type="checkbox"
+                class="student-absent-checkbox w-5 h-5 rounded cursor-pointer shrink-0"
+                style="accent-color: var(--danger-text);"
+                ${isChecked ? 'checked' : ''}
+              />
+              <span class="text-sm font-semibold truncate">${escapeHTML(studentName)}</span>
+            </div>
 
-            const editInput = card.querySelector('.inline-edit-name-input');
-            const saveEdit = () => {
-              const res = renameStudentInGroup(groupId, studentName, editInput.value);
-              if (!res.ok) {
-                if (res.reason === 'empty') {
-                  showToast('El nombre del alumno no puede quedar vacío.', 'warning');
-                } else if (res.reason === 'duplicate') {
-                  showToast(`Ya existe "${res.name}" en ${groupId}.`, 'warning');
-                }
-                editInput.focus();
-                return;
+            <div class="flex items-center shrink-0">
+              ${isChecked
+                ? `<span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full" style="background-color: var(--danger-text); color: #fff;">Falta</span>`
+                : `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-accent-soft">Asistió</span>`
               }
-              uiState.editingStudent = null;
-              renderRegistroView();
-              if (!res.unchanged) {
-                showToast(`Nombre actualizado a "${res.newName}" y ordenado alfabéticamente.`);
-              }
-            };
+            </div>
+          `;
 
-            const cancelEdit = () => {
-              uiState.editingStudent = null;
-              renderRegistroView();
-            };
-
-            card.querySelector('.btn-confirm-rename').addEventListener('click', (e) => {
-              e.stopPropagation();
-              saveEdit();
-            });
-
-            card.querySelector('.btn-cancel-rename').addEventListener('click', (e) => {
-              e.stopPropagation();
-              cancelEdit();
-            });
-
-            editInput.addEventListener('click', (e) => e.stopPropagation());
-            editInput.addEventListener('keydown', (e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                saveEdit();
-              } else if (e.key === 'Escape') {
-                e.preventDefault();
-                cancelEdit();
-              }
-            });
-
-            requestAnimationFrame(() => {
-              editInput.focus();
-              editInput.select();
-            });
-          } else {
-            // MODO NORMAL CON CASILLA + BOTÓN EDITAR (LÁPIZ) + BOTÓN ELIMINAR
-            card.innerHTML = `
-              <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                <input
-                  type="checkbox"
-                  class="student-absent-checkbox w-5 h-5 rounded cursor-pointer shrink-0"
-                  style="accent-color: var(--danger-text);"
-                  ${isChecked ? 'checked' : ''}
-                />
-                <span class="text-sm font-semibold truncate">${escapeHTML(studentName)}</span>
-              </div>
-
-              <div class="flex items-center gap-1 shrink-0">
-                ${isChecked
-                  ? `<span class="text-[11px] font-extrabold px-2 py-0.5 rounded-full mr-0.5" style="background-color: var(--danger-text); color: #fff;">Falta</span>`
-                  : ''
-                }
-                <button
-                  type="button"
-                  class="btn-edit-student p-1.5 rounded-lg theme-hover theme-text-secondary transition-colors"
-                  title="Editar nombre del alumno"
-                  aria-label="Editar nombre de ${escapeHTML(studentName)}"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  class="btn-remove-student p-1.5 rounded-lg hover:bg-red-500/15 transition-colors"
-                  style="color: var(--danger-text);"
-                  title="Eliminar alumno del grupo"
-                  aria-label="Eliminar a ${escapeHTML(studentName)}"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            `;
-
-            const checkbox = card.querySelector('.student-absent-checkbox');
-            card.addEventListener('click', (e) => {
-              if (e.target.closest('.btn-edit-student') || e.target.closest('.btn-remove-student')) {
-                return;
-              }
-              if (e.target !== checkbox) {
-                checkbox.checked = !checkbox.checked;
-              }
-              if (checkbox.checked) {
-                checkedSet.add(studentName);
-              } else {
-                checkedSet.delete(studentName);
-              }
-              renderRegistroView();
-            });
-
-            card.querySelector('.btn-edit-student').addEventListener('click', (e) => {
-              e.stopPropagation();
-              uiState.editingStudent = { group: groupId, oldName: studentName };
-              renderRegistroView();
-            });
-
-            card.querySelector('.btn-remove-student').addEventListener('click', (e) => {
-              e.stopPropagation();
-              confirmRemoveStudentFromGroup(groupId, studentName);
-            });
-          }
+          const checkbox = card.querySelector('.student-absent-checkbox');
+          card.addEventListener('click', (e) => {
+            if (e.target !== checkbox) {
+              checkbox.checked = !checkbox.checked;
+            }
+            if (checkbox.checked) {
+              checkedSet.add(studentName);
+            } else {
+              checkedSet.delete(studentName);
+            }
+            renderRegistroView();
+          });
 
           gridEl.appendChild(card);
         });
-      }
-
-      function confirmRemoveStudentFromGroup(groupId, studentName) {
-        openModal(
-          'Eliminar alumno del grupo',
-          `
-            <div class="space-y-4">
-              <p class="text-sm theme-text-secondary">
-                ¿Deseas quitar a <strong>${escapeHTML(studentName)}</strong> de <strong>${escapeHTML(groupId)}</strong>? También se eliminarán sus registros históricos de falta en este grupo.
-              </p>
-              <div class="flex justify-end gap-2">
-                <button type="button" id="cancelRemoveStBtn" class="px-4 py-2 rounded-xl border theme-border text-sm font-semibold theme-hover">Cancelar</button>
-                <button type="button" id="confirmRemoveStBtn" class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700">Eliminar</button>
-              </div>
-            </div>
-          `,
-          (el) => {
-            el.querySelector('#cancelRemoveStBtn').addEventListener('click', closeModal);
-            el.querySelector('#confirmRemoveStBtn').addEventListener('click', () => {
-              appState.students[groupId] = appState.students[groupId].filter(
-                s => compareSpanishNames(s, studentName) !== 0
-              );
-              appState.absences = appState.absences.filter(
-                a => !(a.group === groupId && compareSpanishNames(a.student, studentName) === 0)
-              );
-              uiState.registroChecked[groupId].delete(studentName);
-              saveStateToStorage();
-              closeModal();
-              renderRegistroView();
-              showToast(`Alumno "${studentName}" eliminado de ${groupId}.`);
-            });
-          }
-        );
       }
 
       function handleSaveGroupAttendance(groupId) {
@@ -1628,11 +1321,7 @@
         }
 
         const checkedSet = uiState.registroChecked[groupId];
-
-        // Registrar la sesión oficialmente (incluso con 0 faltas)
         addSessionUnique(groupId, dt);
-
-        // Reemplazar faltas previas de esta fecha y grupo
         appState.absences = appState.absences.filter(a => !(a.group === groupId && a.date === dt));
 
         checkedSet.forEach(studentName => {
@@ -1674,7 +1363,7 @@
       }
 
       /* ----------------------------------------------------------------------
-         8. VISTA 2: DATOS DE INASISTENCIA (ACORDEONES, EDICIÓN DE NOMBRE Y FALTAS)
+         7. VISTA 2: DATOS DE INASISTENCIA (ACORDEONES POR GRUPO Y EDICIÓN)
          ---------------------------------------------------------------------- */
       function populateMonthDropdowns() {
         const months = getRegisteredMonths();
@@ -1833,16 +1522,6 @@
                       #${entry.rank}
                     </span>
                     <p class="font-bold text-sm truncate">${escapeHTML(entry.student)}</p>
-                    <button
-                      type="button"
-                      class="btn-rename-from-datos p-1 rounded-lg theme-hover theme-text-secondary shrink-0"
-                      title="Editar nombre del alumno"
-                      aria-label="Editar nombre de ${escapeHTML(entry.student)}"
-                    >
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </button>
                   </div>
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full" style="${entry.count > 0 ? 'background-color: var(--danger-soft); color: var(--danger-text);' : 'background-color: var(--accent-soft); color: var(--accent-text);'}">
@@ -1858,10 +1537,6 @@
                   ${datesBadgesHTML}
                 </div>
               `;
-
-              row.querySelector('.btn-rename-from-datos').addEventListener('click', () => {
-                openRenameStudentModal(cfg.id, entry.student);
-              });
 
               row.querySelectorAll('.btn-delete-single-absence').forEach(delBtn => {
                 delBtn.addEventListener('click', () => {
@@ -1885,57 +1560,253 @@
         });
       }
 
-      function openRenameStudentModal(groupId, currentName) {
+      /* ----------------------------------------------------------------------
+         8. MODAL DE EDITAR O ELIMINAR ALUMNOS POR GRUPO (ACTUALIZACIÓN GLOBAL)
+         ---------------------------------------------------------------------- */
+      function openEditNamesModal() {
+        let selectedGroupFilter = 'ALL';
+        let searchQuery = '';
+        let editingTarget = null; // { group, name }
+        let deletingTarget = null; // { group, name }
+
         openModal(
-          `Editar nombre — ${groupId}`,
+          'Editar o eliminar alumnos',
           `
-            <form id="renameStudentModalForm" class="space-y-4">
-              <div>
-                <label for="modalRenameStudentInput" class="block text-xs font-bold theme-text-secondary mb-1.5">
-                  Nuevo nombre del alumno
-                </label>
+            <div class="space-y-3.5">
+              <p class="text-xs theme-text-secondary">
+                Gestiona los alumnos de cada grupo. Al <strong>editar</strong> un nombre se actualiza globalmente en todo el historial; al <strong>eliminar</strong> se borra del grupo y de sus registros.
+              </p>
+
+              <!-- Filtro rápido por grupo y nombre -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <select id="editNamesGroupFilter" class="w-full rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold theme-input cursor-pointer">
+                  <option value="ALL">Todos los grupos</option>
+                  <option value="Miembros 1">Miembros 1 (Viernes)</option>
+                  <option value="Miembros 2">Miembros 2 (Viernes)</option>
+                  <option value="Miembros 3">Miembros 3 (Miércoles)</option>
+                </select>
+
                 <input
                   type="text"
-                  id="modalRenameStudentInput"
-                  value="${escapeHTML(currentName)}"
-                  class="w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold theme-input"
+                  id="editNamesSearchInput"
+                  placeholder="Buscar alumno..."
+                  class="w-full rounded-xl px-3 py-2 text-xs sm:text-sm theme-input"
                   autocomplete="off"
                 />
-                <p class="text-[11px] theme-text-muted mt-1.5">
-                  Se actualizarán todas sus faltas históricas y la lista se ordenará alfabéticamente.
-                </p>
               </div>
-              <div class="flex justify-end gap-2">
-                <button type="button" id="cancelRenameModalBtn" class="px-4 py-2 rounded-xl border theme-border text-sm font-semibold theme-hover">Cancelar</button>
-                <button type="submit" class="px-4 py-2 rounded-xl text-sm font-bold theme-accent-bg">Guardar cambio</button>
+
+              <!-- Contenedor dividido por grupos -->
+              <div id="editNamesGroupsList" class="space-y-3 max-h-[54vh] overflow-y-auto pr-0.5"></div>
+
+              <div class="flex justify-end pt-2 border-t theme-border">
+                <button type="button" id="closeEditNamesModalBtn" class="px-5 py-2 rounded-xl text-sm font-bold theme-accent-bg">Cerrar</button>
               </div>
-            </form>
+            </div>
           `,
           (el) => {
-            const input = el.querySelector('#modalRenameStudentInput');
-            el.querySelector('#cancelRenameModalBtn').addEventListener('click', closeModal);
-            el.querySelector('#renameStudentModalForm').addEventListener('submit', (e) => {
-              e.preventDefault();
-              const res = renameStudentInGroup(groupId, currentName, input.value);
-              if (!res.ok) {
-                if (res.reason === 'empty') {
-                  showToast('El nombre del alumno no puede estar vacío.', 'warning');
-                } else if (res.reason === 'duplicate') {
-                  showToast(`Ya existe "${res.name}" en ${groupId}.`, 'warning');
+            const listContainer = el.querySelector('#editNamesGroupsList');
+            const groupSelect = el.querySelector('#editNamesGroupFilter');
+            const searchInput = el.querySelector('#editNamesSearchInput');
+
+            const renderGroupsList = () => {
+              const targetGroups = selectedGroupFilter === 'ALL'
+                ? GROUPS_CONFIG
+                : GROUPS_CONFIG.filter(g => g.id === selectedGroupFilter);
+
+              const term = searchQuery.trim().toLowerCase();
+              listContainer.innerHTML = '';
+
+              targetGroups.forEach(cfg => {
+                const roster = (appState.students[cfg.id] || [])
+                  .slice()
+                  .sort(compareSpanishNames)
+                  .filter(st => !term || st.toLowerCase().includes(term));
+
+                const section = document.createElement('div');
+                section.className = 'rounded-xl border theme-border theme-surface-alt overflow-hidden';
+
+                section.innerHTML = `
+                  <div class="px-3.5 py-2.5 border-b theme-border flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs sm:text-sm font-extrabold">${escapeHTML(cfg.id)}</span>
+                      <span class="text-[11px] font-bold px-2 py-0.5 rounded-full theme-accent-soft">${cfg.dayNameCap}</span>
+                    </div>
+                    <span class="text-[11px] font-semibold theme-text-muted">${roster.length} ${roster.length === 1 ? 'alumno' : 'alumnos'}</span>
+                  </div>
+                  <div class="divide-y theme-border group-roster-items"></div>
+                `;
+
+                const itemsEl = section.querySelector('.group-roster-items');
+
+                if (roster.length === 0) {
+                  itemsEl.innerHTML = `
+                    <p class="px-3.5 py-3 text-xs theme-text-muted text-center">
+                      ${term ? 'Sin coincidencias en este grupo.' : 'No hay alumnos registrados en este grupo.'}
+                    </p>
+                  `;
+                } else {
+                  roster.forEach(studentName => {
+                    const row = document.createElement('div');
+                    row.className = 'px-3.5 py-2.5 flex items-center justify-between gap-2';
+
+                    const isEditingThis =
+                      editingTarget &&
+                      editingTarget.group === cfg.id &&
+                      editingTarget.name === studentName;
+
+                    const isDeletingThis =
+                      deletingTarget &&
+                      deletingTarget.group === cfg.id &&
+                      deletingTarget.name === studentName;
+
+                    if (isEditingThis) {
+                      row.innerHTML = `
+                        <input
+                          type="text"
+                          class="modal-inline-name-input flex-1 min-w-0 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm font-semibold theme-input"
+                          value="${escapeHTML(studentName)}"
+                        />
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          <button type="button" class="btn-save-inline-name px-3 py-1.5 rounded-lg text-xs font-bold theme-accent-bg">
+                            Guardar
+                          </button>
+                          <button type="button" class="btn-cancel-inline-name px-2.5 py-1.5 rounded-lg border theme-border theme-surface text-xs font-semibold theme-hover">
+                            Cancelar
+                          </button>
+                        </div>
+                      `;
+
+                      const inputEl = row.querySelector('.modal-inline-name-input');
+                      const commitRename = () => {
+                        const res = renameStudentInGroup(cfg.id, studentName, inputEl.value);
+                        if (!res.ok) {
+                          if (res.reason === 'empty') {
+                            showToast('El nombre del alumno no puede quedar vacío.', 'warning');
+                          } else if (res.reason === 'duplicate') {
+                            showToast(`Ya existe "${res.name}" en ${cfg.id}.`, 'warning');
+                          }
+                          inputEl.focus();
+                          return;
+                        }
+                        editingTarget = null;
+                        renderGroupsList();
+                        switchTab(uiState.activeTab);
+                        if (!res.unchanged) {
+                          showToast(`Nombre actualizado globalmente a "${res.newName}".`);
+                        }
+                      };
+
+                      row.querySelector('.btn-save-inline-name').addEventListener('click', commitRename);
+                      row.querySelector('.btn-cancel-inline-name').addEventListener('click', () => {
+                        editingTarget = null;
+                        renderGroupsList();
+                      });
+                      inputEl.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          commitRename();
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault();
+                          editingTarget = null;
+                          renderGroupsList();
+                        }
+                      });
+
+                      requestAnimationFrame(() => {
+                        inputEl.focus();
+                        inputEl.select();
+                      });
+                    } else if (isDeletingThis) {
+                      row.style.backgroundColor = 'var(--danger-soft)';
+                      row.innerHTML = `
+                        <span class="text-xs font-semibold truncate" style="color: var(--danger-text);">
+                          ¿Eliminar a <strong>${escapeHTML(studentName)}</strong>?
+                        </span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          <button type="button" class="btn-confirm-inline-delete px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 hover:bg-red-700">
+                            Sí, eliminar
+                          </button>
+                          <button type="button" class="btn-cancel-inline-delete px-2.5 py-1.5 rounded-lg border theme-border theme-surface text-xs font-semibold theme-hover">
+                            Cancelar
+                          </button>
+                        </div>
+                      `;
+
+                      row.querySelector('.btn-confirm-inline-delete').addEventListener('click', () => {
+                        appState.students[cfg.id] = appState.students[cfg.id].filter(
+                          s => compareSpanishNames(s, studentName) !== 0
+                        );
+                        appState.absences = appState.absences.filter(
+                          a => !(a.group === cfg.id && compareSpanishNames(a.student, studentName) === 0)
+                        );
+                        uiState.registroChecked[cfg.id].delete(studentName);
+                        saveStateToStorage();
+                        deletingTarget = null;
+                        renderGroupsList();
+                        switchTab(uiState.activeTab);
+                        showToast(`Alumno "${studentName}" eliminado de ${cfg.id}.`);
+                      });
+
+                      row.querySelector('.btn-cancel-inline-delete').addEventListener('click', () => {
+                        deletingTarget = null;
+                        renderGroupsList();
+                      });
+                    } else {
+                      row.innerHTML = `
+                        <span class="text-xs sm:text-sm font-semibold truncate">${escapeHTML(studentName)}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            class="btn-start-edit-name px-3 py-1 rounded-lg border theme-border theme-surface theme-hover text-xs font-bold"
+                            style="color: var(--accent);"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-start-delete-name px-3 py-1 rounded-lg border text-xs font-bold transition-colors"
+                            style="border-color: var(--danger-border); color: var(--danger-text); background-color: var(--danger-soft);"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      `;
+
+                      row.querySelector('.btn-start-edit-name').addEventListener('click', () => {
+                        deletingTarget = null;
+                        editingTarget = { group: cfg.id, name: studentName };
+                        renderGroupsList();
+                      });
+
+                      row.querySelector('.btn-start-delete-name').addEventListener('click', () => {
+                        editingTarget = null;
+                        deletingTarget = { group: cfg.id, name: studentName };
+                        renderGroupsList();
+                      });
+                    }
+
+                    itemsEl.appendChild(row);
+                  });
                 }
-                input.focus();
-                return;
-              }
-              closeModal();
-              renderDatosView();
-              if (!res.unchanged) {
-                showToast(`Alumno renombrado a "${res.newName}" y ordenado alfabéticamente.`);
-              }
+
+                listContainer.appendChild(section);
+              });
+            };
+
+            groupSelect.addEventListener('change', (e) => {
+              selectedGroupFilter = e.target.value;
+              editingTarget = null;
+              deletingTarget = null;
+              renderGroupsList();
             });
-            requestAnimationFrame(() => {
-              input.focus();
-              input.select();
+
+            searchInput.addEventListener('input', (e) => {
+              searchQuery = e.target.value;
+              renderGroupsList();
             });
+
+            el.querySelector('#closeEditNamesModalBtn').addEventListener('click', closeModal);
+            renderGroupsList();
           }
         );
       }
@@ -1984,6 +1855,7 @@
               btn.addEventListener('click', () => {
                 uiState.expandedRegistroGroups.add(groupId);
                 uiState.registroDates[groupId] = btn.getAttribute('data-date');
+                syncRegistroCheckFromState(groupId);
                 closeModal();
                 switchTab('registro');
               });
@@ -2014,15 +1886,12 @@
         document.getElementById('graficoGroupTotalTag').textContent =
           `${totalAbsAll} ${totalAbsAll === 1 ? 'falta total' : 'faltas totales'}`;
 
-        // Renderizar gráfico de barras vertical (0% a 100%)
         const chartContainer = document.getElementById('graficoVerticalChartContainer');
         const yTicks = [100, 75, 50, 25, 0];
 
         chartContainer.innerHTML = `
           <div class="relative pt-4 pb-2">
-            <!-- Área del gráfico con líneas guía horizontales -->
             <div class="relative h-64 sm:h-72 flex items-end pl-10 sm:pl-12 pr-2 sm:pr-6">
-              <!-- Líneas de referencia 0% - 100% -->
               <div class="absolute inset-0 left-10 sm:left-12 right-2 sm:right-6 flex flex-col justify-between pointer-events-none">
                 ${yTicks.map(tick => `
                   <div class="relative w-full border-b theme-border ${tick === 0 ? 'border-solid' : 'border-dashed'}">
@@ -2033,7 +1902,6 @@
                 `).join('')}
               </div>
 
-              <!-- Columnas verticales de los 3 grupos -->
               <div class="relative z-10 w-full h-full grid grid-cols-3 gap-4 sm:gap-10 items-end pt-2">
                 ${groupsData.map(g => {
                   const clampedPct = Math.min(100, Math.max(0, g.pct));
@@ -2056,7 +1924,6 @@
               </div>
             </div>
 
-            <!-- Etiquetas del eje X -->
             <div class="grid grid-cols-3 gap-4 sm:gap-10 pl-10 sm:pl-12 pr-2 sm:pr-6 pt-3 text-center">
               ${groupsData.map(g => `
                 <div class="min-w-0">
@@ -2068,7 +1935,6 @@
           </div>
         `;
 
-        // Tarjetas resumen por grupo
         const cardsContainer = document.getElementById('graficoSummaryCardsContainer');
         cardsContainer.innerHTML = groupsData.map(g => `
           <div class="rounded-2xl border theme-surface p-4 space-y-2.5">
@@ -2102,7 +1968,6 @@
          10. EXPORTACIÓN A EXCEL (3 OPCIONES: TODO / MES ESPECÍFICO / HOJAS MENSUALES)
          ---------------------------------------------------------------------- */
       function buildStandardWorkbookSheets(ymFilter) {
-        // 1) Hoja Historial_Inasistencias
         const filteredAbsences = appState.absences
           .filter(a => ymFilter === 'ALL' || a.date.startsWith(ymFilter))
           .slice()
@@ -2126,7 +1991,6 @@
           : XLSX.utils.aoa_to_sheet([['Grupo', 'Alumno', 'Fecha', 'Dia', 'Mes']]);
         wsHistorial['!cols'] = [{ wch: 15 }, { wch: 28 }, { wch: 14 }, { wch: 14 }, { wch: 18 }];
 
-        // 2) Hoja Resumen_Alumnos
         const resumenRows = [];
         GROUPS_CONFIG.forEach(cfg => {
           const matrix = getRankedGroupMatrix(cfg.id, ymFilter);
@@ -2147,7 +2011,6 @@
           : XLSX.utils.aoa_to_sheet([['Grupo', 'Alumno', 'Total_Faltas', 'Sesiones_Grupo', 'Porcentaje_Inasistencia', 'Fechas_Falta']]);
         wsResumen['!cols'] = [{ wch: 15 }, { wch: 28 }, { wch: 14 }, { wch: 16 }, { wch: 22 }, { wch: 36 }];
 
-        // 3) Hoja Listas_Alumnos (ordenada alfabéticamente)
         const listasRows = [];
         GROUPS_CONFIG.forEach(cfg => {
           const roster = (appState.students[cfg.id] || []).slice().sort(compareSpanishNames);
@@ -2185,7 +2048,6 @@
                 Elige cómo deseas descargar tus registros en formato <strong>.xlsx</strong> (incluye <em>Historial_Inasistencias</em>, <em>Resumen_Alumnos</em> y <em>Listas_Alumnos</em>):
               </p>
 
-              <!-- Opción 1: Todo el historial -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
                 <input type="radio" name="exportMode" value="all" checked class="mt-1" style="accent-color: var(--accent);" />
                 <div>
@@ -2194,7 +2056,6 @@
                 </div>
               </label>
 
-              <!-- Opción 2: Solo un mes específico -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
                 <input type="radio" name="exportMode" value="single_month" ${!hasMonths ? 'disabled' : ''} class="mt-1" style="accent-color: var(--accent);" />
                 <div class="flex-1 min-w-0 space-y-2">
@@ -2213,7 +2074,6 @@
                 </div>
               </label>
 
-              <!-- Opción 3: Separado por hojas mensuales -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
                 <input type="radio" name="exportMode" value="split_months" ${!hasMonths ? 'disabled' : ''} class="mt-1" style="accent-color: var(--accent);" />
                 <div>
@@ -2275,7 +2135,7 @@
                   });
 
                   XLSX.writeFile(wb, 'Inasistencias_Por_Mes.xlsx');
-                  showToast(`Archivo Inasistencias_Por_Mes.xlsx descargado.`);
+                  showToast('Archivo Inasistencias_Por_Mes.xlsx descargado.');
                 }
 
                 closeModal();
@@ -2297,7 +2157,7 @@
         let inStudentTable = false;
         let colIdxAlumno = 1;
         let colIdxFechasText = 4;
-        let dateColumns = []; // [{ colIdx, isoDate }]
+        let dateColumns = [];
         let foundAnyGroupBlock = false;
 
         for (let r = 0; r < rows.length; r++) {
@@ -2308,10 +2168,9 @@
           const secondCell = String(row[1] ?? '').trim();
           const upperFirst = firstCell.toUpperCase();
 
-          // 1. Detectar banner de bloque MIEMBROS 1 / 2 / 3 (evitando la tabla Resumen Ejecutivo de arriba)
           const isGroupBanner =
             (upperFirst.startsWith('MIEMBROS 1') || upperFirst.startsWith('MIEMBROS 2') || upperFirst.startsWith('MIEMBROS 3')) &&
-            !secondCell; // En el resumen ejecutivo row[1] es 'Viernes' o 'Miércoles'; en el banner de bloque row[1] está vacío
+            !secondCell;
 
           if (isGroupBanner) {
             currentGroup = normalizeGroupName(firstCell);
@@ -2321,7 +2180,6 @@
             continue;
           }
 
-          // 2. Detectar fila de encabezados de alumnos dentro del bloque activo
           if (currentGroup && !inStudentTable) {
             const lowerRow = row.map(c => String(c ?? '').trim().toLowerCase());
             const alumnoIdx = lowerRow.findIndex(c => c === 'alumno' || c === 'estudiante' || c === 'nombre');
@@ -2345,12 +2203,10 @@
             }
           }
 
-          // 3. Procesar filas de alumnos dentro del bloque activo
           if (currentGroup && inStudentTable) {
-            const studentName = String(row[colIdxAlumno] ?? '').trim();
+            const studentName = cleanStudentName(row[colIdxAlumno]);
             const lowerSt = studentName.toLowerCase();
 
-            // Fin de bloque si aparece fila de totales o fila vacía
             if (
               !studentName ||
               lowerSt.startsWith('total ') ||
@@ -2361,12 +2217,10 @@
               continue;
             }
 
-            // Rescatar 100% de alumnos, incluso con 0 faltas
             if (addStudentIfMissing(currentGroup, studentName)) {
               statsCounter.studentsAdded++;
             }
 
-            // A) Extraer fechas desde la columna texto "Fechas de Inasistencia"
             const rawDatesStr = String(row[colIdxFechasText] ?? '').trim();
             if (rawDatesStr && rawDatesStr.toLowerCase() !== 'sin faltas' && rawDatesStr !== '-') {
               rawDatesStr.split(/[,;]+/).forEach(part => {
@@ -2377,7 +2231,6 @@
               });
             }
 
-            // B) Extraer fechas desde las columnas DD/MM/YYYY marcadas con "X"
             dateColumns.forEach(({ colIdx, isoDate }) => {
               const mark = String(row[colIdx] ?? '').trim().toUpperCase();
               if (mark === 'X' || mark === '1' || mark === 'SI' || mark === 'SÍ') {
@@ -2416,12 +2269,10 @@
               if (!sheet) return;
               const lowerSheet = sheetName.trim().toLowerCase();
 
-              // 1. Intentar leer formato de hoja única `Ranking_Por_Grupo` o bloques con encabezados MIEMBROS 1/2/3
               if (parseSingleSheetRankedFormat(sheet, counter)) {
                 return;
               }
 
-              // 2. Compatibilidad con hojas estándar: Listas_Alumnos / Resumen_Alumnos
               if (['listas_alumnos', 'alumnos', 'resumen_alumnos', 'resumen_general'].includes(lowerSheet)) {
                 const jsonRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
                 jsonRows.forEach(r => {
@@ -2434,7 +2285,6 @@
                 return;
               }
 
-              // 3. Compatibilidad con hojas estándar: Historial_Inasistencias o pestañas mensuales YYYY-MM
               if (
                 ['historial_inasistencias', 'historial', 'inasistencias'].includes(lowerSheet) ||
                 /^\d{4}-\d{2}$/.test(lowerSheet)
@@ -2451,7 +2301,6 @@
                 return;
               }
 
-              // 4. Compatibilidad con hojas individuales por grupo (Miembros 1, Miembros 2, Miembros 3)
               const sheetGroup = normalizeGroupName(sheetName);
               if (sheetGroup) {
                 const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
@@ -2525,7 +2374,6 @@
                 Selecciona si deseas borrar las inasistencias de un mes específico o reiniciar toda la base de datos:
               </p>
 
-              <!-- Opción 1: Eliminar solo un mes -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border theme-border theme-surface-alt cursor-pointer">
                 <input type="radio" name="deleteMode" value="month" ${hasMonths ? 'checked' : 'disabled'} class="mt-1" style="accent-color: var(--danger-text);" />
                 <div class="flex-1 min-w-0 space-y-2">
@@ -2542,7 +2390,6 @@
                 </div>
               </label>
 
-              <!-- Opción 2: Reiniciar toda la base de datos -->
               <label class="flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer" style="border-color: var(--danger-border); background-color: var(--danger-soft);">
                 <input type="radio" name="deleteMode" value="all" ${!hasMonths ? 'checked' : ''} class="mt-1" style="accent-color: var(--danger-text);" />
                 <div>
@@ -2657,7 +2504,7 @@
                 appState.theme.bg = btn.getAttribute('data-bg-choice');
                 applyTheme();
                 saveStateToStorage();
-                openAppearanceModal(); // Re-render selección activa
+                openAppearanceModal();
               });
             });
 
@@ -2766,9 +2613,15 @@
         });
 
         fileInput.addEventListener('change', (e) => {
-          if (e.target.files && e.target.files[0]) {
-            handleImportExcelFile(e.target.files[0]);
+          const selectedFile = e.target.files && e.target.files[0];
+          if (selectedFile) {
+            handleImportExcelFile(selectedFile);
           }
+        });
+
+        document.getElementById('menuEditNames').addEventListener('click', () => {
+          kebabDropdown.classList.add('hidden');
+          openEditNamesModal();
         });
 
         document.getElementById('menuAppearance').addEventListener('click', () => {
